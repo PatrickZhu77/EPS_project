@@ -10,6 +10,8 @@ GEN_OPTS__FLAG :=
 GEN_CMDS__FLAG := 
 
 ORDERED_OBJS += \
+"./source/Device_RM46.obj" \
+"./source/Fapi_UserDefinedFunctions.obj" \
 "./source/dabort.obj" \
 "./source/errata_SSWF021_45.obj" \
 "./source/esm.obj" \
@@ -31,7 +33,7 @@ ORDERED_OBJS += \
 "./source/sys_core.obj" \
 "./source/sys_dma.obj" \
 "./source/sys_intvecs.obj" \
-"./source/sys_main3.obj" \
+"./source/sys_main4.obj" \
 "./source/sys_mpu.obj" \
 "./source/sys_pcr.obj" \
 "./source/sys_phantom.obj" \
@@ -41,9 +43,24 @@ ORDERED_OBJS += \
 "./source/sys_startup.obj" \
 "./source/sys_vim.obj" \
 "./source/system.obj" \
+"./source/ti_fee_Info.obj" \
+"./source/ti_fee_cancel.obj" \
+"./source/ti_fee_cfg.obj" \
+"./source/ti_fee_eraseimmediateblock.obj" \
+"./source/ti_fee_format.obj" \
+"./source/ti_fee_ini.obj" \
+"./source/ti_fee_invalidateblock.obj" \
+"./source/ti_fee_main.obj" \
+"./source/ti_fee_read.obj" \
+"./source/ti_fee_readSync.obj" \
+"./source/ti_fee_shutdown.obj" \
+"./source/ti_fee_util.obj" \
+"./source/ti_fee_writeAsync.obj" \
+"./source/ti_fee_writeSync.obj" \
 "../source/sys_link.cmd" \
 $(GEN_CMDS__FLAG) \
 -lrtsv7R4_T_le_v3D16_eabi.lib \
+-l"C:/ti/Hercules/F021 Flash API/02.01.01/F021_API_CortexR4_LE_V3D16.lib" \
 
 -include ../makefile.init
 
@@ -184,8 +201,9 @@ FreeRTOS_test0.hex: $(EXE_OUTPUTS)
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "source\dabort.obj" "source\errata_SSWF021_45.obj" "source\esm.obj" "source\gio.obj" "source\het.obj" "source\notification.obj" "source\os_croutine.obj" "source\os_event_groups.obj" "source\os_heap.obj" "source\os_list.obj" "source\os_mpu_wrappers.obj" "source\os_port.obj" "source\os_portasm.obj" "source\os_queue.obj" "source\os_tasks.obj" "source\os_timer.obj" "source\pinmux.obj" "source\sci.obj" "source\sys_core.obj" "source\sys_dma.obj" "source\sys_intvecs.obj" "source\sys_main3.obj" "source\sys_mpu.obj" "source\sys_pcr.obj" "source\sys_phantom.obj" "source\sys_pmm.obj" "source\sys_pmu.obj" "source\sys_selftest.obj" "source\sys_startup.obj" "source\sys_vim.obj" "source\system.obj" 
-	-$(RM) "source\errata_SSWF021_45.d" "source\esm.d" "source\gio.d" "source\het.d" "source\notification.d" "source\os_croutine.d" "source\os_event_groups.d" "source\os_heap.d" "source\os_list.d" "source\os_mpu_wrappers.d" "source\os_port.d" "source\os_queue.d" "source\os_tasks.d" "source\os_timer.d" "source\pinmux.d" "source\sci.d" "source\sys_dma.d" "source\sys_main3.d" "source\sys_pcr.d" "source\sys_phantom.d" "source\sys_pmm.d" "source\sys_selftest.d" "source\sys_startup.d" "source\sys_vim.d" "source\system.d" 
+	-$(RM) "source\Device_RM46.obj" "source\Fapi_UserDefinedFunctions.obj" "source\dabort.obj" "source\errata_SSWF021_45.obj" "source\esm.obj" "source\gio.obj" "source\het.obj" "source\notification.obj" "source\os_croutine.obj" "source\os_event_groups.obj" "source\os_heap.obj" "source\os_list.obj" "source\os_mpu_wrappers.obj" "source\os_port.obj" "source\os_portasm.obj" "source\os_queue.obj" "source\os_tasks.obj" "source\os_timer.obj" "source\pinmux.obj" "source\sci.obj" "source\sys_core.obj" "source\sys_dma.obj" "source\sys_intvecs.obj" "source\sys_main4.obj" "source\sys_mpu.obj" "source\sys_pcr.obj" "source\sys_phantom.obj" "source\sys_pmm.obj" "source\sys_pmu.obj" "source\sys_selftest.obj" "source\sys_startup.obj" "source\sys_vim.obj" "source\system.obj" "source\ti_fee_Info.obj" "source\ti_fee_cancel.obj" "source\ti_fee_cfg.obj" "source\ti_fee_eraseimmediateblock.obj" "source\ti_fee_format.obj" "source\ti_fee_ini.obj" "source\ti_fee_invalidateblock.obj" "source\ti_fee_main.obj" "source\ti_fee_read.obj" 
+	-$(RM) "source\ti_fee_readSync.obj" "source\ti_fee_shutdown.obj" "source\ti_fee_util.obj" "source\ti_fee_writeAsync.obj" "source\ti_fee_writeSync.obj" 
+	-$(RM) "source\Device_RM46.d" "source\Fapi_UserDefinedFunctions.d" "source\errata_SSWF021_45.d" "source\esm.d" "source\gio.d" "source\het.d" "source\notification.d" "source\os_croutine.d" "source\os_event_groups.d" "source\os_heap.d" "source\os_list.d" "source\os_mpu_wrappers.d" "source\os_port.d" "source\os_queue.d" "source\os_tasks.d" "source\os_timer.d" "source\pinmux.d" "source\sci.d" "source\sys_dma.d" "source\sys_main4.d" "source\sys_pcr.d" "source\sys_phantom.d" "source\sys_pmm.d" "source\sys_selftest.d" "source\sys_startup.d" "source\sys_vim.d" "source\system.d" "source\ti_fee_Info.d" "source\ti_fee_cancel.d" "source\ti_fee_cfg.d" "source\ti_fee_eraseimmediateblock.d" "source\ti_fee_format.d" "source\ti_fee_ini.d" "source\ti_fee_invalidateblock.d" "source\ti_fee_main.d" "source\ti_fee_read.d" "source\ti_fee_readSync.d" "source\ti_fee_shutdown.d" "source\ti_fee_util.d" "source\ti_fee_writeAsync.d" "source\ti_fee_writeSync.d" 
 	-$(RM) "source\dabort.d" "source\os_portasm.d" "source\sys_core.d" "source\sys_intvecs.d" "source\sys_mpu.d" "source\sys_pmu.d" 
 	-@echo 'Finished clean'
 	-@echo ' '

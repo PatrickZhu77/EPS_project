@@ -21,6 +21,7 @@ C_SRCS += \
 ../source/notification.c \
 ../source/pinmux.c \
 ../source/sci.c \
+../source/spi.c \
 ../source/sys_dma.c \
 ../source/sys_main.c \
 ../source/sys_pcr.c \
@@ -37,6 +38,7 @@ C_DEPS += \
 ./source/notification.d \
 ./source/pinmux.d \
 ./source/sci.d \
+./source/spi.d \
 ./source/sys_dma.d \
 ./source/sys_main.d \
 ./source/sys_pcr.d \
@@ -54,6 +56,7 @@ OBJS += \
 ./source/notification.obj \
 ./source/pinmux.obj \
 ./source/sci.obj \
+./source/spi.obj \
 ./source/sys_core.obj \
 ./source/sys_dma.obj \
 ./source/sys_intvecs.obj \
@@ -82,6 +85,7 @@ OBJS__QUOTED += \
 "source\notification.obj" \
 "source\pinmux.obj" \
 "source\sci.obj" \
+"source\spi.obj" \
 "source\sys_core.obj" \
 "source\sys_dma.obj" \
 "source\sys_intvecs.obj" \
@@ -102,6 +106,7 @@ C_DEPS__QUOTED += \
 "source\notification.d" \
 "source\pinmux.d" \
 "source\sci.d" \
+"source\spi.d" \
 "source\sys_dma.d" \
 "source\sys_main.d" \
 "source\sys_pcr.d" \
@@ -132,6 +137,7 @@ C_SRCS__QUOTED += \
 "../source/notification.c" \
 "../source/pinmux.c" \
 "../source/sci.c" \
+"../source/spi.c" \
 "../source/sys_dma.c" \
 "../source/sys_main.c" \
 "../source/sys_pcr.c" \

@@ -8,14 +8,14 @@ SHELL = cmd.exe
 source/%.obj: ../source/%.asm $(GEN_OPTS) | $(GEN_FILES)
 	@echo 'Building file: "$<"'
 	@echo 'Invoking: Arm Compiler'
-	"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/bin/armcl" -mv7R4 --code_state=32 --float_support=VFPv3D16 --include_path="C:/Users/sdamkjar/Documents/EPS/projects/SCI" --include_path="C:/Users/sdamkjar/Documents/EPS/projects/SCI/include" --include_path="C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include" -g --printf_support=full --diag_warning=225 --diag_wrap=off --display_error_number --enum_type=packed --abi=eabi --preproc_with_compile --preproc_dependency="source/$(basename $(<F)).d_raw" --obj_directory="source" $(GEN_OPTS__FLAG) "$<"
+	"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/bin/armcl" -mv7R4 --code_state=32 --float_support=VFPv3D16 --include_path="C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/SCI" --include_path="C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/SCI/include" --include_path="C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include" -g --printf_support=full --diag_warning=225 --diag_wrap=off --display_error_number --enum_type=packed --abi=eabi --preproc_with_compile --preproc_dependency="source/$(basename $(<F)).d_raw" --obj_directory="source" $(GEN_OPTS__FLAG) "$<"
 	@echo 'Finished building: "$<"'
 	@echo ' '
 
 source/%.obj: ../source/%.c $(GEN_OPTS) | $(GEN_FILES)
 	@echo 'Building file: "$<"'
 	@echo 'Invoking: Arm Compiler'
-	"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/bin/armcl" -mv7R4 --code_state=32 --float_support=VFPv3D16 --include_path="C:/Users/sdamkjar/Documents/EPS/projects/SCI" --include_path="C:/Users/sdamkjar/Documents/EPS/projects/SCI/include" --include_path="C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include" -g --printf_support=full --diag_warning=225 --diag_wrap=off --display_error_number --enum_type=packed --abi=eabi --preproc_with_compile --preproc_dependency="source/$(basename $(<F)).d_raw" --obj_directory="source" $(GEN_OPTS__FLAG) "$<"
+	"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/bin/armcl" -mv7R4 --code_state=32 --float_support=VFPv3D16 --include_path="C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/SCI" --include_path="C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/SCI/include" --include_path="C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include" -g --printf_support=full --diag_warning=225 --diag_wrap=off --display_error_number --enum_type=packed --abi=eabi --preproc_with_compile --preproc_dependency="source/$(basename $(<F)).d_raw" --obj_directory="source" $(GEN_OPTS__FLAG) "$<"
 	@echo 'Finished building: "$<"'
 	@echo ' '
 
