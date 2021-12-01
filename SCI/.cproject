@@ -77,7 +77,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="source/ina226_backup.c|source/sys_main_backup.c|source/example_i2c_pcf8570.c|source/example_i2cMaster_TX_RX.c|source/example_i2cSlave_TX_RX.c|source/example_sci_uart_9600.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="source/sys_main_backup.c|source/ina226_backup.c|source/example_i2c_pcf8570.c|source/example_i2cMaster_TX_RX.c|source/example_i2cSlave_TX_RX.c|source/example_sci_uart_9600.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
