@@ -102,7 +102,44 @@ void rx_task(void *pvParameters);
 
 TaskHandle_t tx2Task_Handler;
 
-void tx2_task(void *pvParameters);
+void init_task(void *pvParameters);
+
+#define init_TASK_PRIO         2
+
+#define init_STK_SIZE         128
+
+TaskHandle_t initTask_Handler;
+
+void init_task(void *pvParameters);
+
+void getHK_task(void *pvParameters);
+
+#define getHK_TASK_PRIO         2
+
+#define getHK_STK_SIZE         128
+
+TaskHandle_t getHKTask_Handler;
+
+void selfCheck_task(void *pvParameters);
+
+#define selfCheck_TASK_PRIO         2
+
+#define selfCheck_STK_SIZE         128
+
+TaskHandle_t selfCheckTask_Handler;
+
+void mppt_task(void *pvParameters);
+
+#define mppt_TASK_PRIO         2
+
+#define mppt_STK_SIZE         128
+
+TaskHandle_t mpptTask_Handler;
+
+
+void selfCheck_task(void *pvParameters);
+
+
 
 #define TIMER_ID                1
 #define DELAY_10_SECONDS        10000UL /* 1000 ticks per sec on this H/W */

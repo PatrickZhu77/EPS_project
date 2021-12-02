@@ -15,15 +15,18 @@
 
 #define     INA226_ADDR1    0x44//0x8E        //SLAVE ADDRESS 1000111 (VS|SCL)
 
-/*//#define       INA226_GETALADDR    0x14
+//#define       INA226_GETALADDR    0x14
 typedef struct
 {
-    double voltageVal;           //V
-    double Shunt_voltage;        //mV
-    double Shunt_Current;        //A
-    double powerVal;
-}INA226;
-*/
+    uint8_t address;
+    double shunt_voltage;       //mV
+    double bus_voltage;         //V
+    uint16_t calibration;
+    double current;             //A
+    double power;               //W
+    boolean flag;
+}ina226_data;
+
 
 void INA226_Init(i2cBASE_t *i2c, uint8_t addr);
 void INA226_SetRegPointer(i2cBASE_t *i2c, uint8_t addr, uint8_t reg);
@@ -31,12 +34,13 @@ void INA226_SendData(i2cBASE_t *i2c,uint8_t addr,uint8_t reg,uint8_t *data);
 void INA226_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data);
 
 
-void INA226_GetShunt_Current(i2cBASE_t *i2c, uint8_t addr, double *data);
+
+void INA226_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, double *data);
 void INA226_GetVoltage(i2cBASE_t *i2c, uint8_t addr, double *data);
 void INA226_SetCalReg(i2cBASE_t *i2c, uint8_t addr,uint16_t *data);
-void INA226_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, double *data);
-void INA226_Get_Power(i2cBASE_t *i2c, uint8_t addr, double *data);
-void INA226_Get_ID(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
-void INA226_GET_CAL_REG(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
+void INA226_GetCurrent(i2cBASE_t *i2c, uint8_t addr, double *data);
+void INA226_GetPower(i2cBASE_t *i2c, uint8_t addr, double *data);
+void INA226_GetID(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
+void INA226_GetCalReg(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
 
 #endif

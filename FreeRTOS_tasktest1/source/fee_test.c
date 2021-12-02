@@ -137,10 +137,6 @@ void main(void)
 
     /* Initialize RAM array.*/
     for(loop=0;loop<100;loop++)SpecialRamBlock[loop] = loop;
-    printf("readdata= %d\n", (unsigned int)read_data[7]);
-
-    /* Format bank 7 */
-    TI_Fee_Format(0xA5A5A5A5U);
 
     /* Initialize FEE. This will create Virtual sectors, initialize global variables etc.*/
     TI_Fee_Init();
@@ -151,7 +147,6 @@ void main(void)
         Status=TI_Fee_GetStatus(0 );
     }
     while(Status!= IDLE);
-    printf("Fee initialized\n");
 
     /* Write the block into EEP Asynchronously. Block size is configured in ti_fee_cfg.c file. Default Block size is
        8 bytes */
@@ -167,7 +162,6 @@ void main(void)
 
     /* Write the block into EEP Synchronously. Write will not happen since data is same. */
     TI_Fee_WriteSync(BlockNumber, &SpecialRamBlock[0]);
-    printf("Fee write\n");
 
     /* Read the block with unknown length */
      BlockOffset = 0;
@@ -180,23 +174,19 @@ void main(void)
          Status=TI_Fee_GetStatus(0);
      }
     while(Status!=IDLE);
-     printf("Fee read\n");
-
-     printf("readdata= %d\n", (unsigned int)read_data[7]);
-
 
     /* Invalidate a written block  */
-//    TI_Fee_InvalidateBlock(BlockNumber);
-//    do
-//    {
-//        TI_Fee_MainFunction();
-//        delay();
-//        Status=TI_Fee_GetStatus(0);
-//    }
-//    while(Status!=IDLE);
+    TI_Fee_InvalidateBlock(BlockNumber);
+    do
+    {
+        TI_Fee_MainFunction();
+        delay();
+        Status=TI_Fee_GetStatus(0);
+    }
+    while(Status!=IDLE);
 
     /* Format bank 7 */
-    //TI_Fee_Format(0xA5A5A5A5U);
+    TI_Fee_Format(0xA5A5A5A5U);
 
     while(1);
 /* USER CODE END */
