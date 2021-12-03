@@ -36,7 +36,7 @@ C_SRCS += \
 ../source/pinmux.c \
 ../source/sci.c \
 ../source/sys_dma.c \
-../source/sys_main5.c \
+../source/sys_main4.c \
 ../source/sys_pcr.c \
 ../source/sys_phantom.c \
 ../source/sys_pmm.c \
@@ -79,7 +79,7 @@ C_DEPS += \
 ./source/pinmux.d \
 ./source/sci.d \
 ./source/sys_dma.d \
-./source/sys_main5.d \
+./source/sys_main4.d \
 ./source/sys_pcr.d \
 ./source/sys_phantom.d \
 ./source/sys_pmm.d \
@@ -126,7 +126,7 @@ OBJS += \
 ./source/sys_core.obj \
 ./source/sys_dma.obj \
 ./source/sys_intvecs.obj \
-./source/sys_main5.obj \
+./source/sys_main4.obj \
 ./source/sys_mpu.obj \
 ./source/sys_pcr.obj \
 ./source/sys_phantom.obj \
@@ -183,7 +183,7 @@ OBJS__QUOTED += \
 "source\sys_core.obj" \
 "source\sys_dma.obj" \
 "source\sys_intvecs.obj" \
-"source\sys_main5.obj" \
+"source\sys_main4.obj" \
 "source\sys_mpu.obj" \
 "source\sys_pcr.obj" \
 "source\sys_phantom.obj" \
@@ -228,7 +228,7 @@ C_DEPS__QUOTED += \
 "source\pinmux.d" \
 "source\sci.d" \
 "source\sys_dma.d" \
-"source\sys_main5.d" \
+"source\sys_main4.d" \
 "source\sys_pcr.d" \
 "source\sys_phantom.d" \
 "source\sys_pmm.d" \
@@ -279,7 +279,7 @@ C_SRCS__QUOTED += \
 "../source/pinmux.c" \
 "../source/sci.c" \
 "../source/sys_dma.c" \
-"../source/sys_main5.c" \
+"../source/sys_main4.c" \
 "../source/sys_pcr.c" \
 "../source/sys_phantom.c" \
 "../source/sys_pmm.c" \
