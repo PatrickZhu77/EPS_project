@@ -95,17 +95,20 @@ int main(void)
         INA226_ReceiveData(i2cREG1, 0x44, 0xFE, dataR);
         printf("Read1\n");
 
-        INA226_SendData(i2cREG1,0x44,0x00,dataS);
-        printf("Write\n");
 
         INA226_ReceiveData(i2cREG1, 0x44, 0x00, dataR);
         printf("Read2\n");
 */
+
+        INA226_SendData(i2cREG1,0x44,0x00,dataS);
+        printf("Write\n");
+
+
         INA226_GetShuntVoltage(i2cREG1,0x44,&dataSV);
         printf("Shunt Voltage: %f mV.\n",dataSV);
 
         INA226_GetVoltage(i2cREG1,0x44,&dataBV);
-        printf("Shunt Voltage: %f V.\n",dataBV);
+        printf("Bus Voltage: %f V.\n",dataBV);
 
     while(1);
 

@@ -4,15 +4,7 @@
 
 //INA226 INA226_data;
 
-void INA226_Init(i2cBASE_t *i2c, uint8_t addr)
-{
-    //i2cInit();
-
-    INA226_SendData(i2c,addr, CFG_REG,0x4127);
-    INA226_SendData(i2c,addr, CAL_REG,0x0000);
-}
-
-/***************************************************************************//**
+/***************************************************************************
  * @brief
  *   Set pointer to a certain register.
  *
@@ -66,7 +58,7 @@ void INA226_SetRegPointer(i2cBASE_t *i2c, uint8_t addr, uint8_t reg)
 
 
 
-/***************************************************************************//**
+/***************************************************************************
  * @brief
  *   Write data to given register with address.
  *
@@ -131,7 +123,7 @@ void INA226_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
 
 }
 
-/***************************************************************************//**
+/***************************************************************************
  * @brief
  *   Read data from given register with address.
  *
@@ -344,6 +336,14 @@ void INA226_GetCalReg(i2cBASE_t *i2c, uint8_t addr, uint16_t *data)
     *data = (uint16_t)temp;
 
     //return(err);
+}
+
+void INA226_Init(i2cBASE_t *i2c, uint8_t addr, ina226_data *data)
+{
+    //i2cInit();
+
+    INA226_SendData(i2c,addr, CFG_REG,data->config_reg);
+    INA226_SendData(i2c,addr, CAL_REG,data->cal_reg);
 }
 
 

@@ -25,10 +25,12 @@ typedef struct
     double current;             //A
     double power;               //W
     boolean flag;
+    uint8_t config_reg;
+    uint8_t cal_reg;
 }ina226_data;
 
 
-void INA226_Init(i2cBASE_t *i2c, uint8_t addr);
+void INA226_Init(i2cBASE_t *i2c, uint8_t addr, ina226_data *data);
 void INA226_SetRegPointer(i2cBASE_t *i2c, uint8_t addr, uint8_t reg);
 void INA226_SendData(i2cBASE_t *i2c,uint8_t addr,uint8_t reg,uint8_t *data);
 void INA226_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data);

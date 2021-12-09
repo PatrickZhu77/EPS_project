@@ -89,7 +89,7 @@ void INA226_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
 {
     int delay=0;
 
-    while(i2cIsMasterReady(i2c) != true);
+    //while(i2cIsMasterReady(i2c) != true);
     /* Configure address of Slave to talk to */
     i2cSetSlaveAdd(i2c, addr);
 

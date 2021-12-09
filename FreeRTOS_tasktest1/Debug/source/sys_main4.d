@@ -53,10 +53,11 @@ source/sys_main4.obj: C:/ti/Hercules/F021//\ Flash//\ API/02.01.01/include/FapiF
 source/sys_main4.obj: C:/ti/Hercules/F021//\ Flash//\ API/02.01.01/include/Compatibility.h
 source/sys_main4.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/Device_types.h
 source/sys_main4.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_het.h
-source/sys_main4.obj: ../source/task_header.h
+source/sys_main4.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/task_header.h
 source/sys_main4.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/ina226.h
 source/sys_main4.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_i2c.h
 source/sys_main4.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/ina3221.h
+source/sys_main4.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/mppt.h
 
 ../source/sys_main4.c: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/sys_common.h: 
@@ -111,7 +112,8 @@ C:/ti/Hercules/F021//\ Flash//\ API/02.01.01/include/FapiFunctions.h:
 C:/ti/Hercules/F021//\ Flash//\ API/02.01.01/include/Compatibility.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/Device_types.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_het.h: 
-../source/task_header.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/task_header.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/ina226.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_i2c.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/ina3221.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/mppt.h: 

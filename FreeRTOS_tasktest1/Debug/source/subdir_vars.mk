@@ -25,6 +25,7 @@ C_SRCS += \
 ../source/i2c.c \
 ../source/ina226.c \
 ../source/ina3221.c \
+../source/mppt.c \
 ../source/notification.c \
 ../source/os_croutine.c \
 ../source/os_event_groups.c \
@@ -70,6 +71,7 @@ C_DEPS += \
 ./source/i2c.d \
 ./source/ina226.d \
 ./source/ina3221.d \
+./source/mppt.d \
 ./source/notification.d \
 ./source/os_croutine.d \
 ./source/os_event_groups.d \
@@ -116,6 +118,7 @@ OBJS += \
 ./source/i2c.obj \
 ./source/ina226.obj \
 ./source/ina3221.obj \
+./source/mppt.obj \
 ./source/notification.obj \
 ./source/os_croutine.obj \
 ./source/os_event_groups.obj \
@@ -175,6 +178,7 @@ OBJS__QUOTED += \
 "source\i2c.obj" \
 "source\ina226.obj" \
 "source\ina3221.obj" \
+"source\mppt.obj" \
 "source\notification.obj" \
 "source\os_croutine.obj" \
 "source\os_event_groups.obj" \
@@ -225,6 +229,7 @@ C_DEPS__QUOTED += \
 "source\i2c.d" \
 "source\ina226.d" \
 "source\ina3221.d" \
+"source\mppt.d" \
 "source\notification.d" \
 "source\os_croutine.d" \
 "source\os_event_groups.d" \
@@ -278,6 +283,7 @@ C_SRCS__QUOTED += \
 "../source/i2c.c" \
 "../source/ina226.c" \
 "../source/ina3221.c" \
+"../source/mppt.c" \
 "../source/notification.c" \
 "../source/os_croutine.c" \
 "../source/os_event_groups.c" \
