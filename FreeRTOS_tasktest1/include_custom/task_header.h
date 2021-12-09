@@ -28,7 +28,7 @@ TaskHandle_t selfCheckTask_Handler;
 void selfCheck_task(void *pvParameters);
 
 
-#define mppt_TASK_PRIO         3
+#define mppt_TASK_PRIO         2
 #define mppt_STK_SIZE         128
 TaskHandle_t mpptTask_Handler;
 void mppt_task(void *pvParameters);

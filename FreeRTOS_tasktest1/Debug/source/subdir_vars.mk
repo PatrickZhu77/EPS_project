@@ -19,13 +19,11 @@ ASM_SRCS += \
 C_SRCS += \
 ../source/Device_TMS570LS12.c \
 ../source/Fapi_UserDefinedFunctions.c \
+../source/can.c \
 ../source/errata_SSWF021_45.c \
 ../source/esm.c \
 ../source/gio.c \
 ../source/i2c.c \
-../source/ina226.c \
-../source/ina3221.c \
-../source/mppt.c \
 ../source/notification.c \
 ../source/os_croutine.c \
 ../source/os_event_groups.c \
@@ -38,8 +36,8 @@ C_SRCS += \
 ../source/os_timer.c \
 ../source/pinmux.c \
 ../source/sci.c \
+../source/spi.c \
 ../source/sys_dma.c \
-../source/sys_main4.c \
 ../source/sys_pcr.c \
 ../source/sys_phantom.c \
 ../source/sys_pmm.c \
@@ -65,13 +63,11 @@ C_SRCS += \
 C_DEPS += \
 ./source/Device_TMS570LS12.d \
 ./source/Fapi_UserDefinedFunctions.d \
+./source/can.d \
 ./source/errata_SSWF021_45.d \
 ./source/esm.d \
 ./source/gio.d \
 ./source/i2c.d \
-./source/ina226.d \
-./source/ina3221.d \
-./source/mppt.d \
 ./source/notification.d \
 ./source/os_croutine.d \
 ./source/os_event_groups.d \
@@ -84,8 +80,8 @@ C_DEPS += \
 ./source/os_timer.d \
 ./source/pinmux.d \
 ./source/sci.d \
+./source/spi.d \
 ./source/sys_dma.d \
-./source/sys_main4.d \
 ./source/sys_pcr.d \
 ./source/sys_phantom.d \
 ./source/sys_pmm.d \
@@ -111,14 +107,12 @@ C_DEPS += \
 OBJS += \
 ./source/Device_TMS570LS12.obj \
 ./source/Fapi_UserDefinedFunctions.obj \
+./source/can.obj \
 ./source/dabort.obj \
 ./source/errata_SSWF021_45.obj \
 ./source/esm.obj \
 ./source/gio.obj \
 ./source/i2c.obj \
-./source/ina226.obj \
-./source/ina3221.obj \
-./source/mppt.obj \
 ./source/notification.obj \
 ./source/os_croutine.obj \
 ./source/os_event_groups.obj \
@@ -132,10 +126,10 @@ OBJS += \
 ./source/os_timer.obj \
 ./source/pinmux.obj \
 ./source/sci.obj \
+./source/spi.obj \
 ./source/sys_core.obj \
 ./source/sys_dma.obj \
 ./source/sys_intvecs.obj \
-./source/sys_main4.obj \
 ./source/sys_mpu.obj \
 ./source/sys_pcr.obj \
 ./source/sys_phantom.obj \
@@ -171,14 +165,12 @@ ASM_DEPS += \
 OBJS__QUOTED += \
 "source\Device_TMS570LS12.obj" \
 "source\Fapi_UserDefinedFunctions.obj" \
+"source\can.obj" \
 "source\dabort.obj" \
 "source\errata_SSWF021_45.obj" \
 "source\esm.obj" \
 "source\gio.obj" \
 "source\i2c.obj" \
-"source\ina226.obj" \
-"source\ina3221.obj" \
-"source\mppt.obj" \
 "source\notification.obj" \
 "source\os_croutine.obj" \
 "source\os_event_groups.obj" \
@@ -192,10 +184,10 @@ OBJS__QUOTED += \
 "source\os_timer.obj" \
 "source\pinmux.obj" \
 "source\sci.obj" \
+"source\spi.obj" \
 "source\sys_core.obj" \
 "source\sys_dma.obj" \
 "source\sys_intvecs.obj" \
-"source\sys_main4.obj" \
 "source\sys_mpu.obj" \
 "source\sys_pcr.obj" \
 "source\sys_phantom.obj" \
@@ -223,13 +215,11 @@ OBJS__QUOTED += \
 C_DEPS__QUOTED += \
 "source\Device_TMS570LS12.d" \
 "source\Fapi_UserDefinedFunctions.d" \
+"source\can.d" \
 "source\errata_SSWF021_45.d" \
 "source\esm.d" \
 "source\gio.d" \
 "source\i2c.d" \
-"source\ina226.d" \
-"source\ina3221.d" \
-"source\mppt.d" \
 "source\notification.d" \
 "source\os_croutine.d" \
 "source\os_event_groups.d" \
@@ -242,8 +232,8 @@ C_DEPS__QUOTED += \
 "source\os_timer.d" \
 "source\pinmux.d" \
 "source\sci.d" \
+"source\spi.d" \
 "source\sys_dma.d" \
-"source\sys_main4.d" \
 "source\sys_pcr.d" \
 "source\sys_phantom.d" \
 "source\sys_pmm.d" \
@@ -277,13 +267,11 @@ ASM_DEPS__QUOTED += \
 C_SRCS__QUOTED += \
 "../source/Device_TMS570LS12.c" \
 "../source/Fapi_UserDefinedFunctions.c" \
+"../source/can.c" \
 "../source/errata_SSWF021_45.c" \
 "../source/esm.c" \
 "../source/gio.c" \
 "../source/i2c.c" \
-"../source/ina226.c" \
-"../source/ina3221.c" \
-"../source/mppt.c" \
 "../source/notification.c" \
 "../source/os_croutine.c" \
 "../source/os_event_groups.c" \
@@ -296,8 +284,8 @@ C_SRCS__QUOTED += \
 "../source/os_timer.c" \
 "../source/pinmux.c" \
 "../source/sci.c" \
+"../source/spi.c" \
 "../source/sys_dma.c" \
-"../source/sys_main4.c" \
 "../source/sys_pcr.c" \
 "../source/sys_phantom.c" \
 "../source/sys_pmm.c" \

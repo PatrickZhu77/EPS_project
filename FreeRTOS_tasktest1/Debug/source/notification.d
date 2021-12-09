@@ -43,6 +43,8 @@ source/notification.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/F
 source/notification.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/gio.h
 source/notification.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/sci.h
 source/notification.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_sci.h
+source/notification.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/spi.h
+source/notification.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_spi.h
 source/notification.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/i2c.h
 source/notification.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_i2c.h
 source/notification.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/sys_dma.h
@@ -91,6 +93,8 @@ C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/gio.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/sci.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_sci.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/spi.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_spi.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/i2c.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_i2c.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/sys_dma.h: 

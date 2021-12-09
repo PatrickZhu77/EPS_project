@@ -113,7 +113,7 @@ void mppt_pno(ina226_data *data1, mppt_data *data2)
 
             data2->dir = 1;
             mppt_hunts(data2);
-            printf("Voltage decreased by %d V.\n",(int)data2->increment);
+            printf("Voltage increased by %d V.\n",(int)data2->increment);
 
         }
 

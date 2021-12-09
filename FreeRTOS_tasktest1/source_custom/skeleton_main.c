@@ -88,7 +88,7 @@ static QueueHandle_t xQueue_channel = NULL;
 static TimerHandle_t xTimer = NULL;
 char HWstring[5] = "test1";
 char HWstring2[5] = "test2";
-unsigned int channelSW[2]= {0};
+unsigned int channelSW[2]= {4,1};
 long TxTaskCntr, RxTaskCntr = 0;
 
 //*********************************************************
@@ -110,9 +110,9 @@ uint8 Test_Cancel;
 //*********************************************************
 static unsigned char command;
 ina226_data ina226D[3];
-ina226_data (*pina226D)[2] = ina226D;
+ina226_data *pina226D = &ina226D[0];
 mppt_data mpptD[4];
-mppt_data (*pmpptD)[2] = mpptD;
+mppt_data *pmpptD = &mpptD[0];
 static boolean checkFlag[3][2]={false}; // checkFlag[][0]:current ina226 flag; checkFlag[][1]:previous ina226 flag;
 static uint8_t getHK_counter = 0,selfCheck_counter = 0,mppt_counter = 0;;
 
@@ -138,9 +138,12 @@ int main(void)
 
     _enable_IRQ();
     sciInit();
-    //sciSend(scilinREG,14,(unsigned char *)"Hello World!\r\n");
     gioInit();
     i2cInit();
+    canInit();
+    spiInit();
+
+    //sciSend(scilinREG,14,(unsigned char *)"Hello World!\r\n");
 
     xTaskCreate((TaskFunction_t )init_task,
                 (const char*    )"init_task",
@@ -263,6 +266,28 @@ void init_task(void *pvParameters)
 //    //TI_Fee_Format(0xA5A5A5A5U);
 
 
+
+    xTaskCreate((TaskFunction_t )channelCtrl_task,
+                (const char*    )"channelCtrl_task",
+                (uint16_t       )channelCtrl_STK_SIZE,
+                (void*          )NULL,
+                (UBaseType_t    )channelCtrl_TASK_PRIO,
+                (TaskHandle_t*  )&channelCtrlTask_Handler);
+
+    xTaskCreate((TaskFunction_t )receiveCMD_task,
+                (const char*    )"receiveCMD_task",
+                (uint16_t       )receiveCMD_STK_SIZE,
+                (void*          )NULL,
+                (UBaseType_t    )receiveCMD_TASK_PRIO,
+                (TaskHandle_t*  )&receiveCMDTask_Handler);
+
+    xTaskCreate((TaskFunction_t )mppt_task,
+                (const char*    )"mppt_task",
+                (uint16_t       )mppt_STK_SIZE,
+                (void*          )NULL,
+                (UBaseType_t    )mppt_TASK_PRIO,
+                (TaskHandle_t*  )&mpptTask_Handler);
+
     xTaskCreate((TaskFunction_t )getHK_task,
                 (const char*    )"getHK_task",
                 (uint16_t       )getHK_STK_SIZE,
@@ -276,27 +301,6 @@ void init_task(void *pvParameters)
                 (void*          )NULL,
                 (UBaseType_t    )selfCheck_TASK_PRIO,
                 (TaskHandle_t*  )&selfCheckTask_Handler);
-
-//    xTaskCreate((TaskFunction_t )channelCtrl_task,
-//                (const char*    )"channelCtrl_task",
-//                (uint16_t       )channelCtrl_STK_SIZE,
-//                (void*          )NULL,
-//                (UBaseType_t    )channelCtrl_TASK_PRIO,
-//                (TaskHandle_t*  )&channelCtrlTask_Handler);
-//
-//    xTaskCreate((TaskFunction_t )receiveCMD_task,
-//                (const char*    )"receiveCMD_task",
-//                (uint16_t       )receiveCMD_STK_SIZE,
-//                (void*          )NULL,
-//                (UBaseType_t    )receiveCMD_TASK_PRIO,
-//                (TaskHandle_t*  )&receiveCMDTask_Handler);
-
-    xTaskCreate((TaskFunction_t )mppt_task,
-                (const char*    )"mppt_task",
-                (uint16_t       )mppt_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )mppt_TASK_PRIO,
-                (TaskHandle_t*  )&mpptTask_Handler);
 
 
     xQueue_channel = xQueueCreate(1,sizeof(channelSW));
@@ -315,8 +319,8 @@ void init_task(void *pvParameters)
         mpptD[mppt_counter].channel = mppt_counter;
         mpptD[mppt_counter].counter = 0;
         mpptD[mppt_counter].dir = 1;
-        mpptD[mppt_counter].preP = 80;  //W Expected power value from the sensor. (~85W)
-        mpptD[mppt_counter].preV = 8;   //V Expected voltage value from the sensor. (~8.5V)
+        mpptD[mppt_counter].preP = 70;  //W Expected power value from the sensor. (~85W)
+        mpptD[mppt_counter].preV = 7;   //V Expected voltage value from the sensor. (~8.5V)
     }
     mppt_counter = 0;
 
@@ -394,46 +398,59 @@ void selfCheck_task(void *pvParameters)
     }
 }
 
-//void receiveCMD_task(void *pvParameters)
-//{
-//    const portTickType xDelay = pdMS_TO_TICKS(100);
-//    while(1)
-//    {
-//
-//        printf( "receiveCMD task running\n");
-//
-//        xQueueSend(xQueue_channel,channelSW,0);
-//        printf( "Tx1 task sent string\n");
-//
-//        vTaskDelay(xDelay);
-//
-//    }
-//
-//
-//}
+void receiveCMD_task(void *pvParameters)
+{
+    printf( "receiveCMD task running\n");
+    const portTickType xDelay = pdMS_TO_TICKS(1000);
+    while(1) //while(!canIsRxMessageArrived(canREG1, canMESSAGE_BOX1))
+    {
+        uint8  rx_data = 1;
+        //canGetData(canREG2, canMESSAGE_BOX1, rx_data);  /* receive on can1  */
+        switch(rx_data)
+        {
+            case 1:
+                xQueueSend(xQueue_channel,channelSW,0);
+                printf( "cmd sent to channelCtrl task\n");
+                break;
+            case 2:
+                //xQueueSend(xQueue_battery,channelSW,0);
+                printf( "cmd sent to channelCtrl task\n");
+                break;
+            case 3:
+                //xQueueSend(xQueue_heater,channelSW,0);
+                printf( "cmd sent to channelCtrl task\n");
+                break;
+            default:
+                break;
+        }
 
-//void channelCtrl_task(void *pvParameters)
-//{
-//    unsigned int channelSwitch[2] = {0};
-//
-//    const portTickType xDelay = pdMS_TO_TICKS(500);
-//    while(1)
-//    {
-//
-//        xQueueReceive(xQueue_channel,channelSwitch,portMAX_DELAY);
-//        gioSetBit(gioPORTA,channelSwitch[0],channelSwitch[1]);
-//
-//        printf( "channelCtrl task received string from Tx task: %d\n",channelSwitch );
-//    }
-//}
+        vTaskDelay(xDelay);
+    }
+
+
+}
+
+void channelCtrl_task(void *pvParameters)
+{
+    unsigned int channelSwitch[2] = {0};
+
+    while(1)
+    {
+
+        xQueueReceive(xQueue_channel,channelSwitch,portMAX_DELAY);
+        gioSetBit(gioPORTA,channelSwitch[0],channelSwitch[1]);
+
+        printf( "channelCtrl task received string from Tx task: channel %d, switch: %d\n",channelSwitch[0], channelSwitch[1]);
+    }
+}
 
 void mppt_task(void *pvParameters)
 {
-    printf( "selfCheck task running\n");
+    printf( "mppt task running\n");
     const portTickType xDelay = pdMS_TO_TICKS(100);
     while(1)
     {
-        mppt_pno(pina226D[mppt_counter],pmpptD[mppt_counter]);
+        mppt_pno(pina226D+mppt_counter,pmpptD+mppt_counter);
 
         printf( "Mppt result for channel %d: direction:%d, increment:%d.\n",mppt_counter,mpptD[mppt_counter].dir,(int)mpptD[mppt_counter].increment);
 
