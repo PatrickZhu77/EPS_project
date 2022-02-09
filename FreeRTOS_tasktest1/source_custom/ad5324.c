@@ -8,11 +8,53 @@
 #include "reg_het.h"
 #include "mppt.h"
 
+static uint16 counter = 0;
+static uint16 dutycycle = 50;
 
-
-void dac_write(spiBASE_t *spi, uint16 * srcbuff, mppt_data *data)
+void dc2output(uint16 * srcbuff, uint16 * dc)
 {
+    if(counter < 100)
+    {
+        if(counter < dc)
+        {
+            *srcbuff = Vout_high;
+            counter++;
+        }
+        else
+        {
+            *srcbuff = Vout_low;
+            counter++;
+        }
+    }
+    else
+    {
+        *srcbuff = Vout_low;
+        counter = 0;
+    }
+
+
+}
+
+
+void dac_write(spiBASE_t *spi, mppt_data *data)
+{
+    uint16 * srcbuff = 0;
+
     gioSetBit(hetPORT2,6,1);
+
+    if(data->dir == 1)
+    {
+       dutycycle = dutycycle + data->increment;
+
+    }
+    else
+    {
+       dutycycle = dutycycle - data->increment;
+
+    }
+
+
+    dc2output(srcbuff, )
 
     *srcbuff = (*srcbuff) & AD5324_Mask;
     *srcbuff = (*srcbuff) | (dac_OUT_A << 14) | (LDAC_high << 12);

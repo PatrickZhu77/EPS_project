@@ -114,7 +114,7 @@ ina226_data *pina226D = &ina226D[0];
 mppt_data mpptD[4];
 mppt_data *pmpptD = &mpptD[0];
 static boolean checkFlag[3][2]={false}; // checkFlag[][0]:current ina226 flag; checkFlag[][1]:previous ina226 flag;
-static uint8_t getHK_counter = 0,selfCheck_counter = 0,mppt_counter = 0;;
+static uint8_t getHK_counter = 0,selfCheck_counter = 0,mppt_counter = 0;
 
 static void prvTimerCallback( TimerHandle_t pxTimer );
 
