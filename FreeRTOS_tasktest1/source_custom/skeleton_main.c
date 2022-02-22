@@ -60,6 +60,9 @@
 #include "os_queue.h"
 #include "ti_fee.h"
 #include "reg_het.h"
+#include "can.h"
+#include "i2c.h"
+#include "spi.h"
 
 #include "task_header.h"
 #include "ina226.h"
@@ -91,30 +94,31 @@ char HWstring2[5] = "test2";
 unsigned int channelSW[2]= {4,1};
 long TxTaskCntr, RxTaskCntr = 0;
 
-//*********************************************************
+/*****************Default Data************************/
 uint16 u16JobResult,Status;
 Std_ReturnType oResult=E_OK;
 unsigned char read_data[100]={0};
 
 uint8 SpecialRamBlock[100];
 
-unsigned char pattern;
-uint16 u16writecounter;
+//unsigned char pattern;
+//uint16 u16writecounter;
+//
+//unsigned int  FeeVirtualSectorNumber;
+//unsigned char VsState, u8EEPIndex;
+//unsigned char u8VirtualSector;
 
-unsigned int  FeeVirtualSectorNumber;
-unsigned char VsState, u8EEPIndex;
-unsigned char u8VirtualSector;
-uint8 Test_Recovery;
-uint8 Test_Cancel;
-
-//*********************************************************
+/*****************Housekeeping Data********************/
 static unsigned char command;
 ina226_data ina226D[3];
 ina226_data *pina226D = &ina226D[0];
-mppt_data mpptD[4];
-mppt_data *pmpptD = &mpptD[0];
 static boolean checkFlag[3][2]={false}; // checkFlag[][0]:current ina226 flag; checkFlag[][1]:previous ina226 flag;
 static uint8_t getHK_counter = 0,selfCheck_counter = 0,mppt_counter = 0;
+
+/*****************MPPT Data*************************/
+mppt_data mpptD[4];
+mppt_data *pmpptD = &mpptD[0];
+
 
 static void prvTimerCallback( TimerHandle_t pxTimer );
 
@@ -302,6 +306,13 @@ void init_task(void *pvParameters)
                 (UBaseType_t    )selfCheck_TASK_PRIO,
                 (TaskHandle_t*  )&selfCheckTask_Handler);
 
+    xTaskCreate((TaskFunction_t )bcCtrl_task,
+                (const char*    )"bcCtrl_task",
+                (uint16_t       )bcCtrl_STK_SIZE,
+                (void*          )NULL,
+                (UBaseType_t    )bcCtrl_TASK_PRIO,
+                (TaskHandle_t*  )&bcCtrlTask_Handler);
+
 
     xQueue_channel = xQueueCreate(1,sizeof(channelSW));
     configASSERT(xQueue_channel);
@@ -349,7 +360,7 @@ void getHK_task(void *pvParameters)
         /* inverse flag */
         ina226D[getHK_counter].flag = !ina226D[getHK_counter].flag;
 
-        printf("Number %d sensor updated. Power: %d W.\n",getHK_counter,(int)ina226D[getHK_counter].power);
+        printf("Number %d sensor updated. Power: %d uW.\n",getHK_counter,(int)ina226D[getHK_counter].power);
 
         /* point to next sensor */
         if (getHK_counter < 2)
@@ -456,7 +467,7 @@ void mppt_task(void *pvParameters)
 
         mppt_counter++;
 
-        if(mppt_counter == 2)
+        if(mppt_counter == 4)
         {
             mppt_counter = 0;
         }
@@ -466,8 +477,22 @@ void mppt_task(void *pvParameters)
 
     }
 
-
 }
+
+void bcCtrl_task(void *pvParameters)
+{
+    unsigned int channelSwitch[2] = {0};
+
+    while(1)
+    {
+
+        xQueueReceive(xQueue_channel,channelSwitch,portMAX_DELAY);
+        gioSetBit(gioPORTA,channelSwitch[0],channelSwitch[1]);
+
+        printf( "channelCtrl task received string from Tx task: channel %d, switch: %d\n",channelSwitch[0], channelSwitch[1]);
+    }
+}
+
 
 
 static void prvTimerCallback( TimerHandle_t pxTimer )

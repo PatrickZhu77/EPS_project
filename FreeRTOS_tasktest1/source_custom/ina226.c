@@ -240,7 +240,7 @@ uint8_t INA226_AlertAddr(i2cBASE_t *i2c)
 */
 
 //LSB = 2.5uV/bit
-void INA226_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, double *data)
+void INA226_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 {
     //int err = -1;
     uint16_t temp = 0;
@@ -250,13 +250,13 @@ void INA226_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, double *data)
 
     if(temp&0x8000)
         temp = ~(temp - 1);
-    *data = temp * 2.5e-6 * 1000;
+    *data = temp * 2500 / 1000;
 
     //return(err);
 }
 
 //LSB = 1.25mV/bit
-void INA226_GetVoltage(i2cBASE_t *i2c, uint8_t addr, double *data)
+void INA226_GetVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 {
     //int err = -1;
     uint16_t temp = 0;
@@ -264,7 +264,7 @@ void INA226_GetVoltage(i2cBASE_t *i2c, uint8_t addr, double *data)
 
     INA226_ReceiveData(i2c, addr, BV_REG, &temp);
 
-    *data = temp* 1.25e-3;
+    *data = temp* 1250 / 1000;
 
     //return(err);
 }
@@ -278,7 +278,7 @@ void INA226_SetCalReg(i2cBASE_t *i2c, uint8_t addr,uint16_t *data)
 
 
 //LSB = 1mA/bit
-void INA226_GetCurrent(i2cBASE_t *i2c, uint8_t addr, double *data)
+void INA226_GetCurrent(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 {
     //int err = -1;
     uint16_t temp = 0;
@@ -289,13 +289,13 @@ void INA226_GetCurrent(i2cBASE_t *i2c, uint8_t addr, double *data)
     if(temp&0x8000)
         temp = ~(temp - 1);
     *data = temp;
-    *data = temp * 1e-3;
+    //*data = temp * 1e-3;
     //return(err);
 }
 
 
 //LSB = 25mW/bit
-void INA226_GetPower(i2cBASE_t *i2c, uint8_t addr, double *data)
+void INA226_GetPower(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 {
     //int err = -1;
     uint16_t temp = 0;
@@ -303,7 +303,7 @@ void INA226_GetPower(i2cBASE_t *i2c, uint8_t addr, double *data)
 
     INA226_ReceiveData(i2c, addr, PWR_REG, &temp);
 
-    *data = temp * 25e-3;
+    *data = temp * 25 * 1000;
 
     //return(err);
 }

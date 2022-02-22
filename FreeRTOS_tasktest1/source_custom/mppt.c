@@ -14,21 +14,28 @@
  ******************************************************************************/
 void mppt_hunts(mppt_data *data)
 {
-    double temp_incr = 1;           //basic increment
-
-    if(data->counter < 2)               //when change with same direction for 2  or less times
+//    double temp_incr = 1;           //basic increment
+//
+//    if(data->counter < 2)               //when change with same direction for 2  or less times
+//    {
+//        data->increment = temp_incr;
+//    }
+//    else if(data->counter >= 2 && data->counter < 4)        //when change with same direction for 2 to 4 times
+//    {
+//        data->increment = temp_incr*2;
+//    }
+//    else if(data->counter >= 4)         //when change with same direction for more than 4 times
+//    {
+//        data->increment = temp_incr*3;
+//    }
+    if(data->counter < 16)               //when change with same direction for 200  or less times
     {
-        data->increment = temp_incr;
+        data->increment = 1;
     }
-    else if(data->counter >= 2 && data->counter < 4)        //when change with same direction for 2 to 4 times
+    else
     {
-        data->increment = temp_incr*2;
+        data->increment = 1 << (int)(data->counter/16);
     }
-    else if(data->counter >= 4)         //when change with same direction for more than 4 times
-    {
-        data->increment = temp_incr*3;
-    }
-
 }
 
 /***************************************************************************

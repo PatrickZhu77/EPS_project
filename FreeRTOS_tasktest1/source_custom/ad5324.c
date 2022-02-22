@@ -9,7 +9,7 @@
 #include "mppt.h"
 
 static uint16 counter = 0;
-static uint16 dutycycle = 50;
+static uint16 outputV;
 
 void dc2output(uint16 * srcbuff, uint16 * dc)
 {
@@ -42,9 +42,10 @@ void dac_write(spiBASE_t *spi, mppt_data *data)
 
     gioSetBit(hetPORT2,6,1);
 
+/*****************Determine the output**********************/
     if(data->dir == 1)
     {
-       dutycycle = dutycycle + data->increment;
+        = dutycycle + data->increment;
 
     }
     else
@@ -52,7 +53,7 @@ void dac_write(spiBASE_t *spi, mppt_data *data)
        dutycycle = dutycycle - data->increment;
 
     }
-
+/******************************************************/
 
     dc2output(srcbuff, )
 
@@ -69,6 +70,8 @@ void dac_write(spiBASE_t *spi, mppt_data *data)
     gioSetBit(hetPORT2,6,0);
 
     spiSendData(spiREG2, &dataconfig1_t, 1, srcbuff);
+
+    //maybe need a wait function here to confirm spi_tx success?
 
     gioSetBit(hetPORT2,6,1);
 }

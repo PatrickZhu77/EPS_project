@@ -19,11 +19,11 @@
 typedef struct
 {
     uint8_t address;
-    double shunt_voltage;       //mV
-    double bus_voltage;         //V
+    uint32_t shunt_voltage;       //uV
+    uint32_t bus_voltage;         //mV
     uint16_t calibration;
-    double current;             //A
-    double power;               //W
+    uint32_t current;             //mA
+    uint32_t power;               //uW
     boolean flag;
     uint8_t config_reg;
     uint8_t cal_reg;
@@ -37,11 +37,11 @@ void INA226_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data
 
 
 
-void INA226_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, double *data);
-void INA226_GetVoltage(i2cBASE_t *i2c, uint8_t addr, double *data);
+void INA226_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data);
+void INA226_GetVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data);
 void INA226_SetCalReg(i2cBASE_t *i2c, uint8_t addr,uint16_t *data);
-void INA226_GetCurrent(i2cBASE_t *i2c, uint8_t addr, double *data);
-void INA226_GetPower(i2cBASE_t *i2c, uint8_t addr, double *data);
+void INA226_GetCurrent(i2cBASE_t *i2c, uint8_t addr, uint32_t *data);
+void INA226_GetPower(i2cBASE_t *i2c, uint8_t addr, uint32_t *data);
 void INA226_GetID(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
 void INA226_GetCalReg(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
 
