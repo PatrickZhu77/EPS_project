@@ -18,7 +18,7 @@
 //#define       INA226_GETALADDR    0x14
 typedef struct
 {
-    uint8_t address;
+    uint8_t address;              //i2c address
     uint32_t shunt_voltage;       //uV
     uint32_t bus_voltage;         //mV
     uint16_t calibration;

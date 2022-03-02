@@ -27,18 +27,18 @@ int main()
     double V[1000]={0};
     double P[1000]={0};
 
-    while (I_temp >= Imp + 0.00001 || I_temp < Imp)
+    while (I_temp >= Imp_75 + 0.00001 || I_temp < Imp_75)
     {
-        a = Isc + b;
-        c = 1/Voc*(log(a/b));
-        I_temp = a - b*exp(c*Vmp);
+        a = Isc_75 + b;
+        c = 1/Voc_75*(log(a/b));
+        I_temp = a - b*exp(c*Vmp_75);
 
-        if(I_temp >= Imp)
+        if(I_temp >= Imp_75)
         {
             b1 = b;
             b = 0.5*(b1 + b2);
         }
-        else if(I_temp < Imp)
+        else if(I_temp < Imp_75)
         {
             b2 = b;
             b = 0.5*(b1 + b2);
@@ -46,8 +46,9 @@ int main()
 
     }
 
-    a = Isc + b;
-    c = 1/Voc*(log(a/b));
+    a = Isc_75 + b;
+    c = 1/Voc_75*(log(a/b));
+    I_temp = 0;
 
     V[0] = 0;
     IV_Curve2(V[0],pmpptD);
@@ -62,8 +63,6 @@ int main()
     pmpptD->dir = 1;
     printf( "Mppt result I:%lf , V:%lf, P: %lf\n",I[1],V[1],P[1]);
 
-    pmpptD->n = 1;
-
     for(int i=2;i<1000;i++)
     {
         if (i<200)
@@ -74,10 +73,17 @@ int main()
         {
             k=0.5;
         }
-        else
+        else if (i>=500 && i<800)
         {
             k=0.1;
         }
+        else
+        {
+            k=1;
+        }
+
+        a = (Isc_75 + b)*k;
+        c = 1/Voc_75*(log(a/b));
 
         mppt_pno(V[i-2],V[i-1],P[i-2],P[i-1],pmpptD);
 
@@ -85,11 +91,12 @@ int main()
         I[i] = pmpptD->preI;
         P[i] = pmpptD->preP;
 
-        printf( "Mppt result I:%lf , V:%lf, P: %lf, N:%u\n",I[i],V[i],P[i],pmpptD->n);
+        printf( "Mppt result V:%lf , I:%lf, P: %lf\n",V[i],I[i],P[i]);
     }
 
+
 /**********************************/
-    FILE* fp1 = fopen("IV_output_V.txt","w");
+    FILE* fp1 = fopen("IV_output_V_75.txt","w");
 
     if(fp1==NULL)
         return 1;
@@ -100,7 +107,7 @@ int main()
     fclose(fp1);
 
 /**********************************/
-    FILE* fp2 = fopen("IV_output_I.txt","w");
+    FILE* fp2 = fopen("IV_output_I_75.txt","w");
 
     if(fp2==NULL)
         return 1;
@@ -111,7 +118,7 @@ int main()
     fclose(fp2);
 
 /**********************************/
-    FILE* fp3 = fopen("IV_output_P.txt","w");
+    FILE* fp3 = fopen("IV_output_P_75.txt","w");
 
     if(fp3==NULL)
         return 1;
@@ -139,10 +146,10 @@ void mppt_hunts(mppt_data *data)
 {
 //    uint8_t n = 1;           //basic increment
 
-    if(data->counter < 16)               //when change with same direction for 200  or less times
+    if(data->counter < 8)               //when change with same direction for 200  or less times
     {
         data->increment = 1;
-        data->counter2 = 16;
+        //data->counter2 = 8;
     }
     else//(data->counter>=10 && data->counter <20)        //when change with same direction for 200 to 400 times //&& (data->counter >= 200)
     {
@@ -152,7 +159,7 @@ void mppt_hunts(mppt_data *data)
 //            data->counter2 = data->counter;
 //            data->n++;
 //        }
-        data->increment = 1 << (int)(data->counter/16);
+        data->increment = 1 << (int)(data->counter/8);
 
     }
 //    else//(data->counter >= 400)         //when change with same direction for more than 400 times
@@ -196,8 +203,6 @@ void mppt_pno(double V0, double V1, double P0, double P1, mppt_data *data2)
             else                           // Otherwise clear the counter.
             {
                 data2->counter = 0;
-                data2->counter2 = 0;
-                data2->n = 1;
             }
 
             data2->dir = 1;
@@ -214,8 +219,6 @@ void mppt_pno(double V0, double V1, double P0, double P1, mppt_data *data2)
             else
             {
                 data2->counter = 0;
-                data2->counter2 = 0;
-                data2->n = 1;
             }
 
             data2->dir = 0;
@@ -236,8 +239,6 @@ void mppt_pno(double V0, double V1, double P0, double P1, mppt_data *data2)
             else
             {
                 data2->counter = 0;
-                data2->counter2 = 0;
-                data2->n = 1;
             }
 
             data2->dir = 0;
@@ -254,8 +255,7 @@ void mppt_pno(double V0, double V1, double P0, double P1, mppt_data *data2)
             else
             {
                 data2->counter = 0;
-                data2->counter2 = 0;
-                data2->n = 1;
+
             }
 
             data2->dir = 1;
@@ -268,11 +268,11 @@ void mppt_pno(double V0, double V1, double P0, double P1, mppt_data *data2)
 
     if(mpptD.dir == 0)
     {
-        data2->preV = V1-0.05*mpptD.increment;
+        data2->preV = V1-0.005*mpptD.increment;
     }
     else
     {
-        data2->preV = V1+0.05*mpptD.increment;
+        data2->preV = V1+0.005*mpptD.increment;
     }
 
     IV_Curve2(data2->preV,data2);
@@ -361,5 +361,5 @@ void IV_Curve(double V, mppt_data *data)
 
 void IV_Curve2(double V, mppt_data *data)
 {
-    data->preI = k*(a - b*exp(c*V));
+    data->preI = a - b*exp(c*V);
 }

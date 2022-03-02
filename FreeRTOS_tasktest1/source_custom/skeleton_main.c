@@ -373,7 +373,6 @@ void getHK_task(void *pvParameters)
 
     }
 
-
 }
 
 void selfCheck_task(void *pvParameters)

@@ -7,13 +7,15 @@
 /*Data structure for MPPT task*/
 typedef struct
 {
-    uint8_t channel;            //channel # of boost converter (1 - 4)
     uint32_t preP;                //uW
     uint32_t preV;                //mV
-//    double preI;                //mA
+    uint32_t preI;                //mA
     uint16_t increment;         // step size (?)
-    uint8_t dir;                //direction of change
     uint16_t counter;          //counter for same direction (if direction doesn't change for this turn, counter++)
+    uint8_t dir;                //direction of change
+    uint8_t channel;            //channel # of boost converter (1 - 4)
+
+
 }mppt_data;
 
 void mppt_hunts(mppt_data *data);
