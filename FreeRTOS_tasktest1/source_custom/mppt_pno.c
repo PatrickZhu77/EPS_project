@@ -27,6 +27,122 @@ int main()
     double V[1000]={0};
     double P[1000]={0};
 
+/**************15C********************/
+    while (I_temp >= Imp_15 + 0.00001 || I_temp < Imp_15)
+    {
+        a = Isc_15 + b;
+        c = 1/Voc_15*(log(a/b));
+        I_temp = a - b*exp(c*Vmp_15);
+
+        if(I_temp >= Imp_15)
+        {
+            b1 = b;
+            b = 0.5*(b1 + b2);
+        }
+        else if(I_temp < Imp_15)
+        {
+            b2 = b;
+            b = 0.5*(b1 + b2);
+        }
+
+    }
+
+    a = Isc_15 + b;
+    c = 1/Voc_15*(log(a/b));
+    I_temp = 0;
+
+    V[0] = 0;
+    IV_Curve2(V[0],pmpptD);
+    I[0] = pmpptD->preI;
+    P[0] = V[0]*I[0];
+    printf( "Mppt result I:%lf , V:%lf, P: %lf\n",I[0],V[0],P[0]);
+
+    V[1] = 0.05;
+    IV_Curve2(V[1],pmpptD);
+    I[1] = pmpptD->preI;
+    P[1] = V[1]*I[1];
+    pmpptD->dir = 1;
+    printf( "Mppt result I:%lf , V:%lf, P: %lf\n",I[1],V[1],P[1]);
+
+    for(int i=2;i<300;i++)
+    {
+//        if (i<200)
+//        {
+//            k=1;
+//        }
+//        else if (i>=200 && i<500)
+//        {
+//            k=0.5;
+//        }
+//        else if (i>=500 && i<800)
+//        {
+//            k=0.1;
+//        }
+//        else
+//        {
+//            k=1;
+//        }
+
+        a = (Isc_15 + b);
+        c = 1/Voc_15*(log(a/b));
+
+        mppt_pno(V[i-2],V[i-1],P[i-2],P[i-1],pmpptD);
+
+        V[i] = pmpptD->preV;
+        I[i] = pmpptD->preI;
+        P[i] = pmpptD->preP;
+
+        printf( "Mppt result V:%lf , I:%lf, P: %lf\n",V[i],I[i],P[i]);
+    }
+
+/****************28C********************/
+    b = 1e-9;
+    b1 = 0;
+    b2 = 2e-9;
+
+    while (I_temp >= Imp_28 + 0.00001 || I_temp < Imp_28)
+    {
+        a = Isc_28 + b;
+        c = 1/Voc_28*(log(a/b));
+        I_temp = a - b*exp(c*Vmp_28);
+
+        if(I_temp >= Imp_28)
+        {
+            b1 = b;
+            b = 0.5*(b1 + b2);
+        }
+        else if(I_temp < Imp_28)
+        {
+            b2 = b;
+            b = 0.5*(b1 + b2);
+        }
+
+    }
+
+    a = Isc_28 + b;
+    c = 1/Voc_28*(log(a/b));
+    I_temp = 0;
+
+    for(int i=300;i<500;i++)
+    {
+
+        a = (Isc_28 + b);
+        c = 1/Voc_28*(log(a/b));
+
+        mppt_pno(V[i-2],V[i-1],P[i-2],P[i-1],pmpptD);
+
+        V[i] = pmpptD->preV;
+        I[i] = pmpptD->preI;
+        P[i] = pmpptD->preP;
+
+        printf( "Mppt result V:%lf , I:%lf, P: %lf\n",V[i],I[i],P[i]);
+    }
+
+/****************75C********************/
+    b = 1e-9;
+    b1 = 0;
+    b2 = 2e-9;
+
     while (I_temp >= Imp_75 + 0.00001 || I_temp < Imp_75)
     {
         a = Isc_75 + b;
@@ -50,40 +166,54 @@ int main()
     c = 1/Voc_75*(log(a/b));
     I_temp = 0;
 
-    V[0] = 0;
-    IV_Curve2(V[0],pmpptD);
-    I[0] = pmpptD->preI;
-    P[0] = V[0]*I[0];
-    printf( "Mppt result I:%lf , V:%lf, P: %lf\n",I[0],V[0],P[0]);
-
-    V[1] = 0.05;
-    IV_Curve2(V[1],pmpptD);
-    I[1] = pmpptD->preI;
-    P[1] = V[1]*I[1];
-    pmpptD->dir = 1;
-    printf( "Mppt result I:%lf , V:%lf, P: %lf\n",I[1],V[1],P[1]);
-
-    for(int i=2;i<1000;i++)
+    for(int i=500;i<700;i++)
     {
-        if (i<200)
+
+        a = (Isc_75 + b);
+        c = 1/Voc_75*(log(a/b));
+
+        mppt_pno(V[i-2],V[i-1],P[i-2],P[i-1],pmpptD);
+
+        V[i] = pmpptD->preV;
+        I[i] = pmpptD->preI;
+        P[i] = pmpptD->preP;
+
+        printf( "Mppt result V:%lf , I:%lf, P: %lf\n",V[i],I[i],P[i]);
+    }
+
+/****************15C********************/
+    b = 1e-9;
+    b1 = 0;
+    b2 = 2e-9;
+
+    while (I_temp >= Imp_15 + 0.00001 || I_temp < Imp_15)
+    {
+        a = Isc_15 + b;
+        c = 1/Voc_15*(log(a/b));
+        I_temp = a - b*exp(c*Vmp_15);
+
+        if(I_temp >= Imp_15)
         {
-            k=1;
+            b1 = b;
+            b = 0.5*(b1 + b2);
         }
-        else if (i>=200 && i<500)
+        else if(I_temp < Imp_15)
         {
-            k=0.5;
-        }
-        else if (i>=500 && i<800)
-        {
-            k=0.1;
-        }
-        else
-        {
-            k=1;
+            b2 = b;
+            b = 0.5*(b1 + b2);
         }
 
-        a = (Isc_75 + b)*k;
-        c = 1/Voc_75*(log(a/b));
+    }
+
+    a = Isc_15 + b;
+    c = 1/Voc_15*(log(a/b));
+    I_temp = 0;
+
+    for(int i=700;i<1000;i++)
+    {
+
+        a = (Isc_15 + b);
+        c = 1/Voc_15*(log(a/b));
 
         mppt_pno(V[i-2],V[i-1],P[i-2],P[i-1],pmpptD);
 
@@ -96,7 +226,7 @@ int main()
 
 
 /**********************************/
-    FILE* fp1 = fopen("IV_output_V_75.txt","w");
+    FILE* fp1 = fopen("IV_output_V_temp.txt","w");
 
     if(fp1==NULL)
         return 1;
@@ -107,7 +237,7 @@ int main()
     fclose(fp1);
 
 /**********************************/
-    FILE* fp2 = fopen("IV_output_I_75.txt","w");
+    FILE* fp2 = fopen("IV_output_I_temp.txt","w");
 
     if(fp2==NULL)
         return 1;
@@ -118,7 +248,7 @@ int main()
     fclose(fp2);
 
 /**********************************/
-    FILE* fp3 = fopen("IV_output_P_75.txt","w");
+    FILE* fp3 = fopen("IV_output_P_temp.txt","w");
 
     if(fp3==NULL)
         return 1;

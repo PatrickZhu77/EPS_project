@@ -112,7 +112,7 @@ uint8 SpecialRamBlock[100];
 static unsigned char command;
 ina226_data ina226D[3];
 ina226_data *pina226D = &ina226D[0];
-static boolean checkFlag[3][2]={false}; // checkFlag[][0]:current ina226 flag; checkFlag[][1]:previous ina226 flag;
+static boolean checkFlag[3][2]={0}; // checkFlag[][0]:current ina226 flag; checkFlag[][1]:previous ina226 flag;
 static uint8_t getHK_counter = 0,selfCheck_counter = 0,mppt_counter = 0;
 
 /*****************MPPT Data*************************/
@@ -306,12 +306,12 @@ void init_task(void *pvParameters)
                 (UBaseType_t    )selfCheck_TASK_PRIO,
                 (TaskHandle_t*  )&selfCheckTask_Handler);
 
-    xTaskCreate((TaskFunction_t )bcCtrl_task,
-                (const char*    )"bcCtrl_task",
-                (uint16_t       )bcCtrl_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )bcCtrl_TASK_PRIO,
-                (TaskHandle_t*  )&bcCtrlTask_Handler);
+//    xTaskCreate((TaskFunction_t )bcCtrl_task,
+//                (const char*    )"bcCtrl_task",
+//                (uint16_t       )bcCtrl_STK_SIZE,
+//                (void*          )NULL,
+//                (UBaseType_t    )bcCtrl_TASK_PRIO,
+//                (TaskHandle_t*  )&bcCtrlTask_Handler);
 
 
     xQueue_channel = xQueueCreate(1,sizeof(channelSW));
@@ -442,6 +442,9 @@ void receiveCMD_task(void *pvParameters)
 
 void channelCtrl_task(void *pvParameters)
 {
+    printf( "Channel task running\n");
+    const portTickType xDelay = pdMS_TO_TICKS(100);
+
     unsigned int channelSwitch[2] = {0};
 
     while(1)
@@ -456,7 +459,7 @@ void channelCtrl_task(void *pvParameters)
 
 void mppt_task(void *pvParameters)
 {
-    printf( "mppt task running\n");
+    printf( "battery controlling task running\n");
     const portTickType xDelay = pdMS_TO_TICKS(100);
     while(1)
     {
@@ -476,20 +479,8 @@ void mppt_task(void *pvParameters)
 
     }
 
-}
 
-void bcCtrl_task(void *pvParameters)
-{
-    unsigned int channelSwitch[2] = {0};
 
-    while(1)
-    {
-
-        xQueueReceive(xQueue_channel,channelSwitch,portMAX_DELAY);
-        gioSetBit(gioPORTA,channelSwitch[0],channelSwitch[1]);
-
-        printf( "channelCtrl task received string from Tx task: channel %d, switch: %d\n",channelSwitch[0], channelSwitch[1]);
-    }
 }
 
 

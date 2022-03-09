@@ -24,7 +24,7 @@ typedef struct
     uint16_t calibration;
     uint32_t current;             //mA
     uint32_t power;               //uW
-    boolean flag;
+    uint8_t flag;
     uint8_t config_reg;
     uint8_t cal_reg;
 }ina226_data;
