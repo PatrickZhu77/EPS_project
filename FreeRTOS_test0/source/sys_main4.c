@@ -92,7 +92,7 @@
 
 uint16 u16JobResult,Status;
 Std_ReturnType oResult=E_OK;
-unsigned char read_data[100]={0};
+uint8 read_data[100]={0};
 
 uint8 SpecialRamBlock[100];
 

@@ -63,6 +63,10 @@ source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/ina226.h
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/ina3221.h
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/mppt.h
+source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/channel.h
+source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/het.h
+source_custom/skeleton_main.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/string.h
+source_custom/skeleton_main.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_string.h
 
 ../source_custom/skeleton_main.c: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/sys_common.h: 
@@ -127,3 +131,7 @@ C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/ina226.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/ina3221.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/mppt.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/channel.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/het.h: 
+C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/string.h: 
+C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_string.h: 

@@ -68,6 +68,7 @@
 #include "ina226.h"
 #include "ina3221.h"
 #include "mppt.h"
+#include "channel.h"
 
 
 /* USER CODE END */
@@ -110,7 +111,7 @@ uint8 SpecialRamBlock[100];
 
 /*****************Housekeeping Data********************/
 static unsigned char command;
-ina226_data ina226D[3];
+ina226_data ina226D[25];
 ina226_data *pina226D = &ina226D[0];
 static boolean checkFlag[3][2]={0}; // checkFlag[][0]:current ina226 flag; checkFlag[][1]:previous ina226 flag;
 static uint8_t getHK_counter = 0,selfCheck_counter = 0,mppt_counter = 0;
@@ -118,6 +119,10 @@ static uint8_t getHK_counter = 0,selfCheck_counter = 0,mppt_counter = 0;
 /*****************MPPT Data*************************/
 mppt_data mpptD[4];
 mppt_data *pmpptD = &mpptD[0];
+
+/*****************Channel Data*************************/
+channel_data channelD[16];
+channel_data *pchannelD = &channelD[0];
 
 
 static void prvTimerCallback( TimerHandle_t pxTimer );
@@ -444,16 +449,18 @@ void channelCtrl_task(void *pvParameters)
 {
     printf( "Channel task running\n");
     const portTickType xDelay = pdMS_TO_TICKS(100);
-
-    unsigned int channelSwitch[2] = {0};
+    static uint8_t channel_counter = 0;         // counter of channels
 
     while(1)
     {
+        channel_compare((pina226D+9)+channel_counter,pchannelD+channel_counter);
+        channel_switch(pchannelD+channel_counter);
 
-        xQueueReceive(xQueue_channel,channelSwitch,portMAX_DELAY);
-        gioSetBit(gioPORTA,channelSwitch[0],channelSwitch[1]);
-
-        printf( "channelCtrl task received string from Tx task: channel %d, switch: %d\n",channelSwitch[0], channelSwitch[1]);
+        channel_counter++;
+        if(channel_counter==16)
+        {
+            channel_counter = 0;
+        }
     }
 }
 
@@ -461,6 +468,7 @@ void mppt_task(void *pvParameters)
 {
     printf( "battery controlling task running\n");
     const portTickType xDelay = pdMS_TO_TICKS(100);
+
     while(1)
     {
         mppt_pno(pina226D+mppt_counter,pmpptD+mppt_counter);
@@ -482,7 +490,6 @@ void mppt_task(void *pvParameters)
 
 
 }
-
 
 
 static void prvTimerCallback( TimerHandle_t pxTimer )

@@ -106,7 +106,7 @@ int main(void)
     _enable_IRQ();
     sciInit();
     sciSend(scilinREG,14,(unsigned char *)"Hello World!\r\n");
-    printf("hi %d!\n",temp);
+    //printf("hi %d!\n",temp);
 
     gioInit();
 

@@ -126,8 +126,8 @@ void mppt_pno(ina226_data *data1, mppt_data *data2)
 
     }
 
-    data2->preP = data1->bus_voltage;
-    data2->preV = data1->power;
+    data2->preP = data1->power;
+    data2->preV = data1->bus_voltage;
 
 }
 

@@ -12,8 +12,8 @@
 
 typedef struct
 {
-    uint32_t overV;                //mV   overvoltage limit
-    uint32_t overI;                //mA   overcurrent limit
+    uint32_t maxV;                //mV   battery fully charged
+    uint32_t maxI;                //mA   overcurrent limit
     uint8_t num;                   //# of battery
     uint8_t address;               //i2c address
     uint8_t temp_v;                //Voltage of thermistor. -20°C:10110111; 0°C:10011110; 100°C:1111

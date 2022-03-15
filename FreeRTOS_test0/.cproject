@@ -77,7 +77,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="source/sys_main5.c|source/sys_main3.c|source/sys_main2.c|source/sys_main.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="source/sys_main4.c|source/sys_main5.c|source/sys_main3.c|source/sys_main2.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

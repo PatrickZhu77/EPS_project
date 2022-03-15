@@ -29,6 +29,36 @@ typedef struct
     uint8_t cal_reg;
 }ina226_data;
 
+/**************List of ina226 sensors**************
+ *
+ *  0: overcurrent protection of watchdog Vout
+ *  1: overcurrent protection of buck converter 3v3 Vout
+ *  2: overcurrent protection of buck converter 1v2 Vout
+ *  3: overcurrent protection of buck converter 5v0 Vout
+ *  4: current monitor of pv_3v3
+ *  5: overcurrent protection of 3v3
+ *  6: overcurrent protection of 1v2
+ *  7: current monitor 1 on battery board
+ *  8: current monitor 2 on battery board
+ *  9: current monitor of channel 1
+ *  10: current monitor of channel 2
+ *  11: current monitor of channel 3
+ *  12: current monitor of channel 4
+ *  13: current monitor of channel 5
+ *  14: current monitor of channel 6
+ *  15: current monitor of channel 7
+ *  16: current monitor of channel 8
+ *  17: current monitor of channel 9
+ *  18: current monitor of channel 10
+ *  19: current monitor of channel 11
+ *  20: current monitor of channel 12
+ *  21: current monitor of channel 13
+ *  22: current monitor of channel 14
+ *  23: current monitor of channel 15
+ *  24: current monitor of channel 16
+ *
+ *
+ *******************************************/
 
 void INA226_Init(i2cBASE_t *i2c, uint8_t addr, ina226_data *data);
 void INA226_SetRegPointer(i2cBASE_t *i2c, uint8_t addr, uint8_t reg);

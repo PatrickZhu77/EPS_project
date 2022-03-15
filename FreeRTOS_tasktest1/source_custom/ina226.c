@@ -243,14 +243,18 @@ uint8_t INA226_AlertAddr(i2cBASE_t *i2c)
 void INA226_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 {
     //int err = -1;
-    uint16_t temp = 0;
+    uint8_t data_temp[2]={0};           //temp. data from i2c
+    uint16_t data_reg = 0;              //data in the register
     //INA226_SetRegPointer(i2c, addr,SV_REG);
 
-    INA226_ReceiveData(i2c, addr, SV_REG, &temp);
+    INA226_ReceiveData(i2c, addr, SV_REG, data_temp);
+    data_reg = data_temp[0];
+    data_reg = data_reg << 8;
+    data_reg = data_reg | data_temp[1];
 
-    if(temp&0x8000)
-        temp = ~(temp - 1);
-    *data = temp * 2500 / 1000;
+    if(data_reg&0x8000)
+        data_reg = ~(data_reg - 1);
+    *data = data_reg * 2500 / 1000;
 
     //return(err);
 }
@@ -259,12 +263,17 @@ void INA226_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 void INA226_GetVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 {
     //int err = -1;
-    uint16_t temp = 0;
+    uint8_t data_temp[2]={0};           //temp. data from i2c
+    uint16_t data_reg = 0;              //data in the register
     //INA226_SetRegPointer(i2c, addr,BV_REG);
 
-    INA226_ReceiveData(i2c, addr, BV_REG, &temp);
+    INA226_ReceiveData(i2c, addr, BV_REG, data_temp);
 
-    *data = temp* 1250 / 1000;
+    data_reg = data_temp[0];
+    data_reg = data_reg << 8;
+    data_reg = data_reg | data_temp[1];
+
+    *data = data_reg* 1250 / 1000;
 
     //return(err);
 }
@@ -273,7 +282,11 @@ void INA226_GetVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 // CAL = 0.00512/(current_LSB * Rshunt)
 void INA226_SetCalReg(i2cBASE_t *i2c, uint8_t addr,uint16_t *data)
 {
-    INA226_SendData(i2c,addr, CAL_REG, data);
+    uint8_t data_temp[2]={0};
+    data_temp[0] = (uint8_t)(*data >> 8);
+    data_temp[1] = (uint8_t)*data;
+
+    INA226_SendData(i2c,addr, CAL_REG, data_temp);
 }
 
 
@@ -281,14 +294,19 @@ void INA226_SetCalReg(i2cBASE_t *i2c, uint8_t addr,uint16_t *data)
 void INA226_GetCurrent(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 {
     //int err = -1;
-    uint16_t temp = 0;
+    uint8_t data_temp[2]={0};           //temp. data from i2c
+    uint16_t data_reg = 0;              //data in the register
     //INA226_SetRegPointer(i2c, addr,CUR_REG);
 
-    INA226_ReceiveData(i2c, addr, CUR_REG, &temp);
+    INA226_ReceiveData(i2c, addr, CUR_REG, data_temp);
 
-    if(temp&0x8000)
-        temp = ~(temp - 1);
-    *data = temp;
+    data_reg = data_temp[0];
+    data_reg = data_reg << 8;
+    data_reg = data_reg | data_temp[1];
+
+    if(data_reg&0x8000)
+        data_reg = ~(data_reg - 1);
+    *data = data_reg;
     //*data = temp * 1e-3;
     //return(err);
 }
@@ -298,12 +316,17 @@ void INA226_GetCurrent(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 void INA226_GetPower(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 {
     //int err = -1;
-    uint16_t temp = 0;
+    uint8_t data_temp[2]={0};           //temp. data from i2c
+    uint16_t data_reg = 0;              //data in the register
     //INA226_SetRegPointer(i2c, addr,PWR_REG);
 
-    INA226_ReceiveData(i2c, addr, PWR_REG, &temp);
+    INA226_ReceiveData(i2c, addr, PWR_REG, data_temp);
 
-    *data = temp * 25 * 1000;
+    data_reg = data_temp[0];
+    data_reg = data_reg << 8;
+    data_reg = data_reg | data_temp[1];
+
+    *data = data_reg * 25 * 1000;
 
     //return(err);
 }
@@ -312,13 +335,17 @@ void INA226_GetPower(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 void INA226_GetID(i2cBASE_t *i2c, uint8_t addr, uint16_t *data)
 {
     //int err = -1;
-    uint16_t temp = 0;
+    uint8_t data_temp[2]={0};           //temp. data from i2c
+    uint16_t data_reg = 0;              //data in the register
     //INA226_SetRegPointer(i2c, addr,ID_REG);
 
-    INA226_ReceiveData(i2c, addr, ID_REG, &temp);
+    INA226_ReceiveData(i2c, addr, ID_REG, data_temp);
 
+    data_reg = data_temp[0];
+    data_reg = data_reg << 8;
+    data_reg = data_reg | data_temp[1];
 
-    *data = (uint16_t)temp;
+    *data = data_reg;
 
     //return(err);
 }
@@ -327,13 +354,17 @@ void INA226_GetID(i2cBASE_t *i2c, uint8_t addr, uint16_t *data)
 void INA226_GetCalReg(i2cBASE_t *i2c, uint8_t addr, uint16_t *data)
 {
     //int err = -1;
-    uint16_t temp = 0;
+    uint8_t data_temp[2]={0};           //temp. data from i2c
+    uint16_t data_reg = 0;              //data in the register
     //INA226_SetRegPointer(i2c, addr,CAL_REG);
 
-    INA226_ReceiveData(i2c, addr, CAL_REG, &temp);
+    INA226_ReceiveData(i2c, addr, CAL_REG, data_temp);
 
+    data_reg = data_temp[0];
+    data_reg = data_reg << 8;
+    data_reg = data_reg | data_temp[1];
 
-    *data = (uint16_t)temp;
+    *data = data_reg;
 
     //return(err);
 }
@@ -342,8 +373,8 @@ void INA226_Init(i2cBASE_t *i2c, uint8_t addr, ina226_data *data)
 {
     //i2cInit();
 
-    INA226_SendData(i2c,addr, CFG_REG,data->config_reg);
-    INA226_SendData(i2c,addr, CAL_REG,data->cal_reg);
+    INA226_SendData(i2c,addr, CFG_REG,&data->config_reg);
+    INA226_SendData(i2c,addr, CAL_REG,&data->cal_reg);
 }
 
 
