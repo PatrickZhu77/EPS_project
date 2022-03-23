@@ -77,7 +77,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="source_custom/battery.c|source_custom/mppt_pno.c|source_custom/fee_test.c|source_custom/sys_main4.c|source_custom/sys_main3.c|source_custom/sys_main2.c|source_custom/sys_main.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="source_custom/max6698.c|source_custom/mppt_pno.c|source_custom/fee_test.c|source_custom/sys_main4.c|source_custom/sys_main3.c|source_custom/sys_main2.c|source_custom/sys_main.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

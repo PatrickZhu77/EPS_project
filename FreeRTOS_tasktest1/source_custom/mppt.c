@@ -6,7 +6,7 @@
 
 /***************************************************************************
  * @brief
- *   Hunt's algorithm to decide the proper value of increment/decrement
+ *   Hunt's algorithm to decide the scale of increment/decrement
  *
  * @param[in] data
  *   Pointer to public data structure of MPPT task.
@@ -14,29 +14,27 @@
  ******************************************************************************/
 void mppt_hunts(mppt_data *data)
 {
-//    double temp_incr = 1;           //basic increment
-//
-//    if(data->counter < 2)               //when change with same direction for 2  or less times
-//    {
-//        data->increment = temp_incr;
-//    }
-//    else if(data->counter >= 2 && data->counter < 4)        //when change with same direction for 2 to 4 times
-//    {
-//        data->increment = temp_incr*2;
-//    }
-//    else if(data->counter >= 4)         //when change with same direction for more than 4 times
-//    {
-//        data->increment = temp_incr*3;
-//    }
-    if(data->counter < 16)               //when change with same direction for 200  or less times
+    if(data->dir == data->predir)                       //when the direction does not change
     {
-        data->increment = 1;
-    }
+        if(data->counter >= 4)               //when change with same direction for 4 or less times
+         {
+            if(data->increment < 8)         //maximum increment is 8 times of standard (INCOMPLETED!!!!!!!!!!!!!!)
+            {
+                data->increment = data->increment << 1;       //increment is doubled
+                data->counter = 0;
+            }
+
+         }
+     }
     else
     {
-        data->increment = 1 << (int)(data->counter/16);
+        if(data->increment >= 0x2)
+        {
+            data->increment = data->increment >> 1;                //increment is halved
+        }
+        data->predir = data->dir;
     }
-}
+ }
 
 /***************************************************************************
  * @brief
@@ -68,7 +66,7 @@ void mppt_pno(ina226_data *data1, mppt_data *data2)
 
             data2->dir = 1;
             mppt_hunts(data2);
-            printf("Voltage increased by %d V.\n",(int)data2->increment);
+//            printf("Voltage increased by %d V.\n",(int)data2->increment);
 
         }
         else                                        // V(k) < V(k-1), current voltage smaller than previous voltage
@@ -84,7 +82,7 @@ void mppt_pno(ina226_data *data1, mppt_data *data2)
 
             data2->dir = 0;
             mppt_hunts(data2);
-            printf("Voltage decreased by %d V.\n",(int)data2->increment);
+//            printf("Voltage decreased by %d V.\n",(int)data2->increment);
 
         }
 
@@ -104,7 +102,7 @@ void mppt_pno(ina226_data *data1, mppt_data *data2)
 
             data2->dir = 0;
             mppt_hunts(data2);
-            printf("Voltage decreased by %d V.\n",(int)data2->increment);
+//            printf("Voltage decreased by %d V.\n",(int)data2->increment);
 
         }
         else                                        // V(k) < V(k-1), current voltage smaller than previous voltage
@@ -120,7 +118,7 @@ void mppt_pno(ina226_data *data1, mppt_data *data2)
 
             data2->dir = 1;
             mppt_hunts(data2);
-            printf("Voltage increased by %d V.\n",(int)data2->increment);
+//            printf("Voltage increased by %d V.\n",(int)data2->increment);
 
         }
 

@@ -19,9 +19,9 @@ source_custom/ad5324.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/
 source_custom/ad5324.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_gio.h
 source_custom/ad5324.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_flash.h
 source_custom/ad5324.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_tcram.h
+source_custom/ad5324.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/ad5324.h
 source_custom/ad5324.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/spi.h
 source_custom/ad5324.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_spi.h
-source_custom/ad5324.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/ad5324.h
 source_custom/ad5324.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/mppt.h
 source_custom/ad5324.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/ina226.h
 source_custom/ad5324.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_i2c.h
@@ -47,9 +47,9 @@ C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_gio.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_flash.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_tcram.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/ad5324.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/spi.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_spi.h: 
-C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/ad5324.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/mppt.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/ina226.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_i2c.h: 

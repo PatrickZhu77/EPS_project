@@ -274,28 +274,18 @@ int main()
  ******************************************************************************/
 void mppt_hunts(mppt_data *data)
 {
-//    uint8_t n = 1;           //basic increment
+
 
     if(data->counter < 8)               //when change with same direction for 200  or less times
     {
         data->increment = 1;
-        //data->counter2 = 8;
+
     }
-    else//(data->counter>=10 && data->counter <20)        //when change with same direction for 200 to 400 times //&& (data->counter >= 200)
+    else                                //when change with same direction for 200 to 400 times //&& (data->counter >= 200)
     {
-//        if((int)(data->counter/data->counter2) == 2)
-//        {
-//
-//            data->counter2 = data->counter;
-//            data->n++;
-//        }
         data->increment = 1 << (int)(data->counter/8);
 
     }
-//    else//(data->counter >= 400)         //when change with same direction for more than 400 times
-//    {
-//        data->increment = temp_incr*10;
-//    }
 
 }
 
@@ -314,9 +304,6 @@ void mppt_hunts(mppt_data *data)
 void mppt_pno(double V0, double V1, double P0, double P1, mppt_data *data2)
 {
 
-//    IV_Curve(V,data2);
-
-//    double power = V*data2->preI;
 
     int temp_int = 0;
     double temp_double = 0;

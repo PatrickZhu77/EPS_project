@@ -2,17 +2,7 @@
 #include "i2c.h"
 
 
-//INA3221 INA3221_data;
-
-void INA3221_Init(i2cBASE_t *i2c, uint8_t addr)
-{
-    //i2cInit();
-
-    INA3221_SendData(i2c,addr, CFG_REG,0x7127);
-    //INA3221_SendData(i2c,addr, CAL_REG,0x0000);
-}
-
-/***************************************************************************//**
+/*****************************************************************************
  * @brief
  *   Set pointer to a certain register.
  *
@@ -127,7 +117,7 @@ void INA3221_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
 
     /* Simple Delay before starting Next Block */
     /* Depends on how quick the Slave gets ready */
-    //for(delay=0;delay<100000;delay++);
+    for(delay=0;delay<50;delay++);
 
 }
 
@@ -226,154 +216,97 @@ void INA3221_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *dat
 
     /* Clear the Stop condition */
     i2cClearSCD(i2c);
-    //for(delay=0;delay<100000;delay++);
+    for(delay=0;delay<50;delay++);
 
 }
 
-/*
-uint8_t INA3221_AlertAddr(i2cBASE_t *i2c)
+
+//LSB = 40uV/bit
+void INA3221_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data, uint8_t channel)
 {
-    uint8_t temp;
-
-    i2cSetStart(i2c);
-
-    i2cSendByte(i2c,INA3221_GETALADDR);
-
-    temp = i2cReceiveByte(i2c);
-
-    i2cSetStop(i2c);
-
-    return temp;
-}
-*/
-
-//LSB = 2.5uV/bit
-void INA3221_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, double *data, uint8_t channel)
-{
-    //int err = -1;
-    uint16_t temp = 0;
-    //INA3221_SetRegPointer(i2c, addr,SV_REG);
+    uint8_t data_temp[2]={0};           //temp. data from i2c
+    uint16_t data_reg = 0;              //data in the register
 
     switch (channel)
     {
         case 1:
-            INA3221_ReceiveData(i2c, addr, SV_REG1, &temp);
+            INA3221_ReceiveData(i2c, addr, SV_REG1, data_temp);
             break;
         case 2:
-            INA3221_ReceiveData(i2c, addr, SV_REG2, &temp);
+            INA3221_ReceiveData(i2c, addr, SV_REG2, data_temp);
             break;
         case 3:
-            INA3221_ReceiveData(i2c, addr, SV_REG3, &temp);
+            INA3221_ReceiveData(i2c, addr, SV_REG3, data_temp);
             break;
         default:
+            break;
     }
 
-    //INA3221_ReceiveData(i2c, addr, SV_REG, &temp);
+    data_reg = data_temp[0];
+    data_reg = data_reg << 8;
+    data_reg = data_reg | data_temp[1];
 
-    if(temp&0x8000)
-        temp = ~(temp - 1);
-    *data = temp * 2.5e-5 * 1000;
+    if(data_reg&0x8000)
+        data_reg = ~(data_reg - 1);
 
-    //return(err);
+    data_reg = data_reg & voltage_mask;
+    data_reg = data_reg >> 3;
+
+    *data = data_reg * 40 / 1000;
+
 }
 
-//LSB = 1.25mV/bit
-void INA3221_GetVoltage(i2cBASE_t *i2c, uint8_t addr, double *data, uint8_t channel)
+
+//LSB = 8mV/bit
+void INA3221_GetBusVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data, uint8_t channel)
 {
-    //int err = -1;
-    uint16_t temp = 0;
-    //INA3221_SetRegPointer(i2c, addr,BV_REG);
+    uint8_t data_temp[2]={0};           //temp. data from i2c
+    uint16_t data_reg = 0;              //data in the register
 
     switch (channel)
     {
         case 1:
-            INA3221_ReceiveData(i2c, addr, BV_REG1, &temp);
+            INA3221_ReceiveData(i2c, addr, BV_REG1, data_temp);
             break;
         case 2:
-            INA3221_ReceiveData(i2c, addr, BV_REG2, &temp);
+            INA3221_ReceiveData(i2c, addr, BV_REG2, data_temp);
             break;
         case 3:
-            INA3221_ReceiveData(i2c, addr, BV_REG3, &temp);
+            INA3221_ReceiveData(i2c, addr, BV_REG3, data_temp);
             break;
         default:
+            break;
     }
 
+    data_reg = data_temp[0];
+    data_reg = data_reg << 8;
+    data_reg = data_reg | data_temp[1];
 
-   // INA3221_ReceiveData(i2c, addr, BV_REG, &temp);
+    if(data_reg&0x8000)
+        data_reg = ~(data_reg - 1);
 
-    *data = temp* 1.25e-3;
+    data_reg = data_reg & voltage_mask;
+    data_reg = data_reg >> 3;
 
-    //return(err);
+    *data = data_reg* 8;
+
 }
 
-/*
-// Set value of CAL_REG
-// CAL = 0.00512/(current_LSB * Rshunt)
-void INA3221_SetCalReg(i2cBASE_t *i2c, uint8_t addr,uint16_t *data)
+void INA3221_DoCalculation(i2cBASE_t *i2c, uint8_t addr, ina3221_data *data, uint8_t channel)
 {
-    INA3221_SendData(i2c,addr, CAL_REG, data);
+    data->voltage[channel-1] = data->bus_voltage[channel-1] + data->shunt_voltage[channel-1];
 }
 
 
-//LSB = 1mA/bit
-void INA3221_GetCurrent(i2cBASE_t *i2c, uint8_t addr, double *data)
+//INA3221 INA3221_data;
+
+void INA3221_Init(i2cBASE_t *i2c, uint8_t addr, ina3221_data *data)
 {
-    //int err = -1;
-    uint16_t temp = 0;
-    //INA3221_SetRegPointer(i2c, addr,CUR_REG);
+    uint8_t config_temp[2]={0};
+    config_temp[0] = (uint8_t)(data->config_reg >> 8);
+    config_temp[1] = (uint8_t)data->config_reg;
 
-    INA3221_ReceiveData(i2c, addr, CUR_REG, &temp);
+    INA3221_SendData(i2c,addr, CFG_REG,config_temp);
 
-    if(temp&0x8000)
-        temp = ~(temp - 1);
-    *data = temp;
-    *data = temp * 1e-3;
-    //return(err);
 }
-
-
-//LSB = 25mW/bit
-void INA3221_GetPower(i2cBASE_t *i2c, uint8_t addr, double *data)
-{
-    //int err = -1;
-    uint16_t temp = 0;
-    //INA3221_SetRegPointer(i2c, addr,PWR_REG);
-
-    INA3221_ReceiveData(i2c, addr, PWR_REG, &temp);
-
-    *data = temp * 25e-3;
-
-    //return(err);
-}
-
-//read id
-void INA3221_GetID(i2cBASE_t *i2c, uint8_t addr, uint16_t *data)
-{
-    //int err = -1;
-    uint16_t temp = 0;
-    //INA3221_SetRegPointer(i2c, addr,ID_REG);
-
-    INA3221_ReceiveData(i2c, addr, ID_REG, &temp);
-
-
-    *data = (uint16_t)temp;
-
-    //return(err);
-}
-
-//read calibration register
-void INA3221_GetCalReg(i2cBASE_t *i2c, uint8_t addr, uint16_t *data)
-{
-    //int err = -1;
-    uint16_t temp = 0;
-    //INA3221_SetRegPointer(i2c, addr,CAL_REG);
-
-    INA3221_ReceiveData(i2c, addr, CAL_REG, &temp);
-
-
-    *data = (uint16_t)temp;
-
-    //return(err);
-}
-*/
 

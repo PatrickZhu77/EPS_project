@@ -79,7 +79,7 @@ void INA226_SetRegPointer(i2cBASE_t *i2c, uint8_t addr, uint8_t reg)
  ******************************************************************************/
 void INA226_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
 {
-    int delay=0;
+    uint8_t delay=0;
 
     //while(i2cIsMasterReady(i2c) != true);
     /* Configure address of Slave to talk to */
@@ -144,7 +144,7 @@ void INA226_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
  ******************************************************************************/
 void INA226_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
 {
-    int delay=0;
+    uint8_t delay=0;
 
     //while(i2cIsMasterReady(i2c) != true);
 
@@ -222,22 +222,7 @@ void INA226_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data
 
 }
 
-/*
-uint8_t INA226_AlertAddr(i2cBASE_t *i2c)
-{
-    uint8_t temp;
 
-    i2cSetStart(i2c);
-
-    i2cSendByte(i2c,INA226_GETALADDR);
-
-    temp = i2cReceiveByte(i2c);
-
-    i2cSetStop(i2c);
-
-    return temp;
-}
-*/
 
 //LSB = 2.5uV/bit
 void INA226_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
@@ -273,7 +258,7 @@ void INA226_GetVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
     data_reg = data_reg << 8;
     data_reg = data_reg | data_temp[1];
 
-    *data = data_reg* 1250 / 1000;
+    *data = data_reg * 1250 / 1000;
 
     //return(err);
 }
@@ -306,7 +291,7 @@ void INA226_GetCurrent(i2cBASE_t *i2c, uint8_t addr, uint32_t *data)
 
     if(data_reg&0x8000)
         data_reg = ~(data_reg - 1);
-    *data = data_reg;
+    *data = data_reg * 1;
     //*data = temp * 1e-3;
     //return(err);
 }
@@ -369,38 +354,76 @@ void INA226_GetCalReg(i2cBASE_t *i2c, uint8_t addr, uint16_t *data)
     //return(err);
 }
 
+
 void INA226_Init(i2cBASE_t *i2c, uint8_t addr, ina226_data *data)
 {
-    //i2cInit();
+    uint8_t config_temp[2]={0};
+    config_temp[0] = (uint8_t)(data->config_reg >> 8);
+    config_temp[1] = (uint8_t)data->config_reg;
 
-    INA226_SendData(i2c,addr, CFG_REG,&data->config_reg);
-    INA226_SendData(i2c,addr, CAL_REG,&data->cal_reg);
+    uint8_t cal_temp[2]={0};
+    cal_temp[0] = (uint8_t)data->cal_reg >> 8;
+    cal_temp[1] = (uint8_t)data->cal_reg;
+
+
+    INA226_SendData(i2c,addr, CFG_REG,config_temp);
+    INA226_SendData(i2c,addr, CAL_REG,cal_temp);
 }
 
-
-/*void GetVoltage(float *Voltage)//mV
+void INA226_GetAlertInfo(i2cBASE_t *i2c, ina226_data *data)
 {
-    Voltage[0] = INA226_GetVoltage(INA226_ADDR1)*1.25f;
+    uint8_t temp_addr[1] = {0};
+
+    /*****************************************/
+    // Receive the alert sensor i2c address
+    /*****************************************/
+    uint8_t delay = 0;
+    while(i2cIsMasterReady(i2c) != true);
+
+    /* Configure address of Slave to talk to */
+    i2cSetSlaveAdd(i2c, INA226_err);
+
+    /* Set direction to receiver */
+    i2cSetDirection(i2c, I2C_RECEIVER);
+
+    /* Configure Data count */
+    /* Note: Optional - It is done in Init, unless user want to change */
+    i2cSetCount(i2c, 1);
+
+    /* Set mode as Master */
+    i2cSetMode(i2c, I2C_MASTER);
+
+    /* Set Stop after programmed Count */
+    i2cSetStop(i2c);
+
+    /* Transmit Start Condition */
+    i2cSetStart(i2c);
+
+    /* Tranmit DATA_COUNT number of data in Polling mode */
+    i2cReceive(i2c, 1, temp_addr);
+
+    /* Wait until Bus Busy is cleared */
+    while(i2cIsBusBusy(i2c) == true);
+
+    /* Wait until Stop is detected */
+    while(i2cIsStopDetected(i2c) == 0);
+
+    /* Clear the Stop condition */
+    i2cClearSCD(i2c);
+    for(delay=0;delay<50;delay++);
+
+
+
+    /*****************************************/
+    // Read from alert sensor
+    /*****************************************/
+    data->address = temp_addr[0] >> 1;
+
+    INA226_GetShuntVoltage(i2c,data->address,&data->shunt_voltage);
+    INA226_GetVoltage(i2c,data->address,&data->bus_voltage);
+    INA226_GetCalReg(i2c, data->address, &data->calibration);
+    INA226_GetCurrent(i2c, data->address, &data->current);
+    INA226_GetPower(i2c, data->address, &data->power);
+
 }
 
-
-void Get_Shunt_voltage(float *Voltage)//uV
-{
-    Voltage[0] = (INA226_GetShuntVoltage(INA226_ADDR1)*2.2);
-}
-
-
-void Get_Shunt_Current(float *Current)//mA
-{
-    Current[0] = (INA226_GetShunt_Current(INA226_ADDR1)* 2.5f);
-}
-
-
-void GetPower()//W
-{
-    GetVoltage(&INA226_data.voltageVal);            //mV
-    Get_Shunt_voltage(&INA226_data.Shunt_voltage);  //uV
-    Get_Shunt_Current(&INA226_data.Shunt_Current);  //mA
-    INA226_data.powerVal=INA226_data.voltageVal*0.001f * INA226_data.Shunt_Current*0.001f;
-}
-*/

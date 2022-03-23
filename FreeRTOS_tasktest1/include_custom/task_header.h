@@ -29,12 +29,6 @@ TaskHandle_t selfCheckTask_Handler;
 void selfCheck_task(void *pvParameters);
 
 
-#define mppt_TASK_PRIO         2
-#define mppt_STK_SIZE         128
-TaskHandle_t mpptTask_Handler;
-void mppt_task(void *pvParameters);
-
-
 #define channelCtrl_TASK_PRIO         2
 #define channelCtrl_STK_SIZE         128
 TaskHandle_t channelCtrlTask_Handler;
@@ -52,11 +46,6 @@ void battCtrl_task(void *pvParameters);
 TaskHandle_t heatCtrlTask_Handler;
 void heatCtrl_task(void *pvParameters);
 
-
-#define bcCtrl_TASK_PRIO         2
-#define bcCtrl_STK_SIZE         128
-TaskHandle_t bcCtrlTask_Handler;
-void bcCtrl_task(void *pvParameters);
 
 #define receiveCMD_TASK_PRIO         2
 #define receiveCMD_STK_SIZE         128

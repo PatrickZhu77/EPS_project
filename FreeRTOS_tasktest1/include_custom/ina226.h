@@ -14,8 +14,9 @@
 #define     ID_REG          0XFF        //Die ID register
 
 #define     INA226_ADDR1    0x44//0x8E        //SLAVE ADDRESS 1000111 (VS|SCL)
+#define     INA226_err      0xC         //0001_100. Alert Response slave address
 
-//#define       INA226_GETALADDR    0x14
+
 typedef struct
 {
     uint8_t address;              //i2c address
@@ -23,10 +24,10 @@ typedef struct
     uint32_t bus_voltage;         //mV
     uint16_t calibration;
     uint32_t current;             //mA
-    uint32_t power;               //uW
+    uint32_t power;               //mW
     uint8_t flag;
-    uint8_t config_reg;
-    uint8_t cal_reg;
+    uint16_t config_reg;
+    uint16_t cal_reg;
 }ina226_data;
 
 /**************List of ina226 sensors**************
@@ -56,6 +57,7 @@ typedef struct
  *  22: current monitor of channel 14
  *  23: current monitor of channel 15
  *  24: current monitor of channel 16
+ *  25: store data of the error monitor
  *
  *
  *******************************************/

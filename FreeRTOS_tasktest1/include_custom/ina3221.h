@@ -2,6 +2,7 @@
 #define __INA3221_H
 
 #include "reg_i2c.h"
+#include "i2c.h"
 
 #define     CFG_REG         0x00        //Configuration register
 #define     SV_REG1         0x01        //Shunt voltage register 1
@@ -19,31 +20,35 @@
 #define     WA_REG4         0x0C        //Warning alert limit  3
 
 
-
-
-
-#define     PWR_REG         0x03        //Power register
-#define     CUR_REG         0x04        //Current register
-#define     CAL_REG         0x05        //Calibration register
-#define     ONFF_REG        0x06        //Mask/Enable register
-#define     AL_REG          0x07        //Alert limit register
-#define     ID_REG          0XFF        //Die ID register
+#define     voltage_mask     0x7FF8     //mask used for both voltage registers (only 14--3 bits are used)
 
 #define     INA3221_ADDR1    0x44//0x8E        //SLAVE ADDRESS 1000111 (VS|SCL)
 
 
-void INA3221_Init(i2cBASE_t *i2c, uint8_t addr);
+typedef struct
+{
+    uint8_t address;              //i2c address
+
+    uint32_t shunt_voltage[3];       //mV
+    uint32_t bus_voltage[3];         //mV
+    uint32_t voltage[3];             //mV (shunt voltage + bus voltage)
+    uint32_t current[3];             //mA
+    uint32_t power[3];               //uW
+
+    uint8_t flag;
+    uint16_t config_reg;
+}ina3221_data;
+
+
 void INA3221_SetRegPointer(i2cBASE_t *i2c, uint8_t addr, uint8_t reg);
 void INA3221_SendData(i2cBASE_t *i2c,uint8_t addr,uint8_t reg,uint8_t *data);
 void INA3221_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data);
 
 
-void INA3221_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, double *data, uint8_t channel);
-void INA3221_GetVoltage(i2cBASE_t *i2c, uint8_t addr, double *data, uint8_t channel);
-/*void INA3221_SetCalReg(i2cBASE_t *i2c, uint8_t addr,uint16_t *data);
-void INA3221_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, double *data);
-void INA3221_Get_Power(i2cBASE_t *i2c, uint8_t addr, double *data);
-void INA3221_Get_ID(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
-void INA3221_GET_CAL_REG(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
-*/
+void INA3221_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data, uint8_t channel);
+void INA3221_GetBusVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data, uint8_t channel);
+void INA3221_DoCalculation(i2cBASE_t *i2c, uint8_t addr, ina3221_data *data, uint8_t channel);
+void INA3221_Init(i2cBASE_t *i2c, uint8_t addr, ina3221_data *data);
+
+
 #endif

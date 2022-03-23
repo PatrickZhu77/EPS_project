@@ -69,6 +69,8 @@
 #include "ina3221.h"
 #include "mppt.h"
 #include "channel.h"
+#include "battery.h"
+#include "ad5324.h"
 
 
 /* USER CODE END */
@@ -88,14 +90,8 @@
 #define DELAY_1_SECOND          1000UL
 #define TIMER_CHECK_THRESHOLD   9
 
-static QueueHandle_t xQueue_channel = NULL;
-static TimerHandle_t xTimer = NULL;
-char HWstring[5] = "test1";
-char HWstring2[5] = "test2";
-unsigned int channelSW[2]= {4,1};
-long TxTaskCntr, RxTaskCntr = 0;
 
-/*****************Default Data************************/
+/*****************FEE Variables************************/
 uint16 u16JobResult,Status;
 Std_ReturnType oResult=E_OK;
 unsigned char read_data[100]={0};
@@ -111,21 +107,32 @@ uint8 SpecialRamBlock[100];
 
 /*****************Housekeeping Data********************/
 static unsigned char command;
-ina226_data ina226D[25];
-ina226_data *pina226D = &ina226D[0];
-static boolean checkFlag[3][2]={0}; // checkFlag[][0]:current ina226 flag; checkFlag[][1]:previous ina226 flag;
-static uint8_t getHK_counter = 0,selfCheck_counter = 0,mppt_counter = 0;
+static ina226_data ina226D[26] = {0};
+static ina226_data *pina226D = &ina226D[0];
+static uint8_t ina226_counter = 0;
 
-/*****************MPPT Data*************************/
-mppt_data mpptD[4];
-mppt_data *pmpptD = &mpptD[0];
+static ina3221_data ina3221D[4] = {0};
+static ina3221_data *pina3221D = &ina3221D[0];
+static uint8_t ina3221_counter = 0;
+
+/*****************SelfCheck Variables********************/
+static boolean checkFlag[30][2]={0};         // checkFlag[][0]:current flag; checkFlag[][1]:previous flag;
+static uint8_t selfCheck_counter = 0;
+
+/*****************Battery Data*************************/
+static mppt_data mpptD[4];
+static mppt_data *pmpptD = &mpptD[0];
+static uint8_t mppt_counter = 0;
+
+static battery_data battD[4];
+static battery_data *pbattD = &battD[0];
+static uint8_t battery_counter = 0;
 
 /*****************Channel Data*************************/
-channel_data channelD[16];
-channel_data *pchannelD = &channelD[0];
+static channel_data channelD[16];
+static channel_data *pchannelD = &channelD[0];
+static uint8_t channel_counter = 0;
 
-
-static void prvTimerCallback( TimerHandle_t pxTimer );
 
 
 void delay(void)
@@ -149,10 +156,8 @@ int main(void)
     sciInit();
     gioInit();
     i2cInit();
-    canInit();
+//    canInit();
     spiInit();
-
-    //sciSend(scilinREG,14,(unsigned char *)"Hello World!\r\n");
 
     xTaskCreate((TaskFunction_t )init_task,
                 (const char*    )"init_task",
@@ -162,31 +167,6 @@ int main(void)
                 (TaskHandle_t*  )&initTask_Handler);
     printf("init_task created\n");
 
-    xTimer = xTimerCreate((const char *)"Timer",
-                          pdMS_TO_TICKS(10000),
-                          pdFALSE,
-                          (void *) TIMER_ID,
-                          prvTimerCallback
-                          );
-    if (xTimer==NULL) {
-        printf("Timer creation failed\n");
-       for(;;); /* failure! */
-    }
-
-    if (xTimerStart(xTimer, 0)!=pdPASS) {
-
-      for(;;); /* failure! */
-
-    }
-
-    configASSERT( xTimer );
-    printf("Timer created\n");
-
-
-
-
-    xTimerStart( xTimer, 0 );
-    printf("Timer started\n");
 
     vTaskStartScheduler();
 
@@ -202,48 +182,12 @@ void init_task(void *pvParameters)
 {
     taskENTER_CRITICAL();
 
-    uint8_t config_data[2]={0x41,0x27};
-    uint8_t cal_data[2]={0x0A,0x00};
     /*read and write to flash */
 //    unsigned int BlockNumber;
 //    unsigned int BlockOffset, Length;
 //    unsigned char *Read_Ptr=read_data;
 //
 //    unsigned int loop;
-//
-//    /* Initialize RAM array.*/
-//    for(loop=0;loop<100;loop++)SpecialRamBlock[loop] = loop;
-//    printf("readdata= %d\n", (unsigned int)read_data[7]);
-//
-//    /* Format bank 7 */
-//    TI_Fee_Format(0xA5A5A5A5U);
-//
-//    /* Initialize FEE. This will create Virtual sectors, initialize global variables etc.*/
-//    TI_Fee_Init();
-//    do
-//    {
-//        TI_Fee_MainFunction();
-//        delay();
-//        Status=TI_Fee_GetStatus(0 );
-//    }
-//    while(Status!= IDLE);
-//    printf("Fee initialized\n");
-//
-//    /* Write the block into EEP Asynchronously. Block size is configured in ti_fee_cfg.c file. Default Block size is
-//       8 bytes */
-//    BlockNumber=0x1;
-//    TI_Fee_WriteAsync(BlockNumber, &SpecialRamBlock[0]);
-//    do
-//    {
-//        TI_Fee_MainFunction();
-//        delay();
-//        Status=TI_Fee_GetStatus(0);
-//    }
-//    while(Status!=IDLE);
-//
-//    /* Write the block into EEP Synchronously. Write will not happen since data is same. */
-//    TI_Fee_WriteSync(BlockNumber, &SpecialRamBlock[0]);
-//    printf("Fee write\n");
 //
 //    /* Read the block with unknown length */
 //     BlockOffset = 0;
@@ -275,6 +219,57 @@ void init_task(void *pvParameters)
 //    //TI_Fee_Format(0xA5A5A5A5U);
 
 
+    /* Temp. default data (should be removed when fee works)*/
+    uint16_t ina226_config_data=0x4127;
+    uint16_t ina226_cal_data=0x0A00;
+    uint16_t ina3221_config_data=0x7127;
+
+
+    /*Initialize sensors*/
+    for(ina226_counter=0;ina226_counter<26;ina226_counter++)
+    {
+        ina226D[ina226_counter].address = INA226_ADDR1;
+        ina226D[ina226_counter].config_reg = ina226_config_data;
+        ina226D[ina226_counter].cal_reg = ina226_cal_data;
+        INA226_Init(i2cREG1, ina226D[ina226_counter].address, pina226D+ina226_counter);
+    }
+
+    for(ina3221_counter=0;ina3221_counter<4;ina3221_counter++)
+    {
+        ina3221D[ina3221_counter].address = INA3221_ADDR1;
+        ina3221D[ina3221_counter].config_reg = ina3221_config_data;
+        INA3221_Init(i2cREG1, ina3221D[ina3221_counter].address, pina3221D+ina3221_counter);
+    }
+
+    /*Initialize created data structures*/
+    for(mppt_counter=0;mppt_counter<4;mppt_counter++)
+    {
+        mpptD[mppt_counter].channel = mppt_counter;
+        mpptD[mppt_counter].counter = 0;
+        mpptD[mppt_counter].dir = 1;
+        mpptD[mppt_counter].increment = 1;
+        mpptD[mppt_counter].preP = 6*1e6;  //uW (~6W)
+        mpptD[mppt_counter].preV = 5*1e3;   //mV (~5V)
+    }
+
+    for(channel_counter=0;channel_counter<16;channel_counter++)
+    {
+        channelD[channel_counter].address = INA226_ADDR1;
+        channelD[channel_counter].num = channel_counter+1;
+        channelD[channel_counter].sw = 0;
+        channelD[channel_counter].maxV = 5*1e3;    //mV
+        channelD[channel_counter].maxI = 1*1e3;    //mA
+   }
+
+    for(battery_counter=0;battery_counter<16;battery_counter++)
+    {
+        battD[battery_counter].address = INA226_ADDR1;
+        battD[battery_counter].num = battery_counter+1;
+        battD[battery_counter].sw = 0;
+        battD[battery_counter].maxV = 8.4*1e3;    //mV
+        battD[battery_counter].maxI = 1.5*1e3;    //mA
+   }
+
 
     xTaskCreate((TaskFunction_t )channelCtrl_task,
                 (const char*    )"channelCtrl_task",
@@ -283,19 +278,12 @@ void init_task(void *pvParameters)
                 (UBaseType_t    )channelCtrl_TASK_PRIO,
                 (TaskHandle_t*  )&channelCtrlTask_Handler);
 
-    xTaskCreate((TaskFunction_t )receiveCMD_task,
-                (const char*    )"receiveCMD_task",
-                (uint16_t       )receiveCMD_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )receiveCMD_TASK_PRIO,
-                (TaskHandle_t*  )&receiveCMDTask_Handler);
-
-    xTaskCreate((TaskFunction_t )mppt_task,
-                (const char*    )"mppt_task",
-                (uint16_t       )mppt_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )mppt_TASK_PRIO,
-                (TaskHandle_t*  )&mpptTask_Handler);
+//    xTaskCreate((TaskFunction_t )receiveCMD_task,
+//                (const char*    )"receiveCMD_task",
+//                (uint16_t       )receiveCMD_STK_SIZE,
+//                (void*          )NULL,
+//                (UBaseType_t    )receiveCMD_TASK_PRIO,
+//                (TaskHandle_t*  )&receiveCMDTask_Handler);
 
     xTaskCreate((TaskFunction_t )getHK_task,
                 (const char*    )"getHK_task",
@@ -311,35 +299,12 @@ void init_task(void *pvParameters)
                 (UBaseType_t    )selfCheck_TASK_PRIO,
                 (TaskHandle_t*  )&selfCheckTask_Handler);
 
-//    xTaskCreate((TaskFunction_t )bcCtrl_task,
-//                (const char*    )"bcCtrl_task",
-//                (uint16_t       )bcCtrl_STK_SIZE,
-//                (void*          )NULL,
-//                (UBaseType_t    )bcCtrl_TASK_PRIO,
-//                (TaskHandle_t*  )&bcCtrlTask_Handler);
-
-
-    xQueue_channel = xQueueCreate(1,sizeof(channelSW));
-    configASSERT(xQueue_channel);
-
-
-    for(getHK_counter=0;getHK_counter<3;getHK_counter++)
-    {
-        INA226_SendData(i2cREG1,INA226_ADDR1, CFG_REG,config_data);
-        INA226_SendData(i2cREG1,INA226_ADDR1, CAL_REG,cal_data);
-    }
-    getHK_counter = 0;
-
-    for(mppt_counter=0;mppt_counter<2;mppt_counter++)
-    {
-        mpptD[mppt_counter].channel = mppt_counter;
-        mpptD[mppt_counter].counter = 0;
-        mpptD[mppt_counter].dir = 1;
-        mpptD[mppt_counter].preP = 70;  //W Expected power value from the sensor. (~85W)
-        mpptD[mppt_counter].preV = 7;   //V Expected voltage value from the sensor. (~8.5V)
-    }
-    mppt_counter = 0;
-
+    xTaskCreate((TaskFunction_t )battCtrl_task,
+                (const char*    )"battCtrl_task",
+                (uint16_t       )battCtrl_STK_SIZE,
+                (void*          )NULL,
+                (UBaseType_t    )battCtrl_TASK_PRIO,
+                (TaskHandle_t*  )&battCtrlTask_Handler);
 
     vTaskDelete(initTask_Handler);
 
@@ -356,23 +321,35 @@ void getHK_task(void *pvParameters)
     while(1)
     {
         /* call ina226 functions */
-        INA226_GetShuntVoltage(i2cREG1,INA226_ADDR1,&ina226D[getHK_counter].shunt_voltage);
-        INA226_GetVoltage(i2cREG1,INA226_ADDR1,&ina226D[getHK_counter].bus_voltage);
-        INA226_GetCalReg(i2cREG1, INA226_ADDR1, &ina226D[getHK_counter].calibration);
-        INA226_GetCurrent(i2cREG1, INA226_ADDR1, &ina226D[getHK_counter].current);
-        INA226_GetPower(i2cREG1, INA226_ADDR1, &ina226D[getHK_counter].power);
+        for(ina226_counter=0;ina226_counter<26;ina226_counter++)
+        {
+            INA226_GetShuntVoltage(i2cREG1,ina226D[ina226_counter].address,&ina226D[ina226_counter].shunt_voltage);
+            INA226_GetVoltage(i2cREG1,ina226D[ina226_counter].address,&ina226D[ina226_counter].bus_voltage);
+            INA226_GetCalReg(i2cREG1, ina226D[ina226_counter].address, &ina226D[ina226_counter].calibration);
+            INA226_GetCurrent(i2cREG1, ina226D[ina226_counter].address, &ina226D[ina226_counter].current);
+            INA226_GetPower(i2cREG1, ina226D[ina226_counter].address, &ina226D[ina226_counter].power);
 
-        /* inverse flag */
-        ina226D[getHK_counter].flag = !ina226D[getHK_counter].flag;
+            /* inverse flag */
+            ina226D[ina226_counter].flag = !ina226D[ina226_counter].flag;
+        }
 
-        printf("Number %d sensor updated. Power: %d uW.\n",getHK_counter,(int)ina226D[getHK_counter].power);
+        /* call ina3221 functions */
+        for(ina3221_counter=0;ina3221_counter<4;ina3221_counter++)
+        {
+            INA3221_GetShuntVoltage(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter].shunt_voltage[0], 1);
+            INA3221_GetBusVoltage(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter].bus_voltage[0], 1);
+            INA3221_DoCalculation(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter], 1);
 
-        /* point to next sensor */
-        if (getHK_counter < 2)
-            getHK_counter++;
-        else
-            getHK_counter = 0;
+            INA3221_GetShuntVoltage(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter].shunt_voltage[2], 3);
+            INA3221_GetBusVoltage(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter].bus_voltage[2], 3);
+            INA3221_DoCalculation(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter], 3);
 
+            /* inverse flag */
+            ina3221D[ina3221_counter].flag = !ina3221D[ina3221_counter].flag;
+        }
+
+
+//        printf("Number %d sensor updated. Power: %d uW.\n",ina226_counter,(int)ina226D[ina226_counter].power);
 
         vTaskDelay(xDelay);
 
@@ -413,107 +390,76 @@ void selfCheck_task(void *pvParameters)
     }
 }
 
-void receiveCMD_task(void *pvParameters)
-{
-    printf( "receiveCMD task running\n");
-    const portTickType xDelay = pdMS_TO_TICKS(1000);
-    while(1) //while(!canIsRxMessageArrived(canREG1, canMESSAGE_BOX1))
-    {
-        uint8  rx_data = 1;
-        //canGetData(canREG2, canMESSAGE_BOX1, rx_data);  /* receive on can1  */
-        switch(rx_data)
-        {
-            case 1:
-                xQueueSend(xQueue_channel,channelSW,0);
-                printf( "cmd sent to channelCtrl task\n");
-                break;
-            case 2:
-                //xQueueSend(xQueue_battery,channelSW,0);
-                printf( "cmd sent to channelCtrl task\n");
-                break;
-            case 3:
-                //xQueueSend(xQueue_heater,channelSW,0);
-                printf( "cmd sent to channelCtrl task\n");
-                break;
-            default:
-                break;
-        }
-
-        vTaskDelay(xDelay);
-    }
-
-
-}
+//void receiveCMD_task(void *pvParameters)
+//{
+//    printf( "receiveCMD task running\n");
+//    const portTickType xDelay = pdMS_TO_TICKS(1000);
+//    while(1) //while(!canIsRxMessageArrived(canREG1, canMESSAGE_BOX1))
+//    {
+//        uint8  rx_data = 1;
+//        //canGetData(canREG2, canMESSAGE_BOX1, rx_data);  /* receive on can1  */
+//        switch(rx_data)
+//        {
+//            case 1:
+//                xQueueSend(xQueue_channel,channelSW,0);
+//                printf( "cmd sent to channelCtrl task\n");
+//                break;
+//            case 2:
+//                //xQueueSend(xQueue_battery,channelSW,0);
+//                printf( "cmd sent to channelCtrl task\n");
+//                break;
+//            case 3:
+//                //xQueueSend(xQueue_heater,channelSW,0);
+//                printf( "cmd sent to channelCtrl task\n");
+//                break;
+//            default:
+//                break;
+//        }
+//
+//        vTaskDelay(xDelay);
+//    }
+//}
 
 void channelCtrl_task(void *pvParameters)
 {
     printf( "Channel task running\n");
     const portTickType xDelay = pdMS_TO_TICKS(100);
-    static uint8_t channel_counter = 0;         // counter of channels
 
     while(1)
     {
-        channel_compare((pina226D+9)+channel_counter,pchannelD+channel_counter);
-        channel_switch(pchannelD+channel_counter);
-
-        channel_counter++;
-        if(channel_counter==16)
+        for(channel_counter=0;channel_counter<16;channel_counter++)
         {
-            channel_counter = 0;
+            channel_compare((pina226D+9)+channel_counter,pchannelD+channel_counter);
+            channel_switch(pchannelD+channel_counter);
         }
+
+        vTaskDelay(xDelay);
     }
 }
 
-void mppt_task(void *pvParameters)
+void battCtrl_task(void *pvParameters)
 {
     printf( "battery controlling task running\n");
     const portTickType xDelay = pdMS_TO_TICKS(100);
 
     while(1)
     {
-        mppt_pno(pina226D+mppt_counter,pmpptD+mppt_counter);
-
-        printf( "Mppt result for channel %d: direction:%d, increment:%d.\n",mppt_counter,mpptD[mppt_counter].dir,(int)mpptD[mppt_counter].increment);
-
-        mppt_counter++;
-
-        if(mppt_counter == 4)
+        for(mppt_counter=0;mppt_counter<4;mppt_counter++)
         {
-            mppt_counter = 0;
+            mppt_pno(pina226D+mppt_counter,pmpptD+mppt_counter);
         }
 
+//        printf( "Mppt result for channel %d: direction:%d, increment:%d.\n",mppt_counter,mpptD[mppt_counter].dir,(int)mpptD[mppt_counter].increment);
+
+        for(battery_counter=0;battery_counter<4;battery_counter++)
+        {
+            battery_compareVI(pmpptD+battery_counter,pbattD+battery_counter);
+            battery_switch(pbattD+battery_counter);
+            dac_write_en(spiREG3,pmpptD+battery_counter);
+        }
 
         vTaskDelay(xDelay);
 
-    }
-
-
-
-}
-
-
-static void prvTimerCallback( TimerHandle_t pxTimer )
-{
-    long lTimerId;
-
-    configASSERT( pxTimer );
-
-    lTimerId = ( long ) pvTimerGetTimerID( pxTimer );
-    if (lTimerId != TIMER_ID) {
-        printf("FreeRTOS Hello World Example FAILED\n");
-    }
-
-    /* If the RxtaskCntr is updated every time the Rx task is called. The
-     Rx task is called every time the Tx task sends a message. The Tx task
-     sends a message every 1 second.
-
-     The timer expires after 10 seconds. We expect the RxtaskCntr to at least
-     have a value of 9 (TIMER_CHECK_THRESHOLD) when the timer expires. */
-    if (RxTaskCntr >= TIMER_CHECK_THRESHOLD) {
-        printf("Successfully ran FreeRTOS Hello World Example\n");
-    }
-    else {
-        printf("FreeRTOS Hello World Example FAILED\n");
     }
 
 }
