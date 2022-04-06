@@ -22,6 +22,8 @@
 
 //void dac_write_en(spiBASE_t *spi, mppt_data *data);
 void dac_write_ss(gioPORT_t *spi, mppt_data *data);
-void get_binary(uint16_t data);
+void dac_write_en(gioPORT_t *spi, mppt_data *data);
+void dac_write_en_ss(gioPORT_t *spi,uint16_t value);
+void get_binary(uint16_t data, uint8_t out_channel);
 
 #endif /* INCLUDE_AD5324_H_ */

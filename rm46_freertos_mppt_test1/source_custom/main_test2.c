@@ -33,6 +33,11 @@
 
 /* USER CODE BEGIN (2) */
 
+//#define EN_CTRL 1             // en pin controlling
+//#define SS_CTRL 1             // ss pin controlling
+//#define TRAVERSAL 1             // traversal en
+//#define TRAVERSAL 2           // traversal ss
+#define TRAVERSAL2 1             // traversal en 4 times with ss changes
 
 /*****************Housekeeping Data********************/
 static unsigned char command;
@@ -117,10 +122,10 @@ void init_task(void *pvParameters)
     {
         mpptD[mppt_counter].channel = mppt_counter;
         mpptD[mppt_counter].counter = 0;
-        mpptD[mppt_counter].dir = 0xFF;
-        mpptD[mppt_counter].predir = 0xFF;
-        mpptD[mppt_counter].increment = 64;
-        mpptD[mppt_counter].dacOUT = 500;
+        mpptD[mppt_counter].dir = 0x00;
+        mpptD[mppt_counter].predir = 0x00;
+        mpptD[mppt_counter].increment = EN_STEPSIZE_INIT;
+        mpptD[mppt_counter].dacOUT = DAC_INIT;
         mpptD[mppt_counter].presumP = 0;
         mpptD[mppt_counter].presumV = 0;
         mpptD[mppt_counter].sumP = 0;
@@ -175,37 +180,145 @@ void getHK_task(void *pvParameters)
 void battCtrl_task(void *pvParameters)
 {
     printf( "battery controlling task running\n");
-    const portTickType xDelay = pdMS_TO_TICKS(50);
+    const portTickType xDelay = pdMS_TO_TICKS(2000);
 
     static int i = 0;
+    static int counter = 1;
+    static int sweep_counter = 1;
+
+#ifdef EN_CTRL
+    dac_write_en_ss(mibspiPORT3);
+#endif
+
+#ifdef TRAVERSAL
+    if (TRAVERSAL == 1)
+        dac_write_en_ss(mibspiPORT3);
+#endif
+
 
     while(1)
     {
-
+        /*EN_pin Controlling*/
+#ifdef EN_CTRL
         for(mppt_counter=0;mppt_counter<1;mppt_counter++)
         {
-            dac_write_ss(mibspiPORT3,pmpptD+mppt_counter);
-            (pmpptD+mppt_counter)->sumP = 0;
+            dac_write_en(mibspiPORT3,pmpptD+mppt_counter);
+            printf("%d\t%d\t%d\n",(int)pmpptD->dacOUT,(int)ina226D[0].shunt_voltage,(int)(mpptD[0].sumP/NUM_AVERAGE));
 
-            vTaskDelay(xDelay);
+            (pmpptD+mppt_counter)->sumP = 0;
+            vTaskDelay(pdMS_TO_TICKS(10));
 
             for(i = 0;i<NUM_AVERAGE;i++)
             {
-                mppt_getSumP(pina226D+mppt_counter, pmpptD+mppt_counter);
-
                 vTaskDelay(pdMS_TO_TICKS(10));
+                mppt_getSumP(pina226D+mppt_counter, pmpptD+mppt_counter);
+            }
+
+            mppt_pno_en(pmpptD+mppt_counter);
+        }
+
+        vTaskDelay(xDelay);
+#endif
+
+        /*SS_pin Controlling*/
+#ifdef SS_CTRL
+        for(mppt_counter=0;mppt_counter<1;mppt_counter++)
+        {
+            dac_write_ss(mibspiPORT3,pmpptD+mppt_counter);
+            printf("%d\t%d\t%d\n",(int)pmpptD->dacOUT,(int)ina226D[0].shunt_voltage,(int)ina226D[0].bus_voltage);
+
+            (pmpptD+mppt_counter)->sumP = 0;
+            vTaskDelay(pdMS_TO_TICKS(10));
+
+            for(i = 0;i<NUM_AVERAGE;i++)
+            {
+                vTaskDelay(pdMS_TO_TICKS(10));
+                mppt_getSumP(pina226D+mppt_counter, pmpptD+mppt_counter);
             }
 
             mppt_pno_ss(pmpptD+mppt_counter);
-
-            dac_write_ss(mibspiPORT3,pmpptD+mppt_counter);
-
         }
 
 
-        printf("DAC out:%d\n",(int)mpptD[0].dacOUT);
-
         vTaskDelay(xDelay);
+#endif
+
+        /*Traversal*/
+#ifdef TRAVERSAL
+
+        if (TRAVERSAL == 1)
+            dac_write_en(mibspiPORT3,pmpptD);
+        else
+            dac_write_ss(mibspiPORT3,pmpptD);
+
+        printf("%d\t%d\t%d\n",(int)pmpptD->dacOUT,(int)ina226D[0].shunt_voltage,(int)ina226D[0].bus_voltage);
+
+        if(pmpptD->dacOUT >= DAC_MAX)
+        {
+            counter = 1;
+        }
+        else if(pmpptD->dacOUT < EN_STEPSIZE_INIT)
+        {
+            counter = 0;
+        }
+
+        if(counter == 0)
+        {
+
+            if (pmpptD->dacOUT > 3850 && pmpptD->dacOUT < 3950)
+                pmpptD->dacOUT = pmpptD->dacOUT+EN_STEPSIZE_INIT;
+            else if ((pmpptD->dacOUT+EN_STEPSIZE_INIT) >= DAC_MAX)
+                pmpptD->dacOUT = DAC_MAX;
+            else
+                pmpptD->dacOUT = pmpptD->dacOUT+EN_STEPSIZE_INIT;
+        }
+        else
+        {
+            if (pmpptD->dacOUT < EN_STEPSIZE_INIT)
+                pmpptD->dacOUT = 0;
+            else
+                pmpptD->dacOUT = pmpptD->dacOUT-EN_STEPSIZE_INIT;;
+        }
+
+
+
+        vTaskDelay(pdMS_TO_TICKS(2000));
+
+        //printf("DAC out:%d\n",(int)mpptD[0].dacOUT);
+#endif
+
+#ifdef TRAVERSAL2
+
+        if(pmpptD->dacOUT == DAC_INIT)
+        {
+            dac_write_en_ss(mibspiPORT3, (uint16_t)(2730));
+        }
+
+        dac_write_en(mibspiPORT3,pmpptD);
+
+        printf("%d\t%d\t%d\n",(int)pmpptD->dacOUT,(int)ina226D[0].shunt_voltage,(int)ina226D[0].bus_voltage);
+
+        if(pmpptD->dacOUT == 0)
+        {
+            pmpptD->dacOUT = DAC_INIT;
+            sweep_counter++;
+        }
+        else
+        {
+            if (pmpptD->dacOUT < EN_STEPSIZE_INIT)
+                pmpptD->dacOUT = 0;
+            else
+                pmpptD->dacOUT = pmpptD->dacOUT-EN_STEPSIZE_INIT;;
+        }
+
+
+        vTaskDelay(pdMS_TO_TICKS(2000));
+
+        //printf("DAC out:%d\n",(int)mpptD[0].dacOUT);
+#endif
+
+
+//        vTaskDelay(xDelay);
 
     }
 

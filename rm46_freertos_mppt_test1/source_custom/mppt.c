@@ -4,7 +4,7 @@
 #include "ina226.h"
 #include "stdio.h"
 
-static uint8_t counter = 0;
+//static uint8_t counter = 0;
 
 /***************************************************************************
  * @brief
@@ -20,7 +20,7 @@ void mppt_hunts(mppt_data *data)
     {
         if(data->counter >= 3)               //when change with same direction for 4 times
          {
-            if(data->increment < 64)         //maximum increment is 8 times of standard (INCOMPLETED!!!!!!!!!!!!!!)
+            if(data->increment < EN_STEPSIZE_MAX)         //maximum increment is 8 times of standard (INCOMPLETED!!!!!!!!!!!!!!)
             {
                 data->increment = data->increment << 1;       //increment is doubled
             }
@@ -30,7 +30,7 @@ void mppt_hunts(mppt_data *data)
      }
     else
     {
-        if(data->increment > 4)
+        if(data->increment > EN_STEPSIZE_MIN)
         {
             data->increment = data->increment >> 1;                //increment is halved
         }
@@ -78,24 +78,24 @@ void mppt_pno_ss(mppt_data *data)
 
     if(data->dir == 0xff)
     {
-        if(data->dacOUT+data->increment < 4095)
+        if(data->dacOUT+data->increment < DAC_MAX)
         {
             data->dacOUT = data->dacOUT + data->increment;
         }
         else
         {
-            data->dacOUT = 4095;
+            data->dacOUT = DAC_MAX;
         }
     }
     else
     {
-        if(data->dacOUT>data->increment)
+        if(data->dacOUT>=(data->increment+DAC_MIN))
         {
             data->dacOUT = data->dacOUT - data->increment;
         }
         else
         {
-            data->dacOUT = 0;
+            data->dacOUT = DAC_MIN;
         }
 
     }
@@ -106,4 +106,59 @@ void mppt_pno_ss(mppt_data *data)
 //    printf("Average Power:%d\n",(int)avgP);
 }
 
+/***************************************************************************
+ * @brief
+ *   Perturb and observe algorithm to decide the change of boost converter (EN pin controlling)
+ *
+ * @param[in] data1
+ *   Pointer to public data structure of Housekeeping data.
+ *
+ * @param[in] data2
+ *   Pointer to public data structure of MPPT task.
+ *
+ ******************************************************************************/
+void mppt_pno_en(mppt_data *data)
+{
+
+    if (data->sumP < data->presumP)
+    {
+        data->dir = ~data->dir;
+        data->counter=0;
+    }
+    else
+    {
+        data->counter++;
+    }
+
+    mppt_hunts(data);
+
+    if(data->dir == 0xff)
+    {
+        if(data->dacOUT+data->increment < DAC_MAX)
+        {
+            data->dacOUT = data->dacOUT + data->increment;
+        }
+        else
+        {
+            data->dacOUT = DAC_MAX;
+        }
+    }
+    else
+    {
+        if(data->dacOUT>(data->increment+DAC_MIN))
+        {
+            data->dacOUT = data->dacOUT - data->increment;
+        }
+        else
+        {
+            data->dacOUT = DAC_MIN;
+        }
+
+    }
+
+    data->presumP = data->sumP;
+
+//    printf("Average Voltage:%d\n",(int)avgV);
+//    printf("Average Power:%d\n",(int)avgP);
+}
 

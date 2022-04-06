@@ -70,7 +70,7 @@ void mppt_hunts2(mppt_data *data)
     {
         if(data->counter >= 3)               //when change with same direction for 4 times
          {
-            if(data->increment < 64)         //maximum increment is 8 times of standard (INCOMPLETED!!!!!!!!!!!!!!)
+            if(data->increment < 128)         //maximum increment is 8 times of standard (INCOMPLETED!!!!!!!!!!!!!!)
             {
                 data->increment = data->increment << 1;       //increment is doubled
             }
@@ -81,7 +81,7 @@ void mppt_hunts2(mppt_data *data)
     else
     {
 
-        if(data->increment > 4)
+        if(data->increment > 32)
         {
             data->increment = data->increment >> 1;                //increment is halved
         }
@@ -157,7 +157,7 @@ void init_task(void *pvParameters)
             mpptD[mppt_counter].preP[i] = 3000000;  //Vshunt*Vbus
             mpptD[mppt_counter].preV[i] = 3000;   //LSB 1.25mV (~5V)
         }
-        mpptD[mppt_counter].dacOUT = 500;
+        mpptD[mppt_counter].dacOUT = 800;
     }
 
 
