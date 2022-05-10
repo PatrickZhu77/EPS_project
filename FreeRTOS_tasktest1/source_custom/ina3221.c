@@ -222,7 +222,7 @@ void INA3221_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *dat
 
 
 //LSB = 40uV/bit
-void INA3221_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data, uint8_t channel)
+void INA3221_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint16_t *data, uint8_t channel)
 {
     uint8_t data_temp[2]={0};           //temp. data from i2c
     uint16_t data_reg = 0;              //data in the register
@@ -252,13 +252,13 @@ void INA3221_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data, uint8
     data_reg = data_reg & voltage_mask;
     data_reg = data_reg >> 3;
 
-    *data = data_reg * 40 / 1000;
+    *data = data_reg;
 
 }
 
 
 //LSB = 8mV/bit
-void INA3221_GetBusVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data, uint8_t channel)
+void INA3221_GetBusVoltage(i2cBASE_t *i2c, uint8_t addr, uint16_t *data, uint8_t channel)
 {
     uint8_t data_temp[2]={0};           //temp. data from i2c
     uint16_t data_reg = 0;              //data in the register
@@ -288,7 +288,7 @@ void INA3221_GetBusVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data, uint8_t
     data_reg = data_reg & voltage_mask;
     data_reg = data_reg >> 3;
 
-    *data = data_reg* 8;
+    *data = data_reg;
 
 }
 

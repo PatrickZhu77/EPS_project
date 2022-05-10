@@ -42,25 +42,28 @@ void battery_off(battery_data *battery)
  *   Pointer to battery data.
  *
  ******************************************************************************/
-void battery_compareVI(mppt_data *data, battery_data *battery)
+void battery_compareVI(ina226_data *data1, mppt_data *data2, battery_data *data3)
 {
 
-    if(data->preV >= battery->maxV)               //when battery is full
+    if((data1->bus_voltage *1250 /1000) > data3->maxV)               //when battery is full. (sumV LSB=1.25mV)
     {
-        battery_off(battery);                      //should turn off the converter but not battery!!!!!
+        battery_off(data3);                      //should turn off the converter but not battery!!!!!
     }
 
-    if(data->preI >= battery->maxI)
+
+
+    if((data1->shunt_voltage *2500 /1000 /data1->shunt_resistance) >= data3->maxI)    //when Vout of boost converter is overcurrent
     {
-        data->preV = battery->preV;                //retrieve to previous voltage if overcurrent happens
-        if(data->increment >= 0x2)
+        data2->dacOUT = data2->predacOUT;            //retrieve to previous voltage if overcurrent happens
+        data2->counter = 0;
+
+        if(data2->stepsize > MIN_STEPSIZE)                                  //minimum step size
         {
-            data->increment = data->increment >> 1;
-            data->counter = 0;
+            data2->stepsize = data2->stepsize >> 1;                //step size is halved
         }
+
     }
 
-    battery->preV = data->preV;                    //store the previous voltage value for retrieving
 }
 
 /***************************************************************************

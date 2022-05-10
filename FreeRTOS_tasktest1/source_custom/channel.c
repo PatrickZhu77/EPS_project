@@ -53,7 +53,7 @@ void channel_compare(ina226_data *data, channel_data *channel)
     {
         channel_off(channel);
     }
-    else if(data->current > channel->maxI)
+    else if((data->shunt_voltage *2500 /1000 /data->shunt_resistance) > channel->maxI)
     {
         channel_off(channel);
     }
@@ -77,4 +77,78 @@ void channel_switch(channel_data *channel)
     {
         gioSetBit(CH[channel->num],CH_num[channel->num],0);
     }
+}
+
+void channel_setPri(channel_data *channel, uint8_t pri)
+{
+    channel->priority = pri;
+}
+
+/***************************************************************************
+ * @brief
+ *   Check the input voltage level
+ *   Control switch of channels according to priority
+ *
+ * @param[in] data
+ *   Pointer to data structure of current sensor.
+ *
+ ******************************************************************************/
+void channel_check(ina226_data *data, channel_data *pchannelD)
+{
+    int i;
+
+    /*  Vin >= 4.4V    */
+    if(data->bus_voltage >= 3250)
+    {
+        for(i=0;i<16;i++)
+        {
+            channel_on(pchannelD+i);
+        }
+    }
+    /*  Vin < 4.4V and >= 3.3V  */
+    else if(data->bus_voltage < 3250 && data->bus_voltage >= 2640)
+    {
+        for(i=0;i<16;i++)
+        {
+            if((pchannelD+i)->priority >= LOW_CH)
+            {
+                channel_on(pchannelD+i);
+            }
+            else
+            {
+                channel_off(pchannelD+i);
+            }
+        }
+    }
+    /*  Vin < 3.3V and >= 2.7V  */
+    else if(data->bus_voltage < 2640 && data->bus_voltage >= 2160)
+    {
+        for(i=0;i<16;i++)
+        {
+            if((pchannelD+i)->priority >= MID_CH)
+            {
+                channel_on(pchannelD+i);
+            }
+            else
+            {
+                channel_off(pchannelD+i);
+            }
+        }
+    }
+    /*  Vin < 2.7V  */
+    else if(data->bus_voltage < 2160)
+    {
+        for(i=0;i<16;i++)
+        {
+            if((pchannelD+i)->priority = HIGHEST_CH)
+            {
+                channel_on(pchannelD+i);
+            }
+            else
+            {
+                channel_off(pchannelD+i);
+            }
+        }
+    }
+
 }

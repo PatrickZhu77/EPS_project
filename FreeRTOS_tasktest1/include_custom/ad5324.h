@@ -3,7 +3,7 @@
 #define INCLUDE_AD5324_H_
 
 
-#include "spi.h"
+#include "mibspi.h"
 #include "mppt.h"
 
 
@@ -17,10 +17,11 @@
 #define LDAC_low        2       //All 4 outputs update simultaneously
 #define LDAC_high       3       //Only addressed input register is updated
 
-#define V1_2   1495         // D = (Vout * (2^N))/Vref = (1.204V * (2^12))/3.3V = 1494.42 => 1495
+#define V1_2   1494         // D = (Vout * (2^N))/Vref = (1.204V * (2^12))/3.3V = 1494.42 => 1495
 #define V0_4    496         // D = (Vout * (2^N))/Vref = (0.4V * (2^12))/3.3V = 496.48 => 496
 
-void dac_write_en(spiBASE_t *spi, mppt_data *data);
-//void dac_write_ss(uint16 * Vsrcbuff, mppt_data *data);
+//void dac_write_en(spiBASE_t *spi, mppt_data *data);
+void dac_write_ss(gioPORT_t *spi, mppt_data *data);
+void get_binary(uint16_t data);
 
 #endif /* INCLUDE_AD5324_H_ */

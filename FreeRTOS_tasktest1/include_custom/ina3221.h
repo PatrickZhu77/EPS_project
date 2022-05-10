@@ -22,20 +22,17 @@
 
 #define     voltage_mask     0x7FF8     //mask used for both voltage registers (only 14--3 bits are used)
 
-#define     INA3221_ADDR1    0x44//0x8E        //SLAVE ADDRESS 1000111 (VS|SCL)
+#define     INA3221_ADDR1    0x41//0x8E        //SLAVE ADDRESS 1000111 (VS|SCL)
 
 
 typedef struct
 {
     uint8_t address;              //i2c address
-
-    uint32_t shunt_voltage[3];       //mV
-    uint32_t bus_voltage[3];         //mV
-    uint32_t voltage[3];             //mV (shunt voltage + bus voltage)
-    uint32_t current[3];             //mA
-    uint32_t power[3];               //uW
-
     uint8_t flag;
+    uint16_t shunt_voltage[3];       //mV
+    uint16_t bus_voltage[3];         //mV
+    uint16_t voltage[3];             //mV (shunt voltage + bus voltage)
+    uint16_t shunt_resistance;       //mOhm
     uint16_t config_reg;
 }ina3221_data;
 
@@ -45,8 +42,8 @@ void INA3221_SendData(i2cBASE_t *i2c,uint8_t addr,uint8_t reg,uint8_t *data);
 void INA3221_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data);
 
 
-void INA3221_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data, uint8_t channel);
-void INA3221_GetBusVoltage(i2cBASE_t *i2c, uint8_t addr, uint32_t *data, uint8_t channel);
+void INA3221_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint16_t *data, uint8_t channel);
+void INA3221_GetBusVoltage(i2cBASE_t *i2c, uint8_t addr, uint16_t *data, uint8_t channel);
 void INA3221_DoCalculation(i2cBASE_t *i2c, uint8_t addr, ina3221_data *data, uint8_t channel);
 void INA3221_Init(i2cBASE_t *i2c, uint8_t addr, ina3221_data *data);
 

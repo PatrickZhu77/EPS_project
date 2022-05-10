@@ -69,6 +69,9 @@ source_custom/skeleton_main.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LT
 source_custom/skeleton_main.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_string.h
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/battery.h
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/ad5324.h
+source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/mibspi.h
+source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_mibspi.h
+source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/fee_function.h
 
 ../source_custom/skeleton_main.c: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/sys_common.h: 
@@ -139,3 +142,6 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/string.h:
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_string.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/battery.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/ad5324.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/mibspi.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include/reg_mibspi.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/FreeRTOS_tasktest1/include_custom/fee_function.h: 

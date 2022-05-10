@@ -71,6 +71,7 @@
 #include "channel.h"
 #include "battery.h"
 #include "ad5324.h"
+#include "fee_function.h"
 
 
 /* USER CODE END */
@@ -92,18 +93,10 @@
 
 
 /*****************FEE Variables************************/
-uint16 u16JobResult,Status;
-Std_ReturnType oResult=E_OK;
-unsigned char read_data[100]={0};
+uint8 SpecialRamBlock[128];
+uint8 read_data[128]={0};
 
-uint8 SpecialRamBlock[100];
 
-//unsigned char pattern;
-//uint16 u16writecounter;
-//
-//unsigned int  FeeVirtualSectorNumber;
-//unsigned char VsState, u8EEPIndex;
-//unsigned char u8VirtualSector;
 
 /*****************Housekeeping Data********************/
 static unsigned char command;
@@ -132,18 +125,6 @@ static uint8_t battery_counter = 0;
 static channel_data channelD[16];
 static channel_data *pchannelD = &channelD[0];
 static uint8_t channel_counter = 0;
-
-
-
-void delay(void)
-{
-    unsigned int dummycnt=0x0000FFU;
-    do
-    {
-        dummycnt--;
-    }
-    while(dummycnt>0);
-}
 
 
 /* USER CODE END */
@@ -182,74 +163,67 @@ void init_task(void *pvParameters)
 {
     taskENTER_CRITICAL();
 
+    uint32_t BlockNumber;
+    uint32_t BlockOffset, Length;
+    uint8_t *Read_Ptr=read_data;
+
+    uint32_t loop;
+
+    /* Initialize RAM array.*/
+    for(loop=0;loop<128;loop++)SpecialRamBlock[loop] = loop;
+
+    fee_initial();
+
     /*read and write to flash */
-//    unsigned int BlockNumber;
-//    unsigned int BlockOffset, Length;
-//    unsigned char *Read_Ptr=read_data;
-//
-//    unsigned int loop;
-//
-//    /* Read the block with unknown length */
-//     BlockOffset = 0;
-//     Length = 0xFFFF;
-//     oResult=TI_Fee_Read(BlockNumber,BlockOffset,Read_Ptr,Length);
-//     do
-//     {
-//         TI_Fee_MainFunction();
-//         delay();
-//         Status=TI_Fee_GetStatus(0);
-//     }
-//    while(Status!=IDLE);
-//     printf("Fee read\n");
-//
-//     printf("readdata= %d\n", (unsigned int)read_data[7]);
-//
-//
-//    /* Invalidate a written block  */
-////    TI_Fee_InvalidateBlock(BlockNumber);
-////    do
-////    {
-////        TI_Fee_MainFunction();
-////        delay();
-////        Status=TI_Fee_GetStatus(0);
-////    }
-////    while(Status!=IDLE);
-//
-//    /* Format bank 7 */
-//    //TI_Fee_Format(0xA5A5A5A5U);
+    BlockNumber = 1;
+    fee_write(BlockNumber, SpecialRamBlock);
+
+    /* Read the block with unknown length */
+    BlockNumber = 1;
+    BlockOffset = 0;
+    Length = 0xFFFF;
+    fee_read(BlockNumber, BlockOffset, Read_Ptr, Length);
+
+
+    printf("Fee read\n");
+
 
 
     /* Temp. default data (should be removed when fee works)*/
-    uint16_t ina226_config_data=0x4127;
-    uint16_t ina226_cal_data=0x0A00;
-    uint16_t ina3221_config_data=0x7127;
+//    uint16_t ina226_config_data=0x4127;
+//    uint16_t ina226_cal_data=0x0A00;
+//    uint16_t ina3221_config_data=0x7127;
 
 
     /*Initialize sensors*/
     for(ina226_counter=0;ina226_counter<26;ina226_counter++)
     {
         ina226D[ina226_counter].address = INA226_ADDR1;
-        ina226D[ina226_counter].config_reg = ina226_config_data;
-        ina226D[ina226_counter].cal_reg = ina226_cal_data;
-        INA226_Init(i2cREG1, ina226D[ina226_counter].address, pina226D+ina226_counter);
+        ina226D[ina226_counter].flag = 0;
+        ina226D[ina226_counter].shunt_resistance = 0x5;     //5 mOhm
+        INA226_Init(i2cREG1, ina226D[ina3221_counter].address, pina226D+ina226_counter);
     }
 
     for(ina3221_counter=0;ina3221_counter<4;ina3221_counter++)
     {
         ina3221D[ina3221_counter].address = INA3221_ADDR1;
-        ina3221D[ina3221_counter].config_reg = ina3221_config_data;
+//        ina3221D[ina3221_counter].config_reg = ina3221_config_data;
         INA3221_Init(i2cREG1, ina3221D[ina3221_counter].address, pina3221D+ina3221_counter);
     }
 
     /*Initialize created data structures*/
-    for(mppt_counter=0;mppt_counter<4;mppt_counter++)
+    for(mppt_counter=0;mppt_counter<1;mppt_counter++)
     {
         mpptD[mppt_counter].channel = mppt_counter;
         mpptD[mppt_counter].counter = 0;
-        mpptD[mppt_counter].dir = 1;
-        mpptD[mppt_counter].increment = 1;
-        mpptD[mppt_counter].preP = 6*1e6;  //uW (~6W)
-        mpptD[mppt_counter].preV = 5*1e3;   //mV (~5V)
+        mpptD[mppt_counter].dir = 0xFF;
+        mpptD[mppt_counter].predir = 0xFF;
+        mpptD[mppt_counter].stepsize = 64;
+        mpptD[mppt_counter].dacOUT = 500;
+        mpptD[mppt_counter].presumP = 0;
+        mpptD[mppt_counter].presumV = 0;
+        mpptD[mppt_counter].sumP = 0;
+        mpptD[mppt_counter].sumV = 0;
     }
 
     for(channel_counter=0;channel_counter<16;channel_counter++)
@@ -266,8 +240,8 @@ void init_task(void *pvParameters)
         battD[battery_counter].address = INA226_ADDR1;
         battD[battery_counter].num = battery_counter+1;
         battD[battery_counter].sw = 0;
-        battD[battery_counter].maxV = 8.4*1e3;    //mV
-        battD[battery_counter].maxI = 1.5*1e3;    //mA
+        battD[battery_counter].maxV = 8400;    //mV
+        battD[battery_counter].maxI = 1500;    //mA
    }
 
 
@@ -325,12 +299,9 @@ void getHK_task(void *pvParameters)
         {
             INA226_GetShuntVoltage(i2cREG1,ina226D[ina226_counter].address,&ina226D[ina226_counter].shunt_voltage);
             INA226_GetVoltage(i2cREG1,ina226D[ina226_counter].address,&ina226D[ina226_counter].bus_voltage);
-            INA226_GetCalReg(i2cREG1, ina226D[ina226_counter].address, &ina226D[ina226_counter].calibration);
-            INA226_GetCurrent(i2cREG1, ina226D[ina226_counter].address, &ina226D[ina226_counter].current);
-            INA226_GetPower(i2cREG1, ina226D[ina226_counter].address, &ina226D[ina226_counter].power);
 
             /* inverse flag */
-            ina226D[ina226_counter].flag = !ina226D[ina226_counter].flag;
+            ina226D[ina226_counter].flag = ~ina226D[ina226_counter].flag;
         }
 
         /* call ina3221 functions */
@@ -345,7 +316,7 @@ void getHK_task(void *pvParameters)
             INA3221_DoCalculation(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter], 3);
 
             /* inverse flag */
-            ina3221D[ina3221_counter].flag = !ina3221D[ina3221_counter].flag;
+            ina3221D[ina3221_counter].flag = ~ina3221D[ina3221_counter].flag;
         }
 
 
@@ -361,6 +332,7 @@ void selfCheck_task(void *pvParameters)
 {
     printf( "selfCheck task running\n");
     const portTickType xDelay = pdMS_TO_TICKS(10);
+    static uint8_t t = 0;
     while(1)
     {
         /* check if the flag has been updated */
@@ -375,7 +347,7 @@ void selfCheck_task(void *pvParameters)
         {
             /* pet the watchdog timer */
             gioSetBit(hetPORT2,11,1);
-            delay();
+            for(t=0;t<0x80;t++);
             gioSetBit(hetPORT2,11,0);
 
             printf( "Pet the watchdog\n");
@@ -440,25 +412,35 @@ void channelCtrl_task(void *pvParameters)
 void battCtrl_task(void *pvParameters)
 {
     printf( "battery controlling task running\n");
-    const portTickType xDelay = pdMS_TO_TICKS(100);
+    const portTickType xDelay = pdMS_TO_TICKS(10);
+
+    static int i = 0;
 
     while(1)
     {
+
         for(mppt_counter=0;mppt_counter<4;mppt_counter++)
         {
-            mppt_pno(pina226D+mppt_counter,pmpptD+mppt_counter);
+            battery_compareVI(pina226D+mppt_counter, pmpptD+mppt_counter, pbattD+mppt_counter);
+            dac_write_ss(mibspiPORT3,pmpptD+mppt_counter);
+            (pmpptD+mppt_counter)->sumP = 0;
+
+            vTaskDelay(xDelay);
+
+            for(i = 0;i<NUM_AVERAGE;i++)
+            {
+                mppt_getSumP(pina226D+mppt_counter, pmpptD+mppt_counter);
+
+                vTaskDelay(pdMS_TO_TICKS(10));
+            }
+
+            mppt_pno_ss(pmpptD+mppt_counter);
         }
 
-//        printf( "Mppt result for channel %d: direction:%d, increment:%d.\n",mppt_counter,mpptD[mppt_counter].dir,(int)mpptD[mppt_counter].increment);
 
-        for(battery_counter=0;battery_counter<4;battery_counter++)
-        {
-            battery_compareVI(pmpptD+battery_counter,pbattD+battery_counter);
-            battery_switch(pbattD+battery_counter);
-            dac_write_en(spiREG3,pmpptD+battery_counter);
-        }
+        printf("DAC out:%d\n",(int)mpptD[0].dacOUT);
 
-        vTaskDelay(xDelay);
+//        vTaskDelay(xDelay);
 
     }
 

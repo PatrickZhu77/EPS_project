@@ -9,6 +9,7 @@ C_SRCS += \
 ../source_custom/ad5324.c \
 ../source_custom/battery.c \
 ../source_custom/channel.c \
+../source_custom/fee_function.c \
 ../source_custom/ina226.c \
 ../source_custom/ina3221.c \
 ../source_custom/mppt.c \
@@ -18,6 +19,7 @@ C_DEPS += \
 ./source_custom/ad5324.d \
 ./source_custom/battery.d \
 ./source_custom/channel.d \
+./source_custom/fee_function.d \
 ./source_custom/ina226.d \
 ./source_custom/ina3221.d \
 ./source_custom/mppt.d \
@@ -27,6 +29,7 @@ OBJS += \
 ./source_custom/ad5324.obj \
 ./source_custom/battery.obj \
 ./source_custom/channel.obj \
+./source_custom/fee_function.obj \
 ./source_custom/ina226.obj \
 ./source_custom/ina3221.obj \
 ./source_custom/mppt.obj \
@@ -36,6 +39,7 @@ OBJS__QUOTED += \
 "source_custom\ad5324.obj" \
 "source_custom\battery.obj" \
 "source_custom\channel.obj" \
+"source_custom\fee_function.obj" \
 "source_custom\ina226.obj" \
 "source_custom\ina3221.obj" \
 "source_custom\mppt.obj" \
@@ -45,6 +49,7 @@ C_DEPS__QUOTED += \
 "source_custom\ad5324.d" \
 "source_custom\battery.d" \
 "source_custom\channel.d" \
+"source_custom\fee_function.d" \
 "source_custom\ina226.d" \
 "source_custom\ina3221.d" \
 "source_custom\mppt.d" \
@@ -54,6 +59,7 @@ C_SRCS__QUOTED += \
 "../source_custom/ad5324.c" \
 "../source_custom/battery.c" \
 "../source_custom/channel.c" \
+"../source_custom/fee_function.c" \
 "../source_custom/ina226.c" \
 "../source_custom/ina3221.c" \
 "../source_custom/mppt.c" \
