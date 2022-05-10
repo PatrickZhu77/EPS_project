@@ -23,6 +23,8 @@
 void INA226_SetRegPointer(i2cBASE_t *i2c, uint8_t addr, uint8_t reg)
 {
 
+    uint8_t delay=0;
+
     i2cSetSlaveAdd(i2c, addr);
 
     /* Set direction to Transmitter */
@@ -46,13 +48,15 @@ void INA226_SetRegPointer(i2cBASE_t *i2c, uint8_t addr, uint8_t reg)
     i2cSendByte(i2c, reg);
 
     /* Wait until Bus Busy is cleared */
-    while(i2cIsBusBusy(i2c) == true);
+    while(i2cIsBusBusy(i2c) == true){}
 
     /* Wait until Stop is detected */
-    while(i2cIsStopDetected(i2c) == 0);
+    while(i2cIsStopDetected(i2c) == 0){}
 
     /* Clear the Stop condition */
     i2cClearSCD(i2c);
+
+    for(delay=0;delay<50;delay++);
 
 }
 
@@ -81,7 +85,7 @@ void INA226_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
 {
     uint8_t delay=0;
 
-    //while(i2cIsMasterReady(i2c) != true);
+//    while(i2cIsMasterReady(i2c) != true);
     /* Configure address of Slave to talk to */
     i2cSetSlaveAdd(i2c, addr);
 
@@ -91,7 +95,7 @@ void INA226_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
 
     /* Configure Data count */
     /* Data Count + 1 ( Word Address) */
-    i2cSetCount(i2c, 2 + 1);
+    i2cSetCount(i2c, 2+1);
 
     /* Set mode as Master */
     i2cSetMode(i2c, I2C_MASTER);
@@ -106,7 +110,7 @@ void INA226_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
     i2cSendByte(i2c, reg);
 
     /* Transmit DATA_COUNT number of data in Polling mode */
-    i2cSend(i2c, 2, data);
+    i2cSend(i2c,2, data);
 
     /* Wait until Bus Busy is cleared */
     while(i2cIsBusBusy(i2c) == true);
@@ -117,6 +121,7 @@ void INA226_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
     /* Clear the Stop condition */
     i2cClearSCD(i2c);
 
+    while(i2cIsMasterReady(i2c) != true);
     /* Simple Delay before starting Next Block */
     /* Depends on how quick the Slave gets ready */
     for(delay=0;delay<50;delay++);
@@ -265,14 +270,27 @@ void INA226_GetVoltage(i2cBASE_t *i2c, uint8_t addr, uint16_t *data)
 
 // Set value of CAL_REG
 // CAL = 0.00512/(current_LSB * Rshunt)
-void INA226_SetCalReg(i2cBASE_t *i2c, uint8_t addr,uint16_t *data)
+void INA226_SetCalReg(i2cBASE_t *i2c, uint8_t addr,uint16_t data)
 {
     uint8_t data_temp[2]={0};
-    data_temp[0] = (uint8_t)(*data >> 8);
-    data_temp[1] = (uint8_t)*data;
+    data_temp[0] = (uint8_t)(data >> 8);
+    data_temp[1] = (uint8_t)data;
 
     INA226_SendData(i2c,addr, CAL_REG, data_temp);
 }
+
+
+// Set value of CFG_REG
+void INA226_SetCfgReg(i2cBASE_t *i2c, uint8_t addr,uint16_t data)
+{
+    uint8_t data_temp[2]={0};
+    data_temp[0] = (uint8_t)(data >> 8);
+    data_temp[1] = (uint8_t)data;
+
+    INA226_SendData(i2c,addr, CFG_REG, data_temp);
+}
+
+
 
 
 //LSB = 1mA/bit
@@ -349,6 +367,24 @@ void INA226_GetCalReg(i2cBASE_t *i2c, uint8_t addr, uint16_t *data)
     //INA226_SetRegPointer(i2c, addr,CAL_REG);
 
     INA226_ReceiveData(i2c, addr, CAL_REG, data_temp);
+
+    data_reg = data_temp[0];
+    data_reg = data_reg << 8;
+    data_reg = data_reg | data_temp[1];
+
+    *data = data_reg;
+
+    //return(err);
+}
+
+void INA226_GetCfgReg(i2cBASE_t *i2c, uint8_t addr, uint16_t *data)
+{
+    //int err = -1;
+    uint8_t data_temp[2]={0};           //temp. data from i2c
+    uint16_t data_reg = 0;              //data in the register
+    //INA226_SetRegPointer(i2c, addr,CAL_REG);
+
+    INA226_ReceiveData(i2c, addr, CFG_REG, data_temp);
 
     data_reg = data_temp[0];
     data_reg = data_reg << 8;

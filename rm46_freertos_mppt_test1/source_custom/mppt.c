@@ -18,7 +18,7 @@ void mppt_hunts(mppt_data *data)
 {
     if(data->dir == data->predir)                       //when the direction does not change
     {
-        if(data->counter >= 3)               //when change with same direction for 4 times
+        if(data->counter >= 7)               //when change with same direction for 8 times
          {
             if(data->increment < EN_STEPSIZE_MAX)         //maximum increment is 8 times of standard (INCOMPLETED!!!!!!!!!!!!!!)
             {
@@ -46,7 +46,7 @@ void mppt_getSumV(ina226_data *data1,mppt_data *data2)
 
 void mppt_getSumP(ina226_data *data1,mppt_data *data2)
 {
-    data2->sumP = data2->sumP+ data1->shunt_voltage * data1->bus_voltage;
+    data2->sumP = data1->shunt_voltage * data1->bus_voltage;
 }
 
 

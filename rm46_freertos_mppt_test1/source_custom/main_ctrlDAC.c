@@ -137,8 +137,8 @@ void init_task(void *pvParameters)
     {
         mpptD[mppt_counter].channel = mppt_counter;
         mpptD[mppt_counter].counter = 0;
-        mpptD[mppt_counter].dir = 0xff;
-        mpptD[mppt_counter].predir = 0xff;
+        mpptD[mppt_counter].dir = 0x00;
+        mpptD[mppt_counter].predir = 0x00;
         mpptD[mppt_counter].increment = EN_STEPSIZE_INIT;
         mpptD[mppt_counter].dacOUT = DAC_INIT;
         mpptD[mppt_counter].presumP = 0;
@@ -182,7 +182,7 @@ void getHK_task(void *pvParameters)
 {
 
     printf( "getHK task running\n");
-    const portTickType xDelay = pdMS_TO_TICKS(500);
+    const portTickType xDelay = pdMS_TO_TICKS(100);
     INA226_SetCfgReg(i2cREG1,ina226D[0].address,CFG_REG_SETTING);
 //    INA226_SetRegPointer(i2cREG1,ina226D[0].address,CAL_REG);
     vTaskDelay(pdMS_TO_TICKS(100));
@@ -213,11 +213,18 @@ void battCtrl_task(void *pvParameters)
 
 #ifdef EN_CTRL
     dac_write_en_ss(mibspiPORT3,4095);
+    dac_write_en(mibspiPORT3,pmpptD);
 #endif
 
 #ifdef TRAVERSAL
     if (TRAVERSAL == 1)
         dac_write_en_ss(mibspiPORT3,4095);
+
+    if (TRAVERSAL == 1)
+        dac_write_en(mibspiPORT3,pmpptD);
+    else
+        dac_write_ss(mibspiPORT3,pmpptD);
+
 #endif
 
 
@@ -228,23 +235,33 @@ void battCtrl_task(void *pvParameters)
 
         /*EN_pin Controlling*/
 #ifdef EN_CTRL
-        for(mppt_counter=0;mppt_counter<1;mppt_counter++)
+
+        xQueueReceive(xQueue, cmdrx,portMAX_DELAY);
+
+//        printf("%d\t%d\t%d\n",(int)pmpptD->dacOUT,(int)ina226D[0].shunt_voltage,(int)(mpptD[0].sumP));
+
+        if(strcmp((const char *)cmdrx, (const char *)"?")==0)
         {
-            dac_write_en(mibspiPORT3,pmpptD+mppt_counter);
+            for(mppt_counter=0;mppt_counter<1;mppt_counter++)
+            {
+//                dac_write_en(mibspiPORT3,pmpptD+mppt_counter);
 
-            (pmpptD+mppt_counter)->sumP = 0;
-            vTaskDelay(pdMS_TO_TICKS(500));
+                (pmpptD+mppt_counter)->sumP = 0;
+//                vTaskDelay(pdMS_TO_TICKS(500));
 
-//            for(i = 0;i<NUM_AVERAGE;i++)
-//            {
-//                vTaskDelay(pdMS_TO_TICKS(10));
-                mppt_getSumP(pina226D+mppt_counter, pmpptD+mppt_counter);
-//            }
-            printf("%d\t%d\t%d\n",(int)pmpptD->dacOUT,(int)ina226D[0].shunt_voltage,(int)(mpptD[0].sumP));
-            mppt_pno_en(pmpptD+mppt_counter);
+    //            for(i = 0;i<NUM_AVERAGE;i++)
+    //            {
+    //                vTaskDelay(pdMS_TO_TICKS(10));
+                    mppt_getSumP(pina226D+mppt_counter, pmpptD+mppt_counter);
+    //            }
+//                printf("%d\t%d\t%d\n",(int)pmpptD->dacOUT,(int)ina226D[0].shunt_voltage,(int)(mpptD[0].sumP));
+                mppt_pno_en(pmpptD+mppt_counter);
+                dac_write_en(mibspiPORT3,pmpptD+mppt_counter);
+            }
+
         }
 
-        vTaskDelay(xDelay);
+//        vTaskDelay(xDelay);
 #endif
 
         /*SS_pin Controlling*/
@@ -273,11 +290,6 @@ void battCtrl_task(void *pvParameters)
         /*Traversal*/
 #ifdef TRAVERSAL
 
-        if (TRAVERSAL == 1)
-            dac_write_en(mibspiPORT3,pmpptD);
-        else
-            dac_write_ss(mibspiPORT3,pmpptD);
-
         xQueueReceive(xQueue, cmdrx,portMAX_DELAY);
 //        vTaskDelay(pdMS_TO_TICKS(500));
 
@@ -287,33 +299,60 @@ void battCtrl_task(void *pvParameters)
 //        sprintf(temp,"%d",(int)pmpptD->dacOUT);
 //        sciSend(scilinREG,4,(unsigned char *)temp);
 //        sciSend(scilinREG,2,(unsigned char *)"\r\n");
-
-        if(pmpptD->dacOUT >= DAC_MAX)
+        if(strcmp((const char *)cmdrx, (const char *)"?")==0)
         {
-            counter = 1;
+
         }
-        else if((pmpptD->dacOUT <= EN_STEPSIZE_INIT) || (pmpptD->dacOUT <= DAC_MIN))
+        else if(strcmp((const char *)cmdrx, (const char *)">")==0)
         {
-            counter = 0;
-        }
-
-        if(counter == 0)
-        {
-
             if ((pmpptD->dacOUT+EN_STEPSIZE_INIT) >= DAC_MAX)
                 pmpptD->dacOUT = DAC_MAX;
             else
                 pmpptD->dacOUT = pmpptD->dacOUT+EN_STEPSIZE_INIT;
         }
-        else
+        else if(strcmp((const char *)cmdrx, (const char *)"<")==0)
         {
             if (pmpptD->dacOUT < EN_STEPSIZE_INIT)
-                pmpptD->dacOUT = DAC_MIN;
+                pmpptD->dacOUT = 0;
             else if ((pmpptD->dacOUT-EN_STEPSIZE_INIT) < DAC_MIN)
                 pmpptD->dacOUT = DAC_MIN;
             else
                 pmpptD->dacOUT = pmpptD->dacOUT-EN_STEPSIZE_INIT;;
+
         }
+//
+//        if(pmpptD->dacOUT >= DAC_MAX)
+//        {
+//            counter = 1;
+//        }
+//        else if((pmpptD->dacOUT <= EN_STEPSIZE_INIT) || (pmpptD->dacOUT <= DAC_MIN))
+//        {
+//            counter = 0;
+//        }
+//
+//        if(counter == 0)
+//        {
+//
+//            if ((pmpptD->dacOUT+EN_STEPSIZE_INIT) >= DAC_MAX)
+//                pmpptD->dacOUT = DAC_MAX;
+//            else
+//                pmpptD->dacOUT = pmpptD->dacOUT+EN_STEPSIZE_INIT;
+//        }
+//        else
+//        {
+//            if (pmpptD->dacOUT < EN_STEPSIZE_INIT)
+//                pmpptD->dacOUT = DAC_MIN;
+//            else if ((pmpptD->dacOUT-EN_STEPSIZE_INIT) < DAC_MIN)
+//                pmpptD->dacOUT = DAC_MIN;
+//            else
+//                pmpptD->dacOUT = pmpptD->dacOUT-EN_STEPSIZE_INIT;;
+//        }
+
+        if (TRAVERSAL == 1)
+            dac_write_en(mibspiPORT3,pmpptD);
+        else
+            dac_write_ss(mibspiPORT3,pmpptD);
+
 
 
 //        vTaskDelay(xDelay);
@@ -367,14 +406,17 @@ void sci_task(void *pvParameters)
         cmd1 = NULL;
         cmd1 = uart_tx(24,(unsigned char*)"Waiting for interrupt:\r\n");
 
-        if(strcmp((const char *)cmd1, (const char *)"?")==0)
+        if(strcmp((const char *)cmd1, (const char *)"<")==0 || strcmp((const char *)cmd1, (const char *)">")==0 || strcmp((const char *)cmd1, (const char *)"?")==0)
         {
+//            xQueueSendToBack(xQueue,cmd1,0UL);
+//            vTaskDelay(pdMS_TO_TICKS(10));
 
             sprintf(temp,"%d",(int)pmpptD->dacOUT);
             sciSend(scilinREG,4,(unsigned char *)temp);
             sciSend(scilinREG,2,(unsigned char *)"\r\n");
 
-            xQueueSendToBack(xQueue,cmdtx,0UL);
+            xQueueSendToBack(xQueue,cmd1,0UL);
+
 
 
         }

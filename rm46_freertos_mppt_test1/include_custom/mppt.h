@@ -6,13 +6,14 @@
 
 #define NUM_AVERAGE 10
 
-#define DAC_MIN  0
-#define DAC_MAX  4095
-#define DAC_INIT 1000
-#define EN_STEPSIZE_MIN     32
-#define EN_STEPSIZE_MAX     256
-#define EN_STEPSIZE_INIT    32
+#define DAC_MIN  500
+#define DAC_MAX  3000
+#define DAC_INIT 3000
+#define EN_STEPSIZE_MIN     64
+#define EN_STEPSIZE_MAX     128
+#define EN_STEPSIZE_INIT    64
 
+#define MPPT_TASK_DELAY     2000 //ms
 
 
 /*Data structure for MPPT task    (need initial value!)*/

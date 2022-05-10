@@ -13,8 +13,11 @@
 #define     AL_REG          0x07        //Alert limit register
 #define     ID_REG          0XFF        //Die ID register
 
-#define     INA226_ADDR1    0x44//0x8E        //SLAVE ADDRESS 1000111 (VS|SCL)
+#define     INA226_ADDR1    0x41//0x8E        //SLAVE ADDRESS 1000111 (VS|SCL)
 #define     INA226_err      0xC         //0001_100. Alert Response slave address
+
+#define     CFG_REG_SETTING     0x4527      //configuration register with 512 averages and 4.156ms conversion time
+
 
 
 typedef struct
@@ -69,10 +72,14 @@ void INA226_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data
 
 void INA226_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
 void INA226_GetVoltage(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
-void INA226_SetCalReg(i2cBASE_t *i2c, uint8_t addr,uint16_t *data);
+void INA226_SetCalReg(i2cBASE_t *i2c, uint8_t addr,uint16_t data);
 //void INA226_GetCurrent(i2cBASE_t *i2c, uint8_t addr, uint32_t *data);
 //void INA226_GetPower(i2cBASE_t *i2c, uint8_t addr, uint32_t *data);
 void INA226_GetID(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
 void INA226_GetCalReg(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
+void INA226_SetCfgReg(i2cBASE_t *i2c, uint8_t addr,uint16_t data);
+void INA226_GetCfgReg(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
+void INA226_SetCfgReg(i2cBASE_t *i2c, uint8_t addr,uint16_t data);
+
 
 #endif

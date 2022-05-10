@@ -4,7 +4,7 @@
 
 SHELL = cmd.exe
 
-CG_TOOL_ROOT := C:/ti/ccs1040/ccs/tools/compiler/ti-cgt-arm_20.2.5.LTS
+CG_TOOL_ROOT := C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS
 
 GEN_OPTS__FLAG := 
 GEN_CMDS__FLAG := 
@@ -44,8 +44,9 @@ ORDERED_OBJS += \
 "./source/system.obj" \
 "./source_custom/ad5324.obj" \
 "./source_custom/ina226.obj" \
-"./source_custom/main_test2.obj" \
+"./source_custom/main_ctrlDAC.obj" \
 "./source_custom/mppt.obj" \
+"./source_custom/uart_cmd.obj" \
 "../source/sys_link.cmd" \
 $(GEN_CMDS__FLAG) \
 -lrtsv7R4_T_le_v3D16_eabi.lib \
@@ -177,22 +178,22 @@ all: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 rm46_freertos_mppt_test1.out: $(OBJS) $(CMD_SRCS) $(GEN_CMDS)
 	@echo 'Building target: "$@"'
 	@echo 'Invoking: Arm Linker'
-	"C:/ti/ccs1040/ccs/tools/compiler/ti-cgt-arm_20.2.5.LTS/bin/armcl" -mv7R4 --code_state=32 --float_support=VFPv3D16 -me -g --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --enum_type=packed --abi=eabi -z -m"rm46_freertos_mppt_test1.map" --heap_size=0x800 --stack_size=0x800 -i"C:/ti/ccs1040/ccs/tools/compiler/ti-cgt-arm_20.2.5.LTS/lib" -i"C:/ti/ccs1040/ccs/tools/compiler/ti-cgt-arm_20.2.5.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="rm46_freertos_mppt_test1_linkInfo.xml" --rom_model -o "rm46_freertos_mppt_test1.out" $(ORDERED_OBJS)
+	"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/bin/armcl" -mv7R4 --code_state=32 --float_support=VFPv3D16 -me -g --printf_support=minimal --diag_warning=225 --diag_wrap=off --display_error_number --enum_type=packed --abi=eabi -z -m"rm46_freertos_mppt_test1.map" --heap_size=0x800 --stack_size=0x800 -i"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/lib" -i"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include" --reread_libs --diag_wrap=off --display_error_number --warn_sections --xml_link_info="rm46_freertos_mppt_test1_linkInfo.xml" --rom_model -o "rm46_freertos_mppt_test1.out" $(ORDERED_OBJS)
 	@echo 'Finished building target: "$@"'
 	@echo ' '
 
 rm46_freertos_mppt_test1.hex: $(EXE_OUTPUTS)
-	@echo 'Building secondary target: "$@"'
+	@echo 'Building files: $(strip $(EXE_OUTPUTS__QUOTED))'
 	@echo 'Invoking: Arm Hex Utility'
-	"C:/ti/ccs1040/ccs/tools/compiler/ti-cgt-arm_20.2.5.LTS/bin/armhex" --diag_wrap=off -o "rm46_freertos_mppt_test1.hex" $(EXE_OUTPUTS__QUOTED)
-	@echo 'Finished building secondary target: "$@"'
+	"C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/bin/armhex"  -o "rm46_freertos_mppt_test1.hex" $(EXE_OUTPUTS__QUOTED)
+	@echo 'Finished building: $(strip $(EXE_OUTPUTS__QUOTED))'
 	@echo ' '
 
 # Other Targets
 clean:
 	-$(RM) $(BIN_OUTPUTS__QUOTED)$(EXE_OUTPUTS__QUOTED)
-	-$(RM) "source\dabort.obj" "source\errata_SSWF021_45.obj" "source\esm.obj" "source\gio.obj" "source\het.obj" "source\i2c.obj" "source\mibspi.obj" "source\notification.obj" "source\os_croutine.obj" "source\os_event_groups.obj" "source\os_heap.obj" "source\os_list.obj" "source\os_mpu_wrappers.obj" "source\os_port.obj" "source\os_portasm.obj" "source\os_queue.obj" "source\os_tasks.obj" "source\os_timer.obj" "source\pinmux.obj" "source\sci.obj" "source\sys_core.obj" "source\sys_dma.obj" "source\sys_intvecs.obj" "source\sys_mpu.obj" "source\sys_pcr.obj" "source\sys_phantom.obj" "source\sys_pmm.obj" "source\sys_pmu.obj" "source\sys_selftest.obj" "source\sys_startup.obj" "source\sys_vim.obj" "source\system.obj" "source_custom\ad5324.obj" "source_custom\ina226.obj" "source_custom\main_test2.obj" "source_custom\mppt.obj" 
-	-$(RM) "source\errata_SSWF021_45.d" "source\esm.d" "source\gio.d" "source\het.d" "source\i2c.d" "source\mibspi.d" "source\notification.d" "source\os_croutine.d" "source\os_event_groups.d" "source\os_heap.d" "source\os_list.d" "source\os_mpu_wrappers.d" "source\os_port.d" "source\os_queue.d" "source\os_tasks.d" "source\os_timer.d" "source\pinmux.d" "source\sci.d" "source\sys_dma.d" "source\sys_pcr.d" "source\sys_phantom.d" "source\sys_pmm.d" "source\sys_selftest.d" "source\sys_startup.d" "source\sys_vim.d" "source\system.d" "source_custom\ad5324.d" "source_custom\ina226.d" "source_custom\main_test2.d" "source_custom\mppt.d" 
+	-$(RM) "source\dabort.obj" "source\errata_SSWF021_45.obj" "source\esm.obj" "source\gio.obj" "source\het.obj" "source\i2c.obj" "source\mibspi.obj" "source\notification.obj" "source\os_croutine.obj" "source\os_event_groups.obj" "source\os_heap.obj" "source\os_list.obj" "source\os_mpu_wrappers.obj" "source\os_port.obj" "source\os_portasm.obj" "source\os_queue.obj" "source\os_tasks.obj" "source\os_timer.obj" "source\pinmux.obj" "source\sci.obj" "source\sys_core.obj" "source\sys_dma.obj" "source\sys_intvecs.obj" "source\sys_mpu.obj" "source\sys_pcr.obj" "source\sys_phantom.obj" "source\sys_pmm.obj" "source\sys_pmu.obj" "source\sys_selftest.obj" "source\sys_startup.obj" "source\sys_vim.obj" "source\system.obj" "source_custom\ad5324.obj" "source_custom\ina226.obj" "source_custom\main_ctrlDAC.obj" "source_custom\mppt.obj" "source_custom\uart_cmd.obj" 
+	-$(RM) "source\errata_SSWF021_45.d" "source\esm.d" "source\gio.d" "source\het.d" "source\i2c.d" "source\mibspi.d" "source\notification.d" "source\os_croutine.d" "source\os_event_groups.d" "source\os_heap.d" "source\os_list.d" "source\os_mpu_wrappers.d" "source\os_port.d" "source\os_queue.d" "source\os_tasks.d" "source\os_timer.d" "source\pinmux.d" "source\sci.d" "source\sys_dma.d" "source\sys_pcr.d" "source\sys_phantom.d" "source\sys_pmm.d" "source\sys_selftest.d" "source\sys_startup.d" "source\sys_vim.d" "source\system.d" "source_custom\ad5324.d" "source_custom\ina226.d" "source_custom\main_ctrlDAC.d" "source_custom\mppt.d" "source_custom\uart_cmd.d" 
 	-$(RM) "source\dabort.d" "source\os_portasm.d" "source\sys_core.d" "source\sys_intvecs.d" "source\sys_mpu.d" "source\sys_pmu.d" 
 	-@echo 'Finished clean'
 	-@echo ' '

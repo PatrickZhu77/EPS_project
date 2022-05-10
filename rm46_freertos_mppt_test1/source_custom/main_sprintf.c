@@ -19,7 +19,6 @@
 #include "ina226.h"
 #include "mppt.h"
 #include "ad5324.h"
-#include "uart_cmd.h"
 
 
 /* USER CODE END */
@@ -34,27 +33,28 @@
 
 /* USER CODE BEGIN (2) */
 
-#define EN_CTRL 1             // en pin controlling
+//#define EN_CTRL 1             // en pin controlling
 //#define SS_CTRL 1             // ss pin controlling
-//#define TRAVERSAL 1             // traversal en
+#define TRAVERSAL 1             // traversal en
 //#define TRAVERSAL 2           // traversal ss
 //#define TRAVERSAL2 1             // traversal en 4 times with ss changes
+
+#define NUM_OF_SAMPLING     1001
 
 /*****************Housekeeping Data********************/
 static unsigned char command;
 static ina226_data ina226D[26] = {0};
 static ina226_data *pina226D = &ina226D[0];
 static uint8_t ina226_counter = 0;
-static char temp[4] = {0};
+static uint8_t temp[2] = {0};
 
 /*****************Battery Data*************************/
 static mppt_data mpptD[4];
 static mppt_data *pmpptD = &mpptD[0];
 static uint8_t mppt_counter = 0;
-
-static unsigned char *cmd1;
-static unsigned char cmdtx[1]="?";
-static unsigned char cmdrx[1];
+static uint16_t sample_counter = 0;
+static int Vshunt_buffer[NUM_OF_SAMPLING] = {0};
+static int Vbus_buffer[NUM_OF_SAMPLING] = {0};
 
 //static uint16_t binary[16] = {0,1,1,0,1,1,1,1,1,1,1,1,1,1,1,1};
 //static uint16_t binary[16] = {0};
@@ -98,9 +98,6 @@ int main(void)
                 (TaskHandle_t*  )&initTask_Handler);
     printf("init_task created\n");
 
-    xQueue = xQueueCreate(1, sizeof(cmdtx));
-
-    configASSERT(xQueue);
 
     vTaskStartScheduler();
 
@@ -137,8 +134,8 @@ void init_task(void *pvParameters)
     {
         mpptD[mppt_counter].channel = mppt_counter;
         mpptD[mppt_counter].counter = 0;
-        mpptD[mppt_counter].dir = 0xff;
-        mpptD[mppt_counter].predir = 0xff;
+        mpptD[mppt_counter].dir = 0x00;
+        mpptD[mppt_counter].predir = 0x00;
         mpptD[mppt_counter].increment = EN_STEPSIZE_INIT;
         mpptD[mppt_counter].dacOUT = DAC_INIT;
         mpptD[mppt_counter].presumP = 0;
@@ -162,14 +159,6 @@ void init_task(void *pvParameters)
                 (UBaseType_t    )battCtrl_TASK_PRIO,
                 (TaskHandle_t*  )&battCtrlTask_Handler);
 
-    xTaskCreate((TaskFunction_t )sci_task,
-                (const char*    )"battCtrl_task",
-                (uint16_t       )SCI_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )SCI_TASK_PRIO,
-                (TaskHandle_t*  )&SCITask_Handler);
-
-
     vTaskDelete(initTask_Handler);
 
     taskEXIT_CRITICAL();
@@ -182,7 +171,7 @@ void getHK_task(void *pvParameters)
 {
 
     printf( "getHK task running\n");
-    const portTickType xDelay = pdMS_TO_TICKS(500);
+    const portTickType xDelay = pdMS_TO_TICKS(100);
     INA226_SetCfgReg(i2cREG1,ina226D[0].address,CFG_REG_SETTING);
 //    INA226_SetRegPointer(i2cREG1,ina226D[0].address,CAL_REG);
     vTaskDelay(pdMS_TO_TICKS(100));
@@ -205,14 +194,14 @@ void getHK_task(void *pvParameters)
 void battCtrl_task(void *pvParameters)
 {
     printf( "battery controlling task running\n");
-    const portTickType xDelay = pdMS_TO_TICKS(MPPT_TASK_DELAY);
+    const portTickType xDelay = pdMS_TO_TICKS(200);
 
     static int i = 0;
     static int counter = 1;
     static int sweep_counter = 1;
 
 #ifdef EN_CTRL
-    dac_write_en_ss(mibspiPORT3,4095);
+    dac_write_en_ss(mibspiPORT3,2730);
 #endif
 
 #ifdef TRAVERSAL
@@ -221,26 +210,24 @@ void battCtrl_task(void *pvParameters)
 #endif
 
 
-    while(1)
+    for(sample_counter=0;sample_counter<NUM_OF_SAMPLING;sample_counter++)
     {
-//        xQueueReceive(xQueue, cmdrx,portMAX_DELAY);
-
-
         /*EN_pin Controlling*/
 #ifdef EN_CTRL
         for(mppt_counter=0;mppt_counter<1;mppt_counter++)
         {
             dac_write_en(mibspiPORT3,pmpptD+mppt_counter);
+            printf("%d\t%d\t%d\n",(int)pmpptD->dacOUT,(int)ina226D[0].shunt_voltage,(int)(mpptD[0].sumP/NUM_AVERAGE));
 
             (pmpptD+mppt_counter)->sumP = 0;
-            vTaskDelay(pdMS_TO_TICKS(500));
+            vTaskDelay(pdMS_TO_TICKS(10));
 
-//            for(i = 0;i<NUM_AVERAGE;i++)
-//            {
-//                vTaskDelay(pdMS_TO_TICKS(10));
+            for(i = 0;i<NUM_AVERAGE;i++)
+            {
+                vTaskDelay(pdMS_TO_TICKS(10));
                 mppt_getSumP(pina226D+mppt_counter, pmpptD+mppt_counter);
-//            }
-            printf("%d\t%d\t%d\n",(int)pmpptD->dacOUT,(int)ina226D[0].shunt_voltage,(int)(mpptD[0].sumP));
+            }
+
             mppt_pno_en(pmpptD+mppt_counter);
         }
 
@@ -278,21 +265,17 @@ void battCtrl_task(void *pvParameters)
         else
             dac_write_ss(mibspiPORT3,pmpptD);
 
-        xQueueReceive(xQueue, cmdrx,portMAX_DELAY);
-//        vTaskDelay(pdMS_TO_TICKS(500));
-
-//        printf("%d\t%d\t%d\n",(int)pmpptD->dacOUT,(int)ina226D[0].shunt_voltage,(int)(ina226D[0].shunt_voltage*ina226D[0].bus_voltage));
-//        printf("%d\n",(int)pmpptD->dacOUT);
-
-//        sprintf(temp,"%d",(int)pmpptD->dacOUT);
-//        sciSend(scilinREG,4,(unsigned char *)temp);
-//        sciSend(scilinREG,2,(unsigned char *)"\r\n");
+//        printf("%d\t%d\t%d\n",(int)pmpptD->dacOUT,(int)ina226D[0].shunt_voltage,(int)ina226D[0].bus_voltage);
+//        sprintf(Vshunt_buffer,"%d",(int)ina226D[0].shunt_voltage);
+//        sprintf(Vbus_buffer,"%d",(int)ina226D[0].bus_voltage);
+        Vshunt_buffer[sample_counter] = (int)ina226D[0].shunt_voltage;
+        Vbus_buffer[sample_counter] = (int)ina226D[0].bus_voltage;
 
         if(pmpptD->dacOUT >= DAC_MAX)
         {
             counter = 1;
         }
-        else if((pmpptD->dacOUT <= EN_STEPSIZE_INIT) || (pmpptD->dacOUT <= DAC_MIN))
+        else if(pmpptD->dacOUT < EN_STEPSIZE_INIT)
         {
             counter = 0;
         }
@@ -300,7 +283,9 @@ void battCtrl_task(void *pvParameters)
         if(counter == 0)
         {
 
-            if ((pmpptD->dacOUT+EN_STEPSIZE_INIT) >= DAC_MAX)
+            if (pmpptD->dacOUT > 3850 && pmpptD->dacOUT < 3950)
+                pmpptD->dacOUT = pmpptD->dacOUT+EN_STEPSIZE_INIT;
+            else if ((pmpptD->dacOUT+EN_STEPSIZE_INIT) >= DAC_MAX)
                 pmpptD->dacOUT = DAC_MAX;
             else
                 pmpptD->dacOUT = pmpptD->dacOUT+EN_STEPSIZE_INIT;
@@ -308,15 +293,13 @@ void battCtrl_task(void *pvParameters)
         else
         {
             if (pmpptD->dacOUT < EN_STEPSIZE_INIT)
-                pmpptD->dacOUT = DAC_MIN;
-            else if ((pmpptD->dacOUT-EN_STEPSIZE_INIT) < DAC_MIN)
-                pmpptD->dacOUT = DAC_MIN;
+                pmpptD->dacOUT = 0;
             else
                 pmpptD->dacOUT = pmpptD->dacOUT-EN_STEPSIZE_INIT;;
         }
 
 
-//        vTaskDelay(xDelay);
+        vTaskDelay(xDelay);
 
         //printf("DAC out:%d\n",(int)mpptD[0].dacOUT);
 #endif
@@ -357,45 +340,22 @@ void battCtrl_task(void *pvParameters)
 
     }
 
-}
-
-void sci_task(void *pvParameters)
-{
-    const portTickType xDelay = pdMS_TO_TICKS(100);
-    while(1)
+    for(sample_counter=0;sample_counter<NUM_OF_SAMPLING;sample_counter++)
     {
-        cmd1 = NULL;
-        cmd1 = uart_tx(24,(unsigned char*)"Waiting for interrupt:\r\n");
-
-        if(strcmp((const char *)cmd1, (const char *)"?")==0)
-        {
-
-            sprintf(temp,"%d",(int)pmpptD->dacOUT);
-            sciSend(scilinREG,4,(unsigned char *)temp);
-            sciSend(scilinREG,2,(unsigned char *)"\r\n");
-
-            xQueueSendToBack(xQueue,cmdtx,0UL);
-
-
-        }
-        else
-        {
-            sciSend(scilinREG,15,(unsigned char *)"Wrong command\r\n");
-        }
-
-
-        vTaskDelay(xDelay);
+        printf("%d\t%d\n",Vshunt_buffer[sample_counter],Vbus_buffer[sample_counter]);
     }
 
+    printf("Sampling completed.\n");
+    vTaskSuspend(battCtrl_task);
 }
 
 
 
-//void sciNotification(sciBASE_t *sci,unsigned flags)
-//{
-//    sciSend(sci,1,(unsigned char *)&command);
-//    sciReceive(sci,1,(unsigned char *)&command);
-//}
+void sciNotification(sciBASE_t *sci,unsigned flags)
+{
+    sciSend(sci,1,(unsigned char *)&command);
+    sciReceive(sci,1,(unsigned char *)&command);
+}
 
 void esmGroup1Notification(int bit)
 {

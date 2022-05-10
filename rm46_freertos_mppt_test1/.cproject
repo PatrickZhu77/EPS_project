@@ -78,7 +78,7 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry excluding="source_custom/main_IVcurve.c|source_custom/main_test1.c|source/sys_main.c|source_custom/sys_main.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
+						<entry excluding="source_custom/main_test2.c|source_custom/main_test1.c|source_custom/main_sprintf.c|source_custom/main_IVcurve.c|source/sys_main.c|source_custom/sys_main.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name=""/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

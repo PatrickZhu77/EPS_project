@@ -52,6 +52,16 @@ void heatCtrl_task(void *pvParameters);
 TaskHandle_t receiveCMDTask_Handler;
 void receiveCMD_task(void *pvParameters);
 
+#define printing_TASK_PRIO         2
+#define printing_STK_SIZE         128
+TaskHandle_t printingTask_Handler;
+void print_task(void *pvParameters);
 
+#define SCI_TASK_PRIO         2
+#define SCI_STK_SIZE         128
+TaskHandle_t SCITask_Handler;
+void sci_task(void *pvParameters);
+
+QueueHandle_t xQueue = NULL;
 
 #endif /* SOURCE_TASK_HEADER_H_ */
