@@ -6,7 +6,7 @@
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_TARGET_CONFIG" value="${target_config_active_default:rm46_freertos_fee_test1}"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.C:\Users\sdamkjar\Documents\EPS\EPS_project.git\trunk\FreeRTOS_test1\targetConfigs\TMS570LS1224.ccxml.Texas Instruments XDS110 USB Debug Probe/CortexR4" value="C:/Users\sdamkjar\Documents\EPS\EPS_project.git\trunk\rm46_freertos_fee_test1\Debug\rm46_freertos_fee_test1.out"/>
 <mapAttribute key="com.ti.ccstudio.debug.ui.displayFormats">
-<mapEntry key="Texas Instruments XDS110 USB Debug Probe/CortexR4@##separator##@0" value="8-Bit Hex - TI Style"/>
+<mapEntry key="Texas Instruments XDS110 USB Debug Probe/CortexR4@##separator##@0" value="16-Bit Hex - TI Style"/>
 </mapAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/rm46_freertos_fee_test1"/>

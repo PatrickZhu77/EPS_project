@@ -134,7 +134,7 @@ int main(void)
     /* Write the block into EEP Asynchronously. Block size is configured in ti_fee_cfg.c file. Default Block size is
        8 bytes */
     BlockNumber=1;
-    TI_Fee_WriteAsync(BlockNumber, &SpecialRamBlock[0]);
+    TI_Fee_WriteAsync(BlockNumber, SpecialRamBlock);
     do
     {
         TI_Fee_MainFunction();
@@ -144,7 +144,7 @@ int main(void)
     while(Status!=IDLE);
 
     /* Write the block into EEP Synchronously. Write will not happen since data is same. */
-    TI_Fee_WriteSync(BlockNumber, &SpecialRamBlock[0]);
+    TI_Fee_WriteSync(BlockNumber, SpecialRamBlock);
 
     /* Read the block with unknown length */
      BlockOffset = 0;
@@ -162,7 +162,7 @@ int main(void)
      /* Write the block into EEP Asynchronously. Block size is configured in ti_fee_cfg.c file. Default Block size is
         8 bytes */
      BlockNumber=2;
-     TI_Fee_WriteAsync(BlockNumber, &SpecialRamBlock[0]);
+     TI_Fee_WriteAsync(BlockNumber, SpecialRamBlock);
      do
      {
          TI_Fee_MainFunction();
@@ -172,7 +172,7 @@ int main(void)
      while(Status!=IDLE);
 
      /* Write the block into EEP Synchronously. Write will not happen since data is same. */
-     TI_Fee_WriteSync(BlockNumber, &SpecialRamBlock[0]);
+     TI_Fee_WriteSync(BlockNumber, SpecialRamBlock);
 
     /* Invalidate a written block  */
 //    TI_Fee_InvalidateBlock(BlockNumber);
