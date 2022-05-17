@@ -105,6 +105,7 @@ only for ports that are using the MPU. */
 		#define vTaskSuspendAll							MPU_vTaskSuspendAll
 		#define xTaskResumeAll							MPU_xTaskResumeAll
 		#define xTaskGetTickCount						MPU_xTaskGetTickCount
+        #define xTaskGetTickOverflowCount               MPU_xTaskGetTickOverflowCount
 		#define uxTaskGetNumberOfTasks					MPU_uxTaskGetNumberOfTasks
 		#define pcTaskGetName							MPU_pcTaskGetName
 		#define xTaskGetHandle							MPU_xTaskGetHandle

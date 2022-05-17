@@ -20,6 +20,8 @@
 #define     WA_REG4         0x0C        //Warning alert limit  3
 
 
+#define     INA3221_CFG_SETTING     0x0527  //configuration register with 16 averages and 1.1ms conversion time
+
 #define     voltage_mask     0x7FF8     //mask used for both voltage registers (only 14--3 bits are used)
 
 #define     INA3221_ADDR1    0x41//0x8E        //SLAVE ADDRESS 1000111 (VS|SCL)
@@ -35,6 +37,7 @@ typedef struct
     uint16_t bus_voltage[3];         //mV
     uint16_t shunt_resistance;       //mOhm
     uint16_t config_reg;
+    uint32_t timestamp_sec;
 }ina3221_data;
 
 

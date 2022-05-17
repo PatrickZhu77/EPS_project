@@ -23,6 +23,9 @@ source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_gio.h
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_flash.h
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_tcram.h
+source_custom/skeleton_main.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/time.h
+source_custom/skeleton_main.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/abi_prefix.h
+source_custom/skeleton_main.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_time.h
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/FreeRTOS.h
 source_custom/skeleton_main.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stddef.h
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/FreeRTOSConfig.h
@@ -71,6 +74,9 @@ source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/ad5324.h
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/fee_function.h
 source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/uart_cmd.h
+source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/cmd_interface.h
+source_custom/skeleton_main.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdlib.h
+source_custom/skeleton_main.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/realtimeClock.h
 
 ../source_custom/skeleton_main.c: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/sys_common.h: 
@@ -95,6 +101,9 @@ C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_gio.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_flash.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_tcram.h: 
+C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/time.h: 
+C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/abi_prefix.h: 
+C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_time.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/FreeRTOS.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stddef.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/FreeRTOSConfig.h: 
@@ -143,3 +152,6 @@ C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/ad5324.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/fee_function.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/uart_cmd.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/cmd_interface.h: 
+C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdlib.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/realtimeClock.h: 

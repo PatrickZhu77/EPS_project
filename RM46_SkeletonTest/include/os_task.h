@@ -1289,6 +1289,18 @@ TickType_t xTaskGetTickCount( void ) PRIVILEGED_FUNCTION;
 
 /**
  * task. h
+ * <PRE>BaseType_t xTaskGetTickOverflowCount( void );</PRE>
+ *
+ * @return The count of tick overflows since vTaskStartScheduler was called.
+ *
+ * \defgroup xTaskGetTickOverflowCount xTaskGetTickOverflowCount
+ * \ingroup TaskUtils
+ */
+BaseType_t xTaskGetTickOverflowCount( void ) PRIVILEGED_FUNCTION;
+
+
+/**
+ * task. h
  * <PRE>TickType_t xTaskGetTickCountFromISR( void );</PRE>
  *
  * @return The count of ticks since vTaskStartScheduler was called.

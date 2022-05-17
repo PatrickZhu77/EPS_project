@@ -13,14 +13,14 @@
 #define     AL_REG          0x07        //Alert limit register
 #define     ID_REG          0XFF        //Die ID register
 
-#define     INA226_ADDR1    0x41//0x8E        //SLAVE ADDRESS 1000111 (VS|SCL)
-#define     INA226_err      0xC         //0001_100. Alert Response slave address
+#define     INA226_ADDR1    0x41                //SLAVE ADDRESS 1000111 (VS|SCL)
+#define     INA226_err      0xC                 //0001_100. Alert Response slave address
 
-#define     CFG_REG_SETTING     0x4527      //configuration register with 512 averages and 4.156ms conversion time
+#define     INA226_CFG_SETTING     0x4527       //configuration register with 16 averages and 1.1ms conversion time
 
-#define     BOL             0x2000      //Mask/Enable register enable Bus Voltage Over-Voltage alert
+#define     BOL             0x2000              //Mask/Enable register enable Bus Voltage Over-Voltage alert
 
-#define     NUM_OF_INA226   27          // 27 is default value according to schematic of eps
+#define     NUM_OF_INA226   27                  // 27 is default value according to schematic of eps
 
 typedef struct
 {
@@ -33,6 +33,7 @@ typedef struct
     uint16_t config_reg;
 //    uint16_t cal_reg;
     uint16_t alert_reg;
+    uint32_t timestamp_sec;
 }ina226_data;
 
 /**************List of ina226 sensors**************

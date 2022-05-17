@@ -91,27 +91,42 @@ void get_hk_batt(ina226_data *data, battery_data *battery)
         sprintf(temp1,"%d",(int)(data+i)->bus_voltage);
         sprintf(temp3,"%d",i);
 
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,18,(unsigned char *)"Voltage of Battery");
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,strlen((const char *)temp3),(unsigned char *)temp3);
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,2,(unsigned char *)": ");
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,1,(unsigned char *)"\t");
 
         sprintf(temp4,"%d",(int)(battery+i)->sw);
 
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,17,(unsigned char *)"Switch of Battery");
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,strlen((const char *)temp3),(unsigned char *)temp3);
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,2,(unsigned char *)": ");
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,strlen((const char *)temp4),(unsigned char *)temp4);
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,1,(unsigned char *)"\t");
 
         sprintf(temp2,"%d",(int)(battery+i)->temp_v);
 
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,16,(unsigned char *)"Temp. of Battery");
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,strlen((const char *)temp3),(unsigned char *)temp3);
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,2,(unsigned char *)": ");
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,strlen((const char *)temp2),(unsigned char *)temp2);
 
+        while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,2,(unsigned char *)"\r\n");
     }
 

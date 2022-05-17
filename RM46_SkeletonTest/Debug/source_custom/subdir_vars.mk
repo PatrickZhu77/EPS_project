@@ -14,6 +14,7 @@ C_SRCS += \
 ../source_custom/ina226.c \
 ../source_custom/ina3221.c \
 ../source_custom/mppt.c \
+../source_custom/realtimeClock.c \
 ../source_custom/skeleton_main.c \
 ../source_custom/uart_cmd.c 
 
@@ -26,6 +27,7 @@ C_DEPS += \
 ./source_custom/ina226.d \
 ./source_custom/ina3221.d \
 ./source_custom/mppt.d \
+./source_custom/realtimeClock.d \
 ./source_custom/skeleton_main.d \
 ./source_custom/uart_cmd.d 
 
@@ -38,6 +40,7 @@ OBJS += \
 ./source_custom/ina226.obj \
 ./source_custom/ina3221.obj \
 ./source_custom/mppt.obj \
+./source_custom/realtimeClock.obj \
 ./source_custom/skeleton_main.obj \
 ./source_custom/uart_cmd.obj 
 
@@ -50,6 +53,7 @@ OBJS__QUOTED += \
 "source_custom\ina226.obj" \
 "source_custom\ina3221.obj" \
 "source_custom\mppt.obj" \
+"source_custom\realtimeClock.obj" \
 "source_custom\skeleton_main.obj" \
 "source_custom\uart_cmd.obj" 
 
@@ -62,6 +66,7 @@ C_DEPS__QUOTED += \
 "source_custom\ina226.d" \
 "source_custom\ina3221.d" \
 "source_custom\mppt.d" \
+"source_custom\realtimeClock.d" \
 "source_custom\skeleton_main.d" \
 "source_custom\uart_cmd.d" 
 
@@ -74,6 +79,7 @@ C_SRCS__QUOTED += \
 "../source_custom/ina226.c" \
 "../source_custom/ina3221.c" \
 "../source_custom/mppt.c" \
+"../source_custom/realtimeClock.c" \
 "../source_custom/skeleton_main.c" \
 "../source_custom/uart_cmd.c" 
 

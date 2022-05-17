@@ -28,6 +28,11 @@ void getHK_task(void *pvParameters);
 TaskHandle_t selfCheckTask_Handler;
 void selfCheck_task(void *pvParameters);
 
+#define watchdog_TASK_PRIO         2
+#define watchdog_STK_SIZE         128
+TaskHandle_t watchdogTask_Handler;
+void watchdog_task(void *pvParameters);
+
 
 #define channelCtrl_TASK_PRIO         2
 #define channelCtrl_STK_SIZE         128

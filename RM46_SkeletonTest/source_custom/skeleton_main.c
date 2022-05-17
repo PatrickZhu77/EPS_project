@@ -53,6 +53,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "system.h"
+#include "time.h"
 
 #include "FreeRTOS.h"
 #include "os_task.h"
@@ -77,6 +78,8 @@
 #include "ad5324.h"
 #include "fee_function.h"
 #include "uart_cmd.h"
+#include "cmd_interface.h"
+#include "realtimeClock.h"
 
 /* USER CODE END */
 
@@ -95,12 +98,14 @@
 #define DELAY_1_SECOND          1000UL
 #define TIMER_CHECK_THRESHOLD   9
 
+/*****************RTC Variables************************/
+static RTC realtimeClock;
+static RTC *prealtimeClock = &realtimeClock;
+static char temp1[40] = {0};
 
 /*****************FEE Variables************************/
 uint8 SpecialRamBlock[128];
 uint8 read_data[128]={0};
-
-
 
 /*****************Housekeeping Data********************/
 static unsigned char command;
@@ -115,6 +120,7 @@ static uint8_t ina3221_counter = 0;
 /*****************SelfCheck Variables********************/
 static boolean checkFlag[30][2]={0};         // checkFlag[][0]:current flag; checkFlag[][1]:previous flag;
 static uint8_t selfCheck_counter = 0;
+static uint8_t watchdog_counter = 0;
 
 /*****************Battery Data*************************/
 static mppt_data mpptD[4];
@@ -130,7 +136,18 @@ static channel_data channelD[NUM_OF_CHANNELS];
 static channel_data *pchannelD = &channelD[0];
 static uint8_t channel_counter = 0;
 
+/***************Task Tick Counter**********************/
+static uint32_t ch_t = 0;
+static uint32_t rxCMD_t = 0;
+static uint32_t hk_t = 0;
+static uint32_t wdt_t = 0;
+static uint32_t batt_t = 0;
+
+
 static uint8_t delay=0;
+//static time_t seconds,seconds2;
+//static char temp1[40] = {0}, temp2[40] = {0};
+
 
 /* USER CODE END */
 
@@ -152,8 +169,17 @@ int main(void)
                 (UBaseType_t    )init_TASK_PRIO,
                 (TaskHandle_t*  )&initTask_Handler);
 //    printf("init_task created\r\n");
+
+
+    resetRTC_debug(prealtimeClock);
     sciSend(scilinREG,19,(unsigned char *)"init_task created\r\n");
-    for(delay=0;delay<100;delay++);
+
+//    while((sciIsRxReady(scilinREG) == 0));
+//    while(sciIsIdleDetected(scilinREG) != 0);
+
+//    seconds = time(NULL);
+//    while((sciIsRxReady(scilinREG) == 0));
+//    while(sciIsIdleDetected(scilinREG) != 0);
 
     vTaskStartScheduler();
 
@@ -173,7 +199,12 @@ void init_task(void *pvParameters)
     uint32_t BlockOffset, Length;
     uint8_t *Read_Ptr=read_data;
 
+//    seconds = time(NULL);
+
+    for(delay=0;delay<100;delay++);
     uint32_t loop;
+
+
 
     /* Initialize RAM array.*/
     for(loop=0;loop<128;loop++)SpecialRamBlock[loop] = loop;
@@ -206,15 +237,15 @@ void init_task(void *pvParameters)
     for(ina226_counter=0;ina226_counter<NUM_OF_INA226;ina226_counter++)
     {
         ina226D[ina226_counter].address = INA226_ADDR1;
+        ina226D[ina226_counter].config_reg = INA226_CFG_SETTING;
         ina226D[ina226_counter].flag = 0;
-//        ina226D[ina226_counter].shunt_resistance = 0x5;     //5 mOhm
 //        INA226_Init(i2cREG1, ina226D[ina3221_counter].address, pina226D+ina226_counter);
     }
 
     for(ina3221_counter=0;ina3221_counter<NUM_OF_INA3221;ina3221_counter++)
     {
         ina3221D[ina3221_counter].address = INA3221_ADDR1;
-//        ina3221D[ina3221_counter].config_reg = ina3221_config_data;
+        ina3221D[ina3221_counter].config_reg = INA3221_CFG_SETTING;
 //        INA3221_Init(i2cREG1, ina3221D[ina3221_counter].address, pina3221D+ina3221_counter);
     }
 
@@ -286,6 +317,15 @@ void init_task(void *pvParameters)
     sciSend(scilinREG,24,(unsigned char *)"selfCheck task created\r\n");
     for(delay=0;delay<100;delay++);
 
+    xTaskCreate((TaskFunction_t )watchdog_task,
+                (const char*    )"watchdog_task",
+                (uint16_t       )watchdog_STK_SIZE,
+                (void*          )NULL,
+                (UBaseType_t    )watchdog_TASK_PRIO,
+                (TaskHandle_t*  )&watchdogTask_Handler);
+    sciSend(scilinREG,23,(unsigned char *)"watchdog task created\r\n");
+    for(delay=0;delay<100;delay++);
+
     xTaskCreate((TaskFunction_t )battCtrl_task,
                 (const char*    )"battCtrl_task",
                 (uint16_t       )battCtrl_STK_SIZE,
@@ -294,6 +334,9 @@ void init_task(void *pvParameters)
                 (TaskHandle_t*  )&battCtrlTask_Handler);
     sciSend(scilinREG,34,(unsigned char *)"battery controlling task created\r\n");
     for(delay=0;delay<100;delay++);
+
+//    seconds = time(NULL);
+//    sprintf(temp1,"%d",(uint32_t)seconds/60);
 
 
     vTaskDelete(initTask_Handler);
@@ -320,8 +363,7 @@ void getHK_task(void *pvParameters)
 //            INA226_GetShuntVoltage(i2cREG1,ina226D[ina226_counter].address,&ina226D[ina226_counter].shunt_voltage);
 //            INA226_GetVoltage(i2cREG1,ina226D[ina226_counter].address,&ina226D[ina226_counter].bus_voltage);
 
-            /* inverse flag */
-            ina226D[ina226_counter].flag = ~ina226D[ina226_counter].flag;
+//            ina226D[ina226_counter].timestamp_sec = getcurrTime(prealtimeClock);
         }
 
         /* call ina3221 functions */
@@ -340,17 +382,14 @@ void getHK_task(void *pvParameters)
 //            INA3221_GetShuntVoltage(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter].shunt_voltage[2], 3);
 //            INA3221_GetBusVoltage(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter].bus_voltage[2], 3);
 
-            /* inverse flag */
-            ina3221D[ina3221_counter].flag = ~ina3221D[ina3221_counter].flag;
+//            ina3221D[ina3221_counter].timestamp_sec = getcurrTime(prealtimeClock);
         }
 
 
 //        printf("Number %d sensor updated. Power: %d uW.\n",ina226_counter,(int)ina226D[ina226_counter].power);
-
+//        hk_t = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
-
     }
-
 }
 
 void selfCheck_task(void *pvParameters)
@@ -358,34 +397,93 @@ void selfCheck_task(void *pvParameters)
 //    printf( "selfCheck task running\n");
 
     const portTickType xDelay = pdMS_TO_TICKS(5000);
-    static uint8_t t = 0;
+//    static uint32_t preTick[5] = {0};
+    char temp[1] = {0};
 
     while(1)
     {
         /* check if the flag has been updated */
-        checkFlag[selfCheck_counter][0] = ina226D[selfCheck_counter].flag;
-        if(checkFlag[selfCheck_counter][0] != checkFlag[selfCheck_counter][1])
+
+//        /* clear the counter */
+//        selfCheck_counter = 0;
+//
+//        if(hk_t != preTick[0])
+//        {
+//            preTick[0] = hk_t;
+//            selfCheck_counter++;
+//        }
+//        if(ch_t != preTick[1])
+//        {
+//            preTick[1] = ch_t;
+//            selfCheck_counter++;
+//        }
+//        if(wdt_t != preTick[2])
+//        {
+//            preTick[2] = wdt_t;
+//            selfCheck_counter++;
+//        }
+//        if(rxCMD_t != preTick[3])
+//        {
+//            preTick[3] = rxCMD_t;
+//            selfCheck_counter++;
+//        }
+//        if(batt_t != preTick[4])
+//        {
+//            preTick[4] = batt_t;
+//            selfCheck_counter++;
+//        }
+//
+//        if(selfCheck_counter == 5) // all tasks are checked
+//        {
+//            /* pet the watchdog timer */
+//            gioSetBit(hetPORT2,11,1);
+//            for(delay=0;delay<100;delay++);
+//            gioSetBit(hetPORT2,11,0);
+//
+////            printf( "Pet the watchdog\n");
+//            sciSend(scilinREG,18,(unsigned char *)"Pet the watchdog\r\n");
+//
+//        }
+//        else
+//        {
+//            sprintf(temp,"%d",(int)selfCheck_counter);
+//            sciSend(scilinREG,15,(unsigned char *)"Working tasks: ");
+//            sciSend(scilinREG,strlen((const char *)temp),(unsigned char *)temp);
+//            sciSend(scilinREG,4,(unsigned char *)"\r\n\r\n");
+//        }
+
+
+//        sciSend(scilinREG,18,(unsigned char *)"Pet the watchdog\r\n");
+//        for(delay=0;delay<100;delay++);
+        vTaskDelay(xDelay);
+
+    }
+}
+
+void watchdog_task(void *pvParameters)
+{
+//    printf( "selfCheck task running\n");
+
+    const portTickType xDelay = pdMS_TO_TICKS(1000);
+
+//    char temp1[40] = {0};
+
+
+    while(1)
+    {
+        if(watchdog_counter>4)
         {
-            checkFlag[selfCheck_counter][1] = checkFlag[selfCheck_counter][0];
-            selfCheck_counter++;
+//            seconds2 = time(NULL);
+//            sciSend(scilinREG,23,(unsigned char *)"Failed to contact OBC\r\n");
+            watchdog_counter=0;
+
+
+//            printf("seconds since January 1, 1970 = %d\n", seconds);
+
         }
+        watchdog_counter++;
 
-        if(selfCheck_counter == 3) // all the data are checked
-        {
-            /* pet the watchdog timer */
-            gioSetBit(hetPORT2,11,1);
-            for(t=0;t<0x80;t++);
-            gioSetBit(hetPORT2,11,0);
-
-//            printf( "Pet the watchdog\n");
-            sciSend(scilinREG,18,(unsigned char *)"Pet the watchdog\r\n");
-            for(delay=0;delay<100;delay++);
-
-            /* clear the counter */
-            selfCheck_counter = 0;
-        }
-
-
+//        wdt_t = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
 
     }
@@ -404,6 +502,7 @@ void channelCtrl_task(void *pvParameters)
         channel_check_lowVoltage(pina3221D, pchannelD);
         channel_check_trip(pina226D+9, pchannelD);
 
+//        ch_t = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
     }
 }
@@ -433,7 +532,7 @@ void battCtrl_task(void *pvParameters)
             mppt_pno_en(pmpptD+mppt_counter);
          }
 
-
+//        batt_t = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
 
     }
@@ -442,10 +541,12 @@ void battCtrl_task(void *pvParameters)
 void receiveCMD_task(void *pvParameters)
 {
     unsigned char *cmd1;
+    uint32_t current_sec = 0;
 
-    const portTickType xDelay = pdMS_TO_TICKS(100);
+    const portTickType xDelay = pdMS_TO_TICKS(1000);
     while(1)
     {
+
         cmd1 = NULL;
         cmd1 = uart_tx(20,(unsigned char*)"\r\nWaiting for Command:\r\n");
 
@@ -466,11 +567,21 @@ void receiveCMD_task(void *pvParameters)
         {
             get_hk_channel(pina226D+9, pchannelD);
         }
+        else if(strcmp((const char *)cmd1, (const char *)"get_time")==0)
+        {
+            current_sec = getcurrTime(prealtimeClock);
+            sprintf(temp1,"%lu",current_sec);
+            sciSend(scilinREG,strlen((const char *)ctime(&current_sec)),(unsigned char *)ctime(&current_sec));
+
+            sciSend(scilinREG,4,(unsigned char *)"\r\n\r\n");
+
+        }
         else
         {
             sciSend(scilinREG,15,(unsigned char *)"Wrong command\r\n");
         }
-
+//
+        rxCMD_t = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
     }
 
