@@ -101,7 +101,7 @@
 /*****************RTC Variables************************/
 static RTC realtimeClock;
 static RTC *prealtimeClock = &realtimeClock;
-static char temp1[40] = {0};
+static char temp1[10] = {0};
 
 /*****************FEE Variables************************/
 uint8 SpecialRamBlock[128];
@@ -387,7 +387,7 @@ void getHK_task(void *pvParameters)
 
 
 //        printf("Number %d sensor updated. Power: %d uW.\n",ina226_counter,(int)ina226D[ina226_counter].power);
-//        hk_t = (uint32_t)xTaskGetTickCount();
+        hk_t = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
     }
 }
@@ -396,61 +396,63 @@ void selfCheck_task(void *pvParameters)
 {
 //    printf( "selfCheck task running\n");
 
-    const portTickType xDelay = pdMS_TO_TICKS(5000);
-//    static uint32_t preTick[5] = {0};
+    const portTickType xDelay = pdMS_TO_TICKS(4000);
+    static uint32_t preTick[5] = {0};
     char temp[1] = {0};
 
     while(1)
     {
         /* check if the flag has been updated */
 
-//        /* clear the counter */
-//        selfCheck_counter = 0;
-//
-//        if(hk_t != preTick[0])
-//        {
-//            preTick[0] = hk_t;
-//            selfCheck_counter++;
-//        }
-//        if(ch_t != preTick[1])
-//        {
-//            preTick[1] = ch_t;
-//            selfCheck_counter++;
-//        }
-//        if(wdt_t != preTick[2])
-//        {
-//            preTick[2] = wdt_t;
-//            selfCheck_counter++;
-//        }
-//        if(rxCMD_t != preTick[3])
-//        {
-//            preTick[3] = rxCMD_t;
-//            selfCheck_counter++;
-//        }
-//        if(batt_t != preTick[4])
-//        {
-//            preTick[4] = batt_t;
-//            selfCheck_counter++;
-//        }
-//
-//        if(selfCheck_counter == 5) // all tasks are checked
-//        {
-//            /* pet the watchdog timer */
-//            gioSetBit(hetPORT2,11,1);
-//            for(delay=0;delay<100;delay++);
-//            gioSetBit(hetPORT2,11,0);
-//
-////            printf( "Pet the watchdog\n");
-//            sciSend(scilinREG,18,(unsigned char *)"Pet the watchdog\r\n");
-//
-//        }
-//        else
-//        {
-//            sprintf(temp,"%d",(int)selfCheck_counter);
-//            sciSend(scilinREG,15,(unsigned char *)"Working tasks: ");
-//            sciSend(scilinREG,strlen((const char *)temp),(unsigned char *)temp);
-//            sciSend(scilinREG,4,(unsigned char *)"\r\n\r\n");
-//        }
+        /* clear the counter */
+        selfCheck_counter = 0;
+
+        if(hk_t != preTick[0])
+        {
+            preTick[0] = hk_t;
+            selfCheck_counter++;
+        }
+        if(ch_t != preTick[1])
+        {
+            preTick[1] = ch_t;
+            selfCheck_counter++;
+        }
+        if(wdt_t != preTick[2])
+        {
+            preTick[2] = wdt_t;
+            selfCheck_counter++;
+        }
+        if(rxCMD_t != preTick[3])
+        {
+            preTick[3] = rxCMD_t;
+            selfCheck_counter++;
+        }
+        if(batt_t != preTick[4])
+        {
+            preTick[4] = batt_t;
+            selfCheck_counter++;
+        }
+
+        if(selfCheck_counter == 4) // all tasks are checked
+        {
+            /* pet the watchdog timer */
+            gioSetBit(hetPORT2,11,1);
+            for(delay=0;delay<100;delay++);
+            gioSetBit(hetPORT2,11,0);
+
+//            printf( "Pet the watchdog\n");
+            while (sciIsTxReady == 0);
+            sciSend(scilinREG,18,(unsigned char *)"Pet the watchdog\r\n");
+
+        }
+        else
+        {
+            sprintf(temp,"%d",(int)selfCheck_counter);
+            while (sciIsTxReady == 0);
+            sciSend(scilinREG,15,(unsigned char *)"Working tasks: ");
+            sciSend(scilinREG,strlen((const char *)temp),(unsigned char *)temp);
+            sciSend(scilinREG,4,(unsigned char *)"\r\n\r\n");
+        }
 
 
 //        sciSend(scilinREG,18,(unsigned char *)"Pet the watchdog\r\n");
@@ -474,7 +476,8 @@ void watchdog_task(void *pvParameters)
         if(watchdog_counter>4)
         {
 //            seconds2 = time(NULL);
-//            sciSend(scilinREG,23,(unsigned char *)"Failed to contact OBC\r\n");
+            while (sciIsTxReady == 0);
+            sciSend(scilinREG,23,(unsigned char *)"Failed to contact OBC\r\n");
             watchdog_counter=0;
 
 
@@ -483,7 +486,7 @@ void watchdog_task(void *pvParameters)
         }
         watchdog_counter++;
 
-//        wdt_t = (uint32_t)xTaskGetTickCount();
+        wdt_t = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
 
     }
@@ -502,7 +505,7 @@ void channelCtrl_task(void *pvParameters)
         channel_check_lowVoltage(pina3221D, pchannelD);
         channel_check_trip(pina226D+9, pchannelD);
 
-//        ch_t = (uint32_t)xTaskGetTickCount();
+        ch_t = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
     }
 }
@@ -532,7 +535,7 @@ void battCtrl_task(void *pvParameters)
             mppt_pno_en(pmpptD+mppt_counter);
          }
 
-//        batt_t = (uint32_t)xTaskGetTickCount();
+        batt_t = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
 
     }
@@ -543,11 +546,12 @@ void receiveCMD_task(void *pvParameters)
     unsigned char *cmd1;
     uint32_t current_sec = 0;
 
-    const portTickType xDelay = pdMS_TO_TICKS(1000);
+    const portTickType xDelay = pdMS_TO_TICKS(100);
     while(1)
     {
 
         cmd1 = NULL;
+        while (sciIsTxReady == 0);
         cmd1 = uart_tx(20,(unsigned char*)"\r\nWaiting for Command:\r\n");
 
 //        sciSend(scilinREG,17,(unsigned char *)"Command Received: ");
@@ -570,8 +574,19 @@ void receiveCMD_task(void *pvParameters)
         else if(strcmp((const char *)cmd1, (const char *)"get_time")==0)
         {
             current_sec = getcurrTime(prealtimeClock);
-            sprintf(temp1,"%lu",current_sec);
-            sciSend(scilinREG,strlen((const char *)ctime(&current_sec)),(unsigned char *)ctime(&current_sec));
+            temp1[0] = '0'+ current_sec/1000000000;
+            temp1[1] = '0'+ current_sec%1000000000/100000000;
+            temp1[2] = '0'+ current_sec%1000000000%100000000/10000000;
+            temp1[3] = '0'+ current_sec%1000000000%100000000%10000000/1000000;
+            temp1[4] = '0'+ current_sec%1000000000%100000000%10000000%1000000/100000;
+            temp1[5] = '0'+ current_sec%1000000000%100000000%10000000%1000000%100000/10000;
+            temp1[6] = '0'+ current_sec%1000000000%100000000%10000000%1000000%100000%10000/1000;
+            temp1[7] = '0'+ current_sec%1000000000%100000000%10000000%1000000%100000%10000%1000/100;
+            temp1[8] = '0'+ current_sec%1000000000%100000000%10000000%1000000%100000%10000%1000%100/10;
+            temp1[9] = '0'+ current_sec%1000000000%100000000%10000000%1000000%100000%10000%1000%100%10;
+
+            sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
+
 
             sciSend(scilinREG,4,(unsigned char *)"\r\n\r\n");
 
@@ -580,8 +595,8 @@ void receiveCMD_task(void *pvParameters)
         {
             sciSend(scilinREG,15,(unsigned char *)"Wrong command\r\n");
         }
-//
-        rxCMD_t = (uint32_t)xTaskGetTickCount();
+
+//        rxCMD_t = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
     }
 
