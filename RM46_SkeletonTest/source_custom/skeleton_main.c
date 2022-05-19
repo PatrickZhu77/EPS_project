@@ -61,17 +61,18 @@
 #include "os_queue.h"
 
 #include "ti_fee.h"
-
 #include "reg_het.h"
 #include "gio.h"
 #include "sci.h"
 #include "can.h"
 #include "i2c.h"
 #include "mibspi.h"
+#include "sys_mpu.h"
 
 #include "task_header.h"
 #include "ina226.h"
 #include "ina3221.h"
+#include "max6698.h"
 #include "mppt.h"
 #include "channel.h"
 #include "battery.h"
@@ -113,12 +114,15 @@ static ina226_data ina226D[NUM_OF_INA226+1] = {0};
 static ina226_data *pina226D = &ina226D[0];
 static uint8_t ina226_counter = 0;
 
-static ina3221_data ina3221D[NUM_OF_INA3221] = {0};
+static ina3221_data ina3221D[NUM_OF_INA3221+1] = {0};
 static ina3221_data *pina3221D = &ina3221D[0];
 static uint8_t ina3221_counter = 0;
 
+static max6698_data max6698D[NUM_OF_MAX6698+1] = {0};
+static max6698_data *pmax6698D = &max6698D[0];
+
 /*****************SelfCheck Variables********************/
-static boolean checkFlag[30][2]={0};         // checkFlag[][0]:current flag; checkFlag[][1]:previous flag;
+//static boolean checkFlag[30][2]={0};         // checkFlag[][0]:current flag; checkFlag[][1]:previous flag;
 static uint8_t selfCheck_counter = 0;
 static uint8_t watchdog_counter = 0;
 
@@ -249,6 +253,12 @@ void init_task(void *pvParameters)
 //        INA3221_Init(i2cREG1, ina3221D[ina3221_counter].address, pina3221D+ina3221_counter);
     }
 
+    max6698D[0].address = MAX6698_ADDR1;
+    max6698D[0].config1_reg = MAX6698_CFG1_SETTING;
+    max6698D[0].config2_reg = MAX6698_CFG2_SETTING;
+    max6698D[0].config3_reg = MAX6698_CFG3_SETTING;
+//    MAX6698_Init(i2cREG1, max6698D[0].address, pmax6698D);
+
     /*Initialize created data structures*/
     for(mppt_counter=0;mppt_counter<1;mppt_counter++)
     {
@@ -377,13 +387,14 @@ void getHK_task(void *pvParameters)
             ina3221D[ina3221_counter].bus_voltage[2] = ina3221_counter*3;
 
 //            INA3221_GetShuntVoltage(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter].shunt_voltage[0], 1);
-//            INA3221_GetBusVoltage(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter].bus_voltage[0], 1);
+//            INA3221_GetVoltage(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter].bus_voltage[0], 1);
 //
 //            INA3221_GetShuntVoltage(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter].shunt_voltage[2], 3);
-//            INA3221_GetBusVoltage(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter].bus_voltage[2], 3);
+//            INA3221_GetVoltage(i2cREG1, ina3221D[ina3221_counter].address, &ina3221D[ina3221_counter].bus_voltage[2], 3);
 
 //            ina3221D[ina3221_counter].timestamp_sec = getcurrTime(prealtimeClock);
         }
+
 
 
 //        printf("Number %d sensor updated. Power: %d uW.\n",ina226_counter,(int)ina226D[ina226_counter].power);
@@ -468,6 +479,9 @@ void watchdog_task(void *pvParameters)
 
     const portTickType xDelay = pdMS_TO_TICKS(1000);
 
+    uint16_t rst = 0;
+    char temp1[20] = {0};
+
 //    char temp1[40] = {0};
 
 
@@ -480,6 +494,10 @@ void watchdog_task(void *pvParameters)
             sciSend(scilinREG,23,(unsigned char *)"Failed to contact OBC\r\n");
             watchdog_counter=0;
 
+            rst = (uint16_t)systemREG1->SYSESR;
+            sprintf(temp1,"%d",(int)rst);
+            sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
+            sciSend(scilinREG,2,(unsigned char *)"\r\n");
 
 //            printf("seconds since January 1, 1970 = %d\n", seconds);
 
@@ -570,6 +588,10 @@ void receiveCMD_task(void *pvParameters)
         else if(strcmp((const char *)cmd1, (const char *)"get_hk_ch")==0)
         {
             get_hk_channel(pina226D+9, pchannelD);
+        }
+        else if(strcmp((const char *)cmd1, (const char *)"reset")==0)
+        {
+            systemREG1->SYSECR = 0x8000;
         }
         else if(strcmp((const char *)cmd1, (const char *)"get_time")==0)
         {

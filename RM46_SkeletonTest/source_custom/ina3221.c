@@ -344,3 +344,61 @@ void INA3221_Init(i2cBASE_t *i2c, uint8_t addr, ina3221_data *data)
 
 }
 
+void INA3221_GetAlertInfo(i2cBASE_t *i2c, ina3221_data *data)
+{
+    uint8_t temp_addr[1] = {0};
+
+    /*****************************************/
+    // Receive the alert sensor i2c address
+    /*****************************************/
+    uint8_t delay = 0;
+    while(i2cIsMasterReady(i2c) != true);
+
+    /* Configure address of Slave to talk to */
+    i2cSetSlaveAdd(i2c, INA3221_err);
+
+    /* Set direction to receiver */
+    i2cSetDirection(i2c, I2C_RECEIVER);
+
+    /* Configure Data count */
+    /* Note: Optional - It is done in Init, unless user want to change */
+    i2cSetCount(i2c, 1);
+
+    /* Set mode as Master */
+    i2cSetMode(i2c, I2C_MASTER);
+
+    /* Set Stop after programmed Count */
+    i2cSetStop(i2c);
+
+    /* Transmit Start Condition */
+    i2cSetStart(i2c);
+
+    /* Tranmit DATA_COUNT number of data in Polling mode */
+    i2cReceive(i2c, 1, temp_addr);
+
+    /* Wait until Bus Busy is cleared */
+    while(i2cIsBusBusy(i2c) == true);
+
+    /* Wait until Stop is detected */
+    while(i2cIsStopDetected(i2c) == 0);
+
+    /* Clear the Stop condition */
+    i2cClearSCD(i2c);
+    for(delay=0;delay<50;delay++);
+
+
+
+    /*****************************************/
+    // Read from alert sensor
+    /*****************************************/
+    data->address = temp_addr[0];
+
+    INA3221_GetShuntVoltage(i2c,data->address,&data->shunt_voltage[0],1);
+    INA3221_GetVoltage(i2c,data->address,&data->bus_voltage[0],1);
+//    INA226_GetCalReg(i2c, data->address, &data->calibration);
+//    INA226_GetCurrent(i2c, data->address, &data->current);
+//    INA226_GetPower(i2c, data->address, &data->power);
+
+}
+
+

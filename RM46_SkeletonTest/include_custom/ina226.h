@@ -11,7 +11,6 @@
 #define     CAL_REG         0x05        //Calibration register
 #define     MASK_REG        0x06        //Mask/Enable register
 #define     AL_REG          0x07        //Alert limit register
-#define     ID_REG          0XFF        //Die ID register
 
 #define     INA226_ADDR1    0x41                //SLAVE ADDRESS 1000111 (VS|SCL)
 #define     INA226_err      0xC                 //0001_100. Alert Response slave address
@@ -31,7 +30,7 @@ typedef struct
     uint16_t bus_voltage;         //1.25mV
 //    uint16_t shunt_resistance;    //mOhm
     uint16_t config_reg;
-//    uint16_t cal_reg;
+    uint16_t mask_reg;             //0x8000: enable Vshunt overvoltage (overcurrent) alert
     uint16_t alert_reg;
     uint32_t timestamp_sec;
 }ina226_data;

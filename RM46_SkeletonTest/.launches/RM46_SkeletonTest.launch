@@ -21,6 +21,9 @@
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.ATTR_TARGET_CONFIG" value="${target_config_active_default:RM46_SkeletonTest}"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.C:\Users\sdamkjar\Documents\EPS\EPS_project.git\trunk\RM46_SkeletonTest\targetConfigs\RM46L852.ccxml.Texas Instruments XDS110 USB Debug Probe/CortexR4" value="C:/Users\sdamkjar\Documents\EPS\EPS_project.git\trunk\RM46_SkeletonTest\Debug\RM46_SkeletonTest.out"/>
 <stringAttribute key="com.ti.ccstudio.debug.debugModel.MRU_PROGRAM.E:\CCSv8 workspace\RM46_SkeletonTest\targetConfigs\RM46L852.ccxml.Texas Instruments XDS110 USB Debug Probe/CortexR4" value="E:/CCSv8 workspace\RM46_SkeletonTest\Debug\RM46_SkeletonTest.out"/>
+<mapAttribute key="com.ti.ccstudio.debug.ui.displayFormats">
+<mapEntry key="Texas Instruments XDS110 USB Debug Probe/CortexR4@##separator##@0" value="32-Bit Hex - TI Style"/>
+</mapAttribute>
 <listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
 <listEntry value="/RM46_SkeletonTest"/>
 </listAttribute>
