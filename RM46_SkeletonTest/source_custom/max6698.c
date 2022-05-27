@@ -206,8 +206,8 @@ void MAX6698_SetOverTReg(i2cBASE_t *i2c, uint8_t addr, uint8_t num, uint8_t data
 
 void MAX6698_Init(i2cBASE_t *i2c, uint8_t addr, max6698_data *data)
 {
-    MAX6698_SetCfgReg(i2c, addr, 1, data->config1_reg);
-    MAX6698_SetCfgReg(i2c, addr, 2, data->config2_reg);
-    MAX6698_SetCfgReg(i2c, addr, 3, data->config3_reg);
+    MAX6698_SetCfgReg(i2c, addr, 1, data->config_reg[0]);
+    MAX6698_SetCfgReg(i2c, addr, 2, data->config_reg[1]);
+    MAX6698_SetCfgReg(i2c, addr, 3, data->config_reg[2]);
 
 }

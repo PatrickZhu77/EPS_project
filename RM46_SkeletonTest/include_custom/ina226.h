@@ -25,7 +25,6 @@ typedef struct
 {
     uint8_t num;                  //# of the sensor
     uint8_t address;              //i2c address
-    uint8_t flag;
     uint16_t shunt_voltage;       //2.5uV LSB
     uint16_t bus_voltage;         //1.25mV
 //    uint16_t shunt_resistance;    //mOhm

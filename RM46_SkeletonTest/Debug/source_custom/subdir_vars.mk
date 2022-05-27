@@ -11,6 +11,7 @@ C_SRCS += \
 ../source_custom/channel.c \
 ../source_custom/cmd_interface.c \
 ../source_custom/fee_function.c \
+../source_custom/heater.c \
 ../source_custom/ina226.c \
 ../source_custom/ina3221.c \
 ../source_custom/max6698.c \
@@ -25,6 +26,7 @@ C_DEPS += \
 ./source_custom/channel.d \
 ./source_custom/cmd_interface.d \
 ./source_custom/fee_function.d \
+./source_custom/heater.d \
 ./source_custom/ina226.d \
 ./source_custom/ina3221.d \
 ./source_custom/max6698.d \
@@ -39,6 +41,7 @@ OBJS += \
 ./source_custom/channel.obj \
 ./source_custom/cmd_interface.obj \
 ./source_custom/fee_function.obj \
+./source_custom/heater.obj \
 ./source_custom/ina226.obj \
 ./source_custom/ina3221.obj \
 ./source_custom/max6698.obj \
@@ -53,6 +56,7 @@ OBJS__QUOTED += \
 "source_custom\channel.obj" \
 "source_custom\cmd_interface.obj" \
 "source_custom\fee_function.obj" \
+"source_custom\heater.obj" \
 "source_custom\ina226.obj" \
 "source_custom\ina3221.obj" \
 "source_custom\max6698.obj" \
@@ -67,6 +71,7 @@ C_DEPS__QUOTED += \
 "source_custom\channel.d" \
 "source_custom\cmd_interface.d" \
 "source_custom\fee_function.d" \
+"source_custom\heater.d" \
 "source_custom\ina226.d" \
 "source_custom\ina3221.d" \
 "source_custom\max6698.d" \
@@ -81,6 +86,7 @@ C_SRCS__QUOTED += \
 "../source_custom/channel.c" \
 "../source_custom/cmd_interface.c" \
 "../source_custom/fee_function.c" \
+"../source_custom/heater.c" \
 "../source_custom/ina226.c" \
 "../source_custom/ina3221.c" \
 "../source_custom/max6698.c" \

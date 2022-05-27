@@ -2137,21 +2137,23 @@ TickType_t xTicks;
 
 	return xTicks;
 }
+/*-----------------------------------------------------------*/
 
 BaseType_t xTaskGetTickOverflowCount( void )
 {
-    BaseType_t xOverflows;
+    BaseType_t xTicks;
 
     /* Critical section required if running on a 16 bit processor. */
     portTICK_TYPE_ENTER_CRITICAL();
     {
-        xOverflows = xNumOfOverflows;
+        xTicks = xNumOfOverflows;
     }
     portTICK_TYPE_EXIT_CRITICAL();
 
-    return xOverflows;
+    return xTicks;
 }
 /*-----------------------------------------------------------*/
+
 
 TickType_t xTaskGetTickCountFromISR( void )
 {

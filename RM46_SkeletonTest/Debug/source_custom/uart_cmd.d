@@ -20,6 +20,17 @@ source_custom/uart_cmd.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trun
 source_custom/uart_cmd.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/string.h
 source_custom/uart_cmd.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_string.h
 source_custom/uart_cmd.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/uart_cmd.h
+source_custom/uart_cmd.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/FreeRTOS.h
+source_custom/uart_cmd.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stddef.h
+source_custom/uart_cmd.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/FreeRTOSConfig.h
+source_custom/uart_cmd.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_projdefs.h
+source_custom/uart_cmd.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_portable.h
+source_custom/uart_cmd.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_portmacro.h
+source_custom/uart_cmd.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_mpu_wrappers.h
+source_custom/uart_cmd.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_task.h
+source_custom/uart_cmd.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_list.h
+source_custom/uart_cmd.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_timer.h
+source_custom/uart_cmd.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_list.h
 
 ../source_custom/uart_cmd.c: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/sci.h: 
@@ -41,3 +52,14 @@ C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/string.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_string.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/uart_cmd.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/FreeRTOS.h: 
+C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stddef.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/FreeRTOSConfig.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_projdefs.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_portable.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_portmacro.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_mpu_wrappers.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_task.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_list.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_timer.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_list.h: 

@@ -47,18 +47,11 @@
 typedef struct
 {
     uint8_t address;              //i2c address
-    uint8_t flag;
-    uint8_t config1_reg;          //0x40: power-on reset the sensor
-    uint8_t config2_reg;          //0x38: mask 3 thermistors' alert
-    uint8_t config3_reg;          //0x38: mask 3 thermistors' overT
-    uint8_t status1_reg;          //3 thermistors' alert status
-    uint8_t status2_reg;          //3 thermistors' overT status
-    uint8_t alert1_reg;
-    uint8_t alert2_reg;
-    uint8_t alert3_reg;
-    uint8_t over1_reg;
-    uint8_t over2_reg;
-    uint8_t over3_reg;
+    uint8_t config_reg[3];        //
+    uint8_t status_reg[2];        //[0]3 thermistors' alert status, [1]3 thermistors' overT status
+    uint8_t alert_reg[3];
+    uint8_t over_reg[3];
+    uint8_t temp[3];              //Voltage of thermistor. -20C:10110111; 0C:10011110; 100C:00001111
 }max6698_data;
 
 

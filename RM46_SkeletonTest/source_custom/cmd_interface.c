@@ -17,37 +17,37 @@ static uint16_t BlockOffset, Length;
 static uint8 read_data[100]={0};
 
 
-void get_default()
-{
-    uint16_t bnum;
-    uint16_t *data = 0;
-
-    BlockOffset = 0;
-    Length = 0xFFFF;
-
-    unsigned char *blocknum = uart_tx(20,(unsigned char*)"Please input the blocknumber:\r\n");
-
-    bnum = atoi((const char *)blocknum);
-    //printf("bnum is %d\n",bnum);
-
-//   oResult=TI_Fee_Read(bnum,BlockOffset,&read_data[0],Length);
+//void get_default()
+//{
+//    uint16_t bnum;
+//    uint16_t *data = 0;
 //
-//    do
-//    {
-//        TI_Fee_MainFunction();
-//        delay();
-//        Status=TI_Fee_GetStatus(0);
-//    }
-//   while(Status!=IDLE);
-
-    char *Result= "123";
-
-
-    sciSend(scilinREG,30,(unsigned char *)"Data is read from the block:\r\n");
-    sciSend(scilinREG,strlen((const char*)Result),(unsigned char *)Result);
-    sciSend(scilinREG,2,(unsigned char *)"\r\n");
-
-}
+//    BlockOffset = 0;
+//    Length = 0xFFFF;
+//
+//    unsigned char *blocknum = uart_tx(20,(unsigned char*)"Please input the blocknumber:\r\n");
+//
+//    bnum = atoi((const char *)blocknum);
+//    //printf("bnum is %d\n",bnum);
+//
+////   oResult=TI_Fee_Read(bnum,BlockOffset,&read_data[0],Length);
+////
+////    do
+////    {
+////        TI_Fee_MainFunction();
+////        delay();
+////        Status=TI_Fee_GetStatus(0);
+////    }
+////   while(Status!=IDLE);
+//
+//    char *Result= "123";
+//
+//
+//    sciSend(scilinREG,30,(unsigned char *)"Data is read from the block:\r\n");
+//    sciSend(scilinREG,strlen((const char*)Result),(unsigned char *)Result);
+//    sciSend(scilinREG,2,(unsigned char *)"\r\n");
+//
+//}
 
 void get_hk_bc(ina3221_data *data)
 {
@@ -115,7 +115,7 @@ void get_hk_batt(ina226_data *data, battery_data *battery)
         while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,1,(unsigned char *)"\t");
 
-        sprintf(temp2,"%d",(int)(battery+i)->temp_v);
+        sprintf(temp2,"%d",(int)(battery+i)->temp_charge);
 
         while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,16,(unsigned char *)"Temp. of Battery");

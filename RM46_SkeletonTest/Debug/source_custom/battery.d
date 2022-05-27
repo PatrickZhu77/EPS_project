@@ -12,20 +12,21 @@ source_custom/battery.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/incl
 source_custom/battery.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/machine/_types.h
 source_custom/battery.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/machine/_stdint.h
 source_custom/battery.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/sys/_stdint.h
-source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/ina226.h
-source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_i2c.h
+source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/gio.h
+source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_gio.h
 source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/sys_common.h
 source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/hal_stdtypes.h
 source_custom/battery.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdbool.h
-source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_gio.h
-source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/gio.h
 source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/het.h
 source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_het.h
 source_custom/battery.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/string.h
 source_custom/battery.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_string.h
+source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/ina226.h
+source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_i2c.h
 source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/mppt.h
 source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/ina3221.h
 source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/i2c.h
+source_custom/battery.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/max6698.h
 source_custom/battery.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdio.h
 source_custom/battery.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdarg.h
 
@@ -41,19 +42,20 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/sys/_types.h:
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/machine/_types.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/machine/_stdint.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/sys/_stdint.h: 
-C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/ina226.h: 
-C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_i2c.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/gio.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_gio.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/sys_common.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/hal_stdtypes.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdbool.h: 
-C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_gio.h: 
-C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/gio.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/het.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_het.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/string.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_string.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/ina226.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_i2c.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/mppt.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/ina3221.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/i2c.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/max6698.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdio.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdarg.h: 

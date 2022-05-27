@@ -8,7 +8,7 @@
 
 
 static unsigned char command;
-static unsigned char cmd1[];
+static unsigned char cmd1[20];
 static uint8_t len, counter;
 static int flag1;
 
@@ -28,9 +28,10 @@ unsigned char * uart_tx(uint8_t length,uint8 * cmd2)
     len = length;
     sciReceive(scilinREG,1,(unsigned char *)&command);
 
+
 //      sciReceive(scilinREG,1,(unsigned char *)&cmd1);
 
-    while(flag1 == 0){}
+    while(flag1 == 0){vTaskDelay(100);}
     flag1 = 0;
     len = 1;
     counter = 0;

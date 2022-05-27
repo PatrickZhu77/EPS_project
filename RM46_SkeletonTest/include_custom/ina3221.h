@@ -36,7 +36,6 @@
 typedef struct
 {
     uint8_t address;              //i2c address
-    uint8_t flag;
     uint16_t shunt_voltage[3];       //mV
     uint16_t bus_voltage[3];         //mV
     uint16_t shunt_resistance;       //mOhm

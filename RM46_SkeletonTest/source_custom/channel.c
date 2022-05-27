@@ -60,28 +60,6 @@ void channel_off(channel_data *Fchannel, channel_data *channel)
 }
 
 
-/***************************************************************************
- * @brief
- *   Decide when to turn channel off
- *
- *  @param[in] data
- *   Pointer to current sensor.
- *
- * @param[in] channel
- *   Pointer to channel.
- *
- ******************************************************************************/
-//void channel_compare(ina226_data *data, channel_data *channel)
-//{
-//    if(data->bus_voltage[0] > channel->maxV)               //when channel overvoltage
-//    {
-//        channel_off(channel);
-//    }
-//    else if((data->shunt_voltage *2500 /1000 /data->shunt_resistance) > channel->maxI)
-//    {
-//        channel_off(channel);
-//    }
-//}
 
 /***************************************************************************
  * @brief

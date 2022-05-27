@@ -6,7 +6,7 @@
 
 /***************************************************************************
  * @brief
- *   SwitBSW the battery on (Start to disBSWarge)
+ *   Switch the battery on (Start to discharge)
  *
  * @param[in] battery
  *   Pointer to battery data.
@@ -20,7 +20,7 @@ void battery_on(battery_data *battery)
 
 /***************************************************************************
  * @brief
- *   SwitBSW the battery off (Stop disBSWarging)
+ *   Switch the battery off (Stop discharging)
  *
  * @param[in] battery
  *   Pointer to battery data.
@@ -44,28 +44,13 @@ void battery_off(battery_data *battery)
  *   Pointer to battery data.
  *
  ******************************************************************************/
-void battery_compareVI(ina226_data *data1, mppt_data *data2, battery_data *data3)
+void battery_compareVI(ina226_data *data1, battery_data *data2)
 {
 
-    if((data1->bus_voltage *1250 /1000) > data3->maxV)               //when battery is full. (sumV LSB=1.25mV)
+    if((data1->bus_voltage *1250 /1000) > data2->maxV)               //when battery is full. (sumV LSB=1.25mV)
     {
-        battery_off(data3);                      //should turn off the converter but not battery!!!!!
+        battery_off(data2);
     }
-
-
-
-//    if((data1->shunt_voltage *2500 /1000 /data1->shunt_resistance) >= data3->maxI)    //when Vout of boost converter is overcurrent
-//    {
-//        data2->dacOUT = data2->predacOUT;            //retrieve to previous voltage if overcurrent happens
-//        data2->counter = 0;
-//
-//        if(data2->stepsize > EN_STEPSIZE_MIN)                                  //minimum step size
-//        {
-//            data2->stepsize = data2->stepsize >> 1;                //step size is halved
-//        }
-//
-//    }
-
 }
 
 /***************************************************************************
@@ -79,19 +64,16 @@ void battery_compareVI(ina226_data *data1, mppt_data *data2, battery_data *data3
  *   Pointer to battery data.
  *
  ******************************************************************************/
-//void battery_compareTemp(mppt_data *data, battery_data *battery)
-//{
-//    if(data->preV >= battery->maxV)               //when battery is full
-//    {
-//        battery_off(battery);
-//    }
-//
-//    if(data->preI > battery->maxI)
-//    {
-//        battery->overFlag = 1;
-//    }
-//    else
-//    {
-//        battery->overFlag = 0;
-//    }
-//}
+void battery_compareT(max6698_data *data1, battery_data *data2)
+{
+    if(data1->temp[0] < data2->temp_charge)               //when battery temp. < 10C
+    {
+        battery_off(data2);
+    }
+
+    if(data1->temp[0] < data2->temp_discharge)               //when battery temp. < -20C
+    {
+        battery_off(data2);
+    }
+
+}

@@ -146,6 +146,7 @@ static uint32_t rxCMD_t = 0;
 static uint32_t hk_t = 0;
 static uint32_t wdt_t = 0;
 static uint32_t batt_t = 0;
+static uint32_t heat_t = 0;
 
 
 static uint8_t delay=0;
@@ -184,6 +185,10 @@ int main(void)
 //    seconds = time(NULL);
 //    while((sciIsRxReady(scilinREG) == 0));
 //    while(sciIsIdleDetected(scilinREG) != 0);
+
+//    xQueue = xQueueCreate(1, sizeof(unsigned char*));
+
+//    configASSERT( xQueue );
 
     vTaskStartScheduler();
 
@@ -236,30 +241,7 @@ void init_task(void *pvParameters)
 //    uint16_t ina226_cal_data=0x0A00;
 //    uint16_t ina3221_config_data=0x7127;
 
-
-    /*Initialize sensors*/
-    for(ina226_counter=0;ina226_counter<NUM_OF_INA226;ina226_counter++)
-    {
-        ina226D[ina226_counter].address = INA226_ADDR1;
-        ina226D[ina226_counter].config_reg = INA226_CFG_SETTING;
-        ina226D[ina226_counter].flag = 0;
-//        INA226_Init(i2cREG1, ina226D[ina3221_counter].address, pina226D+ina226_counter);
-    }
-
-    for(ina3221_counter=0;ina3221_counter<NUM_OF_INA3221;ina3221_counter++)
-    {
-        ina3221D[ina3221_counter].address = INA3221_ADDR1;
-        ina3221D[ina3221_counter].config_reg = INA3221_CFG_SETTING;
-//        INA3221_Init(i2cREG1, ina3221D[ina3221_counter].address, pina3221D+ina3221_counter);
-    }
-
-    max6698D[0].address = MAX6698_ADDR1;
-    max6698D[0].config1_reg = MAX6698_CFG1_SETTING;
-    max6698D[0].config2_reg = MAX6698_CFG2_SETTING;
-    max6698D[0].config3_reg = MAX6698_CFG3_SETTING;
-//    MAX6698_Init(i2cREG1, max6698D[0].address, pmax6698D);
-
-    /*Initialize created data structures*/
+    /*Initialize DAC*/
     for(mppt_counter=0;mppt_counter<1;mppt_counter++)
     {
         mpptD[mppt_counter].channel = mppt_counter;
@@ -272,6 +254,42 @@ void init_task(void *pvParameters)
         mpptD[mppt_counter].power = 0;
     }
 
+    /*Initialize INA226*/
+    for(ina226_counter=0;ina226_counter<NUM_OF_INA226;ina226_counter++)
+    {
+        ina226D[ina226_counter].address = INA226_ADDR1;
+        ina226D[ina226_counter].config_reg = INA226_CFG_SETTING;
+//        INA226_Init(i2cREG1, ina226D[ina3221_counter].address, pina226D+ina226_counter);
+    }
+
+    /*Initialize INA3221*/
+    for(ina3221_counter=0;ina3221_counter<NUM_OF_INA3221;ina3221_counter++)
+    {
+        ina3221D[ina3221_counter].address = INA3221_ADDR1;
+        ina3221D[ina3221_counter].config_reg = INA3221_CFG_SETTING;
+//        INA3221_Init(i2cREG1, ina3221D[ina3221_counter].address, pina3221D+ina3221_counter);
+    }
+
+    /*Initialize MAX6698*/
+    max6698D[0].address = MAX6698_ADDR1;
+    max6698D[0].config_reg[0] = MAX6698_CFG1_SETTING;
+    max6698D[0].config_reg[1] = MAX6698_CFG2_SETTING;
+    max6698D[0].config_reg[2] = MAX6698_CFG3_SETTING;
+//    MAX6698_Init(i2cREG1, max6698D[0].address, pmax6698D);
+
+
+    /*Initialize battery*/
+    for(battery_counter=0;battery_counter<NUM_OF_BATTERY;battery_counter++)
+    {
+        battD[battery_counter].num = battery_counter+1;
+        battD[battery_counter].sw = battery_counter;
+        battD[battery_counter].temp_charge = battery_counter;
+        battD[battery_counter].temp_discharge = battery_counter;
+        battD[battery_counter].maxV = 8400;    //mV
+   }
+
+
+    /*Initialize channel*/
     for(channel_counter=0;channel_counter<NUM_OF_CHANNELS;channel_counter++)
     {
         channelD[channel_counter].num = channel_counter+1;
@@ -279,15 +297,6 @@ void init_task(void *pvParameters)
         channelD[channel_counter].group = (0x1<<channel_counter);
 //        channelD[channel_counter].maxV = 5*1e3;    //mV
 //        channelD[channel_counter].maxI = 1*1e3;    //mA
-   }
-
-    for(battery_counter=0;battery_counter<NUM_OF_BATTERY;battery_counter++)
-    {
-        battD[battery_counter].num = battery_counter+1;
-        battD[battery_counter].sw = battery_counter;
-        battD[battery_counter].temp_v = battery_counter;
-        battD[battery_counter].maxV = 8400;    //mV
-        battD[battery_counter].maxI = 1500;    //mA
    }
 
 
@@ -298,7 +307,7 @@ void init_task(void *pvParameters)
                 (UBaseType_t    )channelCtrl_TASK_PRIO,
                 (TaskHandle_t*  )&channelCtrlTask_Handler);
     sciSend(scilinREG,22,(unsigned char *)"Channel task created\r\n");
-    for(delay=0;delay<100;delay++);
+
 
     xTaskCreate((TaskFunction_t )receiveCMD_task,
                 (const char*    )"receiveCMD_task",
@@ -307,7 +316,16 @@ void init_task(void *pvParameters)
                 (UBaseType_t    )receiveCMD_TASK_PRIO,
                 (TaskHandle_t*  )&receiveCMDTask_Handler);
     sciSend(scilinREG,25,(unsigned char *)"receiveCMD task created\r\n");
-    for(delay=0;delay<100;delay++);
+
+
+//    xTaskCreate((TaskFunction_t )executeCMD_task,
+//                (const char*    )"executeCMD_task",
+//                (uint16_t       )executeCMD_STK_SIZE,
+//                (void*          )NULL,
+//                (UBaseType_t    )executeCMD_TASK_PRIO,
+//                (TaskHandle_t*  )&executeCMDTask_Handler);
+//    sciSend(scilinREG,25,(unsigned char *)"executeCMD task created\r\n");
+
 
     xTaskCreate((TaskFunction_t )getHK_task,
                 (const char*    )"getHK_task",
@@ -316,7 +334,7 @@ void init_task(void *pvParameters)
                 (UBaseType_t    )getHK_TASK_PRIO,
                 (TaskHandle_t*  )&getHKTask_Handler);
     sciSend(scilinREG,20,(unsigned char *)"getHK task created\r\n");
-    for(delay=0;delay<100;delay++);
+
 
     xTaskCreate((TaskFunction_t )selfCheck_task,
                 (const char*    )"selfCheck_task",
@@ -325,7 +343,7 @@ void init_task(void *pvParameters)
                 (UBaseType_t    )selfCheck_TASK_PRIO,
                 (TaskHandle_t*  )&selfCheckTask_Handler);
     sciSend(scilinREG,24,(unsigned char *)"selfCheck task created\r\n");
-    for(delay=0;delay<100;delay++);
+
 
     xTaskCreate((TaskFunction_t )watchdog_task,
                 (const char*    )"watchdog_task",
@@ -334,7 +352,16 @@ void init_task(void *pvParameters)
                 (UBaseType_t    )watchdog_TASK_PRIO,
                 (TaskHandle_t*  )&watchdogTask_Handler);
     sciSend(scilinREG,23,(unsigned char *)"watchdog task created\r\n");
-    for(delay=0;delay<100;delay++);
+
+
+    xTaskCreate((TaskFunction_t )heatCtrl_task,
+                (const char*    )"heatCtrl_task",
+                (uint16_t       )heatCtrl_STK_SIZE,
+                (void*          )NULL,
+                (UBaseType_t    )heatCtrl_TASK_PRIO,
+                (TaskHandle_t*  )&heatCtrlTask_Handler);
+    sciSend(scilinREG,34,(unsigned char *)"heater controlling task created\r\n");
+
 
     xTaskCreate((TaskFunction_t )battCtrl_task,
                 (const char*    )"battCtrl_task",
@@ -343,7 +370,7 @@ void init_task(void *pvParameters)
                 (UBaseType_t    )battCtrl_TASK_PRIO,
                 (TaskHandle_t*  )&battCtrlTask_Handler);
     sciSend(scilinREG,34,(unsigned char *)"battery controlling task created\r\n");
-    for(delay=0;delay<100;delay++);
+
 
 //    seconds = time(NULL);
 //    sprintf(temp1,"%d",(uint32_t)seconds/60);
@@ -433,9 +460,9 @@ void selfCheck_task(void *pvParameters)
             preTick[2] = wdt_t;
             selfCheck_counter++;
         }
-        if(rxCMD_t != preTick[3])
+        if(heat_t != preTick[3])
         {
-            preTick[3] = rxCMD_t;
+            preTick[3] = heat_t;
             selfCheck_counter++;
         }
         if(batt_t != preTick[4])
@@ -444,7 +471,8 @@ void selfCheck_task(void *pvParameters)
             selfCheck_counter++;
         }
 
-        if(selfCheck_counter == 4) // all tasks are checked
+
+        if(selfCheck_counter == 5) // all tasks are checked
         {
             /* pet the watchdog timer */
             gioSetBit(hetPORT2,11,1);
@@ -528,6 +556,22 @@ void channelCtrl_task(void *pvParameters)
     }
 }
 
+void heatCtrl_task(void *pvParameters)
+{
+//    printf( "Heater task running\n");
+
+    const portTickType xDelay = pdMS_TO_TICKS(2000);
+    vTaskDelay(xDelay);
+
+    while(1)
+    {
+
+        heat_t = (uint32_t)xTaskGetTickCount();
+        vTaskDelay(xDelay);
+    }
+}
+
+
 void battCtrl_task(void *pvParameters)
 {
 //    printf( "battery controlling task running\n");
@@ -542,16 +586,23 @@ void battCtrl_task(void *pvParameters)
         /*EN_pin Controlling*/
         for(mppt_counter=0;mppt_counter<NUM_OF_INA3221;mppt_counter++)
         {
-            dac_write_en(mibspiPORT3,pmpptD+mppt_counter);
 
             (pmpptD+mppt_counter)->power = 0;
-            vTaskDelay(pdMS_TO_TICKS(500));
-
 
             mppt_getPower_ina226(pina226D+mppt_counter, pmpptD+mppt_counter);
 
             mppt_pno_en(pmpptD+mppt_counter);
+
+            dac_write_en(mibspiPORT3,pmpptD+mppt_counter);
          }
+
+
+        for(battery_counter=0;battery_counter<NUM_OF_BATTERY;battery_counter++)
+        {
+            battery_compareVI(pina226D+7, pbattD+battery_counter);
+            battery_compareT(pmax6698D, pbattD+battery_counter);
+        }
+
 
         batt_t = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
@@ -572,10 +623,7 @@ void receiveCMD_task(void *pvParameters)
         while (sciIsTxReady == 0);
         cmd1 = uart_tx(20,(unsigned char*)"\r\nWaiting for Command:\r\n");
 
-//        sciSend(scilinREG,17,(unsigned char *)"Command Received: ");
-//        sciSend(scilinREG,strlen((const char*)cmd1),(unsigned char *)cmd1);
-//        sciSend(scilinREG,2,(unsigned char *)"\r\n");
-
+//        xQueueSendToBack(xQueue, cmd1, 0UL);
 
         if(strcmp((const char *)cmd1, (const char *)"get_hk_bc")==0)
         {
@@ -618,11 +666,25 @@ void receiveCMD_task(void *pvParameters)
             sciSend(scilinREG,15,(unsigned char *)"Wrong command\r\n");
         }
 
-//        rxCMD_t = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
     }
 
 }
+
+
+//void executeCMD_task(void *pvParameters)
+//{
+//    unsigned char *cmd1;
+//
+//    xQueueReceive(xQueue, cmd1, portMAX_DELAY);
+//
+//    while(1)
+//    {
+//
+//        vTaskDelay(xDelay);
+//    }
+//
+//}
 
 
 void esmGroup1Notification(int bit)

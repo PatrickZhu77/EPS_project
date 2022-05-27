@@ -42,6 +42,16 @@ source_custom/cmd_interface.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LT
 source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/cmd_interface.h
 source_custom/cmd_interface.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdlib.h
 source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/uart_cmd.h
+source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/FreeRTOS.h
+source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/FreeRTOSConfig.h
+source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_projdefs.h
+source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_portable.h
+source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_portmacro.h
+source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_mpu_wrappers.h
+source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_task.h
+source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_list.h
+source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_timer.h
+source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_list.h
 source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/ina226.h
 source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_i2c.h
 source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/ina3221.h
@@ -51,6 +61,7 @@ source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git
 source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/het.h
 source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_het.h
 source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/mppt.h
+source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/max6698.h
 source_custom/cmd_interface.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/channel.h
 
 ../source_custom/cmd_interface.c: 
@@ -95,6 +106,16 @@ C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_string.h:
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/cmd_interface.h: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdlib.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/uart_cmd.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/FreeRTOS.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/FreeRTOSConfig.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_projdefs.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_portable.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_portmacro.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_mpu_wrappers.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_task.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_list.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_timer.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_list.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/ina226.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_i2c.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/ina3221.h: 
@@ -104,4 +125,5 @@ C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/het.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/reg_het.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/mppt.h: 
+C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/max6698.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include_custom/channel.h: 
