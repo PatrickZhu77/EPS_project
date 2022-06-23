@@ -68,6 +68,7 @@
 #include "i2c.h"
 #include "mibspi.h"
 #include "sys_mpu.h"
+#include "sys_selftest.h"
 
 #include "task_header.h"
 #include "ina226.h"
@@ -93,6 +94,14 @@
 */
 
 /* USER CODE BEGIN (2) */
+
+static uint64_t RTOS_RunTimeCounter; /* runtime counter, used for configGENERATE_RUNTIME_STATS */
+
+static uint64_t ulTotalTime;
+
+void vPortRTOSRunTimeISR(void);
+
+/*******************************************************/
 
 #define TIMER_ID                1
 #define DELAY_10_SECONDS        10000UL /* 1000 ticks per sec on this H/W */
@@ -161,6 +170,10 @@ int main(void)
 /* USER CODE BEGIN (3) */
 
     _enable_IRQ();
+
+    checkFlashECC();
+    checkFlashEEPROMECC();
+
     sciInit();
     gioInit();
     i2cInit();
@@ -189,6 +202,9 @@ int main(void)
 //    xQueue = xQueueCreate(1, sizeof(unsigned char*));
 
 //    configASSERT( xQueue );
+
+    /*Run time stats ISR*/
+
 
     vTaskStartScheduler();
 
@@ -437,6 +453,7 @@ void selfCheck_task(void *pvParameters)
     const portTickType xDelay = pdMS_TO_TICKS(4000);
     static uint32_t preTick[5] = {0};
     char temp[1] = {0};
+    char temp1[40] = {0};
 
     while(1)
     {
@@ -496,6 +513,16 @@ void selfCheck_task(void *pvParameters)
 
 //        sciSend(scilinREG,18,(unsigned char *)"Pet the watchdog\r\n");
 //        for(delay=0;delay<100;delay++);
+
+        #if configGENERATE_RUN_TIME_STATS
+            ulTotalTime = portGET_RUN_TIME_COUNTER_VALUE(); /* get total time passed in system */
+        #endif
+
+//        sprintf(temp1,"%d",(int)ulTotalTime);
+//        sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
+//        sciSend(scilinREG,2,(unsigned char *)"\r\n");
+
+
         vTaskDelay(xDelay);
 
     }
@@ -509,6 +536,7 @@ void watchdog_task(void *pvParameters)
 
     uint16_t rst = 0;
     char temp1[20] = {0};
+    char pcWriteBuffer[100] = {0};
 
 //    char temp1[40] = {0};
 
@@ -533,6 +561,12 @@ void watchdog_task(void *pvParameters)
         watchdog_counter++;
 
         wdt_t = (uint32_t)xTaskGetTickCount();
+
+//        vTaskGetRunTimeStats(pcWriteBuffer);
+//        sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
+//        sciSend(scilinREG,2,(unsigned char *)"\r\n");
+
+
         vTaskDelay(xDelay);
 
     }
@@ -671,6 +705,24 @@ void receiveCMD_task(void *pvParameters)
 
 }
 
+void RTOS_AppConfigureTimerForRuntimeStats(void)
+{
+        RTOS_RunTimeCounter = 0;
+}
+
+uint32_t RTOS_AppGetRuntimeCounterValueFromISR(void)
+{
+       return RTOS_RunTimeCounter;
+}
+
+
+void vPortRTOSRunTimeISR(void)
+{
+       /* Clear interrupt flag.*/
+//       rtiREG1->INTFLAG = 2U;
+      *((volatile uint32_t *) 0xFFFFFC88) = 2U;
+      RTOS_RunTimeCounter++;    /* increment runtime counter */
+}
 
 //void executeCMD_task(void *pvParameters)
 //{
@@ -687,15 +739,15 @@ void receiveCMD_task(void *pvParameters)
 //}
 
 
-void esmGroup1Notification(int bit)
-{
-    return;
-}
-
-void esmGroup2Notification(int bit)
-{
-    return;
-}
+//void esmGroup1Notification(int bit)
+//{
+//    return;
+//}
+//
+//void esmGroup2Notification(int bit)
+//{
+//    return;
+//}
 
 /* USER CODE END */
 

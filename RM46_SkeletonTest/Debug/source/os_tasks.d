@@ -26,6 +26,8 @@ source/os_tasks.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_
 source/os_tasks.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_timer.h
 source/os_tasks.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_list.h
 source/os_tasks.obj: C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_StackMacros.h
+source/os_tasks.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdio.h
+source/os_tasks.obj: C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdarg.h
 
 ../source/os_tasks.c: 
 C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdlib.h: 
@@ -53,3 +55,5 @@ C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_timer.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_list.h: 
 C:/Users/sdamkjar/Documents/EPS/EPS_project.git/trunk/RM46_SkeletonTest/include/os_StackMacros.h: 
+C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdio.h: 
+C:/ti/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdarg.h: 

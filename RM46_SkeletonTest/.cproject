@@ -69,6 +69,8 @@
 									<listOptionValue builtIn="false" value="C:\ti\Hercules\F021 Flash API\02.01.01\F021_API_CortexR4_LE_V3D16.lib"/>
 									<listOptionValue builtIn="false" value="rtsv7R4_T_le_v3D16_eabi.lib"/>
 								</option>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.ECC.1969854241" name="Control whether ECC generation is on or off (--ecc)" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.ECC" value="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.ECC.off" valueType="enumerated"/>
+								<option id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.ECC__DATA_ERROR.1378108438" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.linkerID.ECC__DATA_ERROR" valueType="stringList"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD_SRCS.768814372" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD2_SRCS.1472674707" name="Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__CMD2_SRCS"/>
 								<inputType id="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__GEN_CMDS.1613525448" name="Generated Linker Command Files" superClass="com.ti.ccstudio.buildDefinitions.TMS470_20.2.exeLinker.inputType__GEN_CMDS"/>

@@ -282,8 +282,6 @@ TickType_t MPU_xTaskGetTickCount( void )
 	return xReturn;
 }
 
-/*----------------------------------------------------------------------------*/
-
 BaseType_t MPU_xTaskGetTickOverflowCount( void )
 {
     BaseType_t xReturn;
@@ -293,8 +291,8 @@ BaseType_t MPU_xTaskGetTickOverflowCount( void )
     return xReturn;
 }
 
-/*----------------------------------------------------------------------------*/
 
+/*----------------------------------------------------------------------------*/
 
 UBaseType_t MPU_uxTaskGetNumberOfTasks( void )
 {
