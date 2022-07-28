@@ -94,8 +94,6 @@
 #define portRTI_CNT0_CPUC0_REG  ( * ( ( volatile uint32_t * ) 0xFFFFFC18 ) )
 #define portRTI_CNT0_COMP0_REG  ( * ( ( volatile uint32_t * ) 0xFFFFFC50 ) )
 #define portRTI_CNT0_UDCP0_REG  ( * ( ( volatile uint32_t * ) 0xFFFFFC54 ) )
-#define portRTI_CNT0_COMP1_REG  ( * ( ( volatile uint32_t * ) 0xFFFFFC58 ) )
-#define portRTI_CNT0_UDCP1_REG  ( * ( ( volatile uint32_t * ) 0xFFFFFC5C ) )
 #define portRTI_SETINTENA_REG  	( * ( ( volatile uint32_t * ) 0xFFFFFC80 ) )
 #define portRTI_CLEARINTENA_REG ( * ( ( volatile uint32_t * ) 0xFFFFFC84 ) )
 #define portRTI_INTFLAG_REG  	( * ( ( volatile uint32_t * ) 0xFFFFFC88 ) )
@@ -392,9 +390,6 @@ static void prvSetupTimerInterrupt(void)
 	portRTI_CNT0_COMP0_REG = ( configCPU_CLOCK_HZ / 2 ) / configTICK_RATE_HZ;
 	portRTI_CNT0_UDCP0_REG = ( configCPU_CLOCK_HZ / 2 ) / configTICK_RATE_HZ;
 
-	portRTI_CNT0_COMP1_REG = ( configCPU_CLOCK_HZ / 2 ) / configTICK_RATE_HZ / 10; //QJ
-	portRTI_CNT0_UDCP1_REG = ( configCPU_CLOCK_HZ / 2 ) / configTICK_RATE_HZ / 10; //QJ
-
 
 	/* Clear interrupts. */
 	portRTI_INTFLAG_REG     =  0x0007000FU;
@@ -402,8 +397,6 @@ static void prvSetupTimerInterrupt(void)
 
 	/* Enable the compare 0 interrupt. */
 	portRTI_SETINTENA_REG = 0x00000001U;
-
-	portRTI_SETINTENA_REG |= 0x00000002U; //QJ
 
 	portRTI_GCTRL_REG    |= 0x00000001U;
 }

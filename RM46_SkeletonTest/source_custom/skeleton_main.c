@@ -95,12 +95,6 @@
 
 /* USER CODE BEGIN (2) */
 
-static uint64_t RTOS_RunTimeCounter; /* runtime counter, used for configGENERATE_RUNTIME_STATS */
-
-static uint64_t ulTotalTime;
-
-void vPortRTOSRunTimeISR(void);
-
 /*******************************************************/
 
 #define TIMER_ID                1
@@ -171,40 +165,33 @@ int main(void)
 
     _enable_IRQ();
 
+    /*Check FLASH memory*/
     checkFlashECC();
     checkFlashEEPROMECC();
 
+    /*Initialize peripherals*/
     sciInit();
     gioInit();
     i2cInit();
-//    canInit();
+    canInit();
     mibspiInit();
 
+    /*Create initialization task*/
     xTaskCreate((TaskFunction_t )init_task,
                 (const char*    )"init_task",
                 (uint16_t       )init_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )init_TASK_PRIO,
+                (UBaseType_t    )(init_TASK_PRIO|portPRIVILEGE_BIT),
                 (TaskHandle_t*  )&initTask_Handler);
-//    printf("init_task created\r\n");
 
 
     resetRTC_debug(prealtimeClock);
     sciSend(scilinREG,19,(unsigned char *)"init_task created\r\n");
 
-//    while((sciIsRxReady(scilinREG) == 0));
-//    while(sciIsIdleDetected(scilinREG) != 0);
-
-//    seconds = time(NULL);
-//    while((sciIsRxReady(scilinREG) == 0));
-//    while(sciIsIdleDetected(scilinREG) != 0);
 
 //    xQueue = xQueueCreate(1, sizeof(unsigned char*));
 
 //    configASSERT( xQueue );
-
-    /*Run time stats ISR*/
-
 
     vTaskStartScheduler();
 
@@ -320,7 +307,7 @@ void init_task(void *pvParameters)
                 (const char*    )"channelCtrl_task",
                 (uint16_t       )channelCtrl_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )channelCtrl_TASK_PRIO,
+                (UBaseType_t    )(channelCtrl_TASK_PRIO|portPRIVILEGE_BIT),
                 (TaskHandle_t*  )&channelCtrlTask_Handler);
     sciSend(scilinREG,22,(unsigned char *)"Channel task created\r\n");
 
@@ -329,7 +316,7 @@ void init_task(void *pvParameters)
                 (const char*    )"receiveCMD_task",
                 (uint16_t       )receiveCMD_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )receiveCMD_TASK_PRIO,
+                (UBaseType_t    )(receiveCMD_TASK_PRIO|portPRIVILEGE_BIT),
                 (TaskHandle_t*  )&receiveCMDTask_Handler);
     sciSend(scilinREG,25,(unsigned char *)"receiveCMD task created\r\n");
 
@@ -347,7 +334,7 @@ void init_task(void *pvParameters)
                 (const char*    )"getHK_task",
                 (uint16_t       )getHK_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )getHK_TASK_PRIO,
+                (UBaseType_t    )(getHK_TASK_PRIO|portPRIVILEGE_BIT),
                 (TaskHandle_t*  )&getHKTask_Handler);
     sciSend(scilinREG,20,(unsigned char *)"getHK task created\r\n");
 
@@ -356,7 +343,7 @@ void init_task(void *pvParameters)
                 (const char*    )"selfCheck_task",
                 (uint16_t       )selfCheck_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )selfCheck_TASK_PRIO,
+                (UBaseType_t    )(selfCheck_TASK_PRIO|portPRIVILEGE_BIT),
                 (TaskHandle_t*  )&selfCheckTask_Handler);
     sciSend(scilinREG,24,(unsigned char *)"selfCheck task created\r\n");
 
@@ -365,7 +352,7 @@ void init_task(void *pvParameters)
                 (const char*    )"watchdog_task",
                 (uint16_t       )watchdog_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )watchdog_TASK_PRIO,
+                (UBaseType_t    )(watchdog_TASK_PRIO|portPRIVILEGE_BIT),
                 (TaskHandle_t*  )&watchdogTask_Handler);
     sciSend(scilinREG,23,(unsigned char *)"watchdog task created\r\n");
 
@@ -374,7 +361,7 @@ void init_task(void *pvParameters)
                 (const char*    )"heatCtrl_task",
                 (uint16_t       )heatCtrl_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )heatCtrl_TASK_PRIO,
+                (UBaseType_t    )(heatCtrl_TASK_PRIO|portPRIVILEGE_BIT),
                 (TaskHandle_t*  )&heatCtrlTask_Handler);
     sciSend(scilinREG,34,(unsigned char *)"heater controlling task created\r\n");
 
@@ -383,13 +370,10 @@ void init_task(void *pvParameters)
                 (const char*    )"battCtrl_task",
                 (uint16_t       )battCtrl_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )battCtrl_TASK_PRIO,
+                (UBaseType_t    )(battCtrl_TASK_PRIO|portPRIVILEGE_BIT),
                 (TaskHandle_t*  )&battCtrlTask_Handler);
     sciSend(scilinREG,34,(unsigned char *)"battery controlling task created\r\n");
 
-
-//    seconds = time(NULL);
-//    sprintf(temp1,"%d",(uint32_t)seconds/60);
 
 
     vTaskDelete(initTask_Handler);
@@ -582,7 +566,7 @@ void channelCtrl_task(void *pvParameters)
 
     while(1)
     {
-        channel_check_lowVoltage(pina3221D, pchannelD);
+        channel_check_charge_level(pina3221D, pchannelD);
         channel_check_trip(pina226D+9, pchannelD);
 
         ch_t = (uint32_t)xTaskGetTickCount();
@@ -703,25 +687,6 @@ void receiveCMD_task(void *pvParameters)
         vTaskDelay(xDelay);
     }
 
-}
-
-void RTOS_AppConfigureTimerForRuntimeStats(void)
-{
-        RTOS_RunTimeCounter = 0;
-}
-
-uint32_t RTOS_AppGetRuntimeCounterValueFromISR(void)
-{
-       return RTOS_RunTimeCounter;
-}
-
-
-void vPortRTOSRunTimeISR(void)
-{
-       /* Clear interrupt flag.*/
-//       rtiREG1->INTFLAG = 2U;
-      *((volatile uint32_t *) 0xFFFFFC88) = 2U;
-      RTOS_RunTimeCounter++;    /* increment runtime counter */
 }
 
 //void executeCMD_task(void *pvParameters)

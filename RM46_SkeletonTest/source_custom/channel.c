@@ -26,7 +26,7 @@ void channel_on(channel_data *Fchannel, channel_data *channel)
 
     for(i=0;i<NUM_OF_CHANNELS;i++)
     {
-        if((Fchannel+i)->group & (0x1 << (channel->num)))       // if grouped with the channel
+        if(((Fchannel+i)->group & (0x1 << (channel->num-1))) == (0x1 << (channel->num-1)))       // if grouped with the channel
         {
             gioSetBit(CH[i],CH_num[i],1);
             (Fchannel+i)->sw = 1;
@@ -51,7 +51,7 @@ void channel_off(channel_data *Fchannel, channel_data *channel)
 
     for(i=0;i<NUM_OF_CHANNELS;i++)
     {
-        if((Fchannel+i)->group & (0x1 << (channel->num)))       // if grouped with the channel
+        if(((Fchannel+i)->group & (0x1 << (channel->num-1))) == (0x1 << (channel->num-1)))       // if grouped with the channel
         {
             gioSetBit(CH[i],CH_num[i],0);
             (Fchannel+i)->sw = 0;
@@ -81,14 +81,14 @@ void channel_set_group(channel_data *Fchannel, channel_data *channel1, channel_d
 
     for(i=0;i<NUM_OF_CHANNELS;i++)
     {
-        if((Fchannel+i)->group & (0x1 << (channel1->num)))       // if grouped with channel1
+        if(((Fchannel+i)->group & (0x1 << (channel1->num-1))) == (0x1 << (channel1->num-1)))       // if grouped with channel1
         {
-            (Fchannel+i)->group |= (0x1 << (channel2->num));   // group it with channel2
+            (Fchannel+i)->group |= (0x1 << (channel2->num - 1));   // group it with channel2
         }
 
-        if((Fchannel+i)->group & (0x1 << (channel2->num)))       // if grouped with channel2
+        if(((Fchannel+i)->group & (0x1 << (channel2->num-1))) == (0x1 << (channel2->num-1)))       // if grouped with channel2
         {
-            (Fchannel+i)->group |= (0x1 << (channel1->num));   // group it with channel1
+            (Fchannel+i)->group |= (0x1 << (channel1->num - 1));   // group it with channel1
         }
 
     }
@@ -96,8 +96,8 @@ void channel_set_group(channel_data *Fchannel, channel_data *channel1, channel_d
 
 /***************************************************************************
  * @brief
- *   Check the input voltage level
- *   Control switch of All THE CHANNELS according to priority
+ *   Check the battery voltage level
+ *   Control switch of All THE CHANNELS according to charge level
  *
  * @param[in] data
  *   Pointer to current sensor(of solar panel).
@@ -106,62 +106,22 @@ void channel_set_group(channel_data *Fchannel, channel_data *channel1, channel_d
  *   Pointer to FIRST channel. (Must be the pointer to first channel!!!)
  *
  ******************************************************************************/
-void channel_check_lowVoltage(ina3221_data *data, channel_data *Fchannel)
+void channel_check_charge_level(ina3221_data *data, channel_data *Fchannel)
 {
     uint8_t i;
 
-    /*  Vin >= 4.4V    */
-    if(data->bus_voltage[0] >= 3250)
+    for(i=0;i<NUM_OF_CHANNELS;i++)
     {
-        for(i=0;i<NUM_OF_CHANNELS;i++)
+        if(data->bus_voltage[2] >= (Fchannel+i)->onlevel)
         {
             channel_on(Fchannel, Fchannel+i);
         }
-    }
-    /*  Vin < 4.4V and >= 3.3V  */
-    else if(data->bus_voltage[0] < 3250 && data->bus_voltage[0] >= 2640)
-    {
-        for(i=0;i<NUM_OF_CHANNELS;i++)
+
+        if(data->bus_voltage[2] < (Fchannel+i)->offlevel)
         {
-            if((Fchannel+i)->priority >= LOW_CH)
-            {
-                channel_on(Fchannel, Fchannel+i);
-            }
-            else
-            {
-                channel_off(Fchannel, Fchannel+i);
-            }
+            channel_off(Fchannel, Fchannel+i);
         }
-    }
-    /*  Vin < 3.3V and >= 2.7V  */
-    else if(data->bus_voltage[0] < 2640 && data->bus_voltage[0] >= 2160)
-    {
-        for(i=0;i<NUM_OF_CHANNELS;i++)
-        {
-            if((Fchannel+i)->priority >= MID_CH)
-            {
-                channel_on(Fchannel, Fchannel+i);
-            }
-            else
-            {
-                channel_off(Fchannel, Fchannel+i);
-            }
-        }
-    }
-    /*  Vin < 2.7V  */
-    else if(data->bus_voltage[0] < 2160)
-    {
-        for(i=0;i<NUM_OF_CHANNELS;i++)
-        {
-            if((Fchannel+i)->priority == HIGHEST_CH)
-            {
-                channel_on(Fchannel, Fchannel+i);
-            }
-            else
-            {
-                channel_off(Fchannel, Fchannel+i);
-            }
-        }
+
     }
 
 }
