@@ -108,6 +108,8 @@
 #define configUSE_MALLOC_FAILED_HOOK  0
 
 /* USER CODE BEGIN (1) */
+//extern void enter_snooze(void);
+//#define portSUPPRESS_TICKS_AND_SLEEP() enter_snooze(void);
 /* USER CODE END */
 
 #define configSUPPORT_STATIC_ALLOCATION			0

@@ -180,7 +180,7 @@ int main(void)
     gioPORTA->DIR &= 0xFC; //GIOA[1:0] used as input
 
     /* Create Task 1 */
-    xTaskCreate(vTask1,"Task1", 128, NULL, 1, &xTask1Handle);
+    xTaskCreate(vTask1,"Task1", 128, NULL, (1|portPRIVILEGE_BIT), &xTask1Handle);
 //    {
 //        /* Task could not be created */
 //        while(1);
@@ -205,15 +205,15 @@ void enter_snooze(void)
 
     /* RTI is configured to generate compare 0 interrupt every 1 second using 16MHz OSCIN as source */
     /* Change this to use the LF LPO, which is typically 80KHz */
-//    rtiStopCounter(rtiCOUNTER_BLOCK0);
-//    rtiResetCounter(rtiCOUNTER_BLOCK0);
+//    rtiStopCounter(rtiCOUNTER_BLOCK1);
+//    rtiResetCounter(rtiCOUNTER_BLOCK1);
 //
 //    sciSend(scilinREG,3,(unsigned char *)"2\r\n");
-
+//
     /* Clock RTI using LF LPO, the 80KHz clock source */
-//    systemREG1->RCLKSRC = 0x4;
-
-    /** - Setup compare 0 value. This value is compared with selected free running counter. */
+    systemREG1->RCLKSRC = 0x4;
+//
+//    /** - Setup compare 0 value. This value is compared with selected free running counter. */
 //    rtiREG1->CMP[1U].COMPx = 400000U;
 //
 //    /** - Setup update compare 0 value. This value is added to the compare 0 value on each compare match. */
@@ -227,8 +227,8 @@ void enter_snooze(void)
 //
 //    /** - Enable RTI Compare 0 Interrupt **/
 //    rtiREG1->SETINTENA = rtiNOTIFICATION_COMPARE1;
-
-    sciSend(scilinREG,3,(unsigned char *)"3\r\n");
+//
+//    sciSend(scilinREG,3,(unsigned char *)"3\r\n");
 
 /*******************************************/
     flashWREG->FPAC2 = 0x7;
@@ -257,7 +257,8 @@ void enter_snooze(void)
 /*******************************************/
 
     /* Start counter 0 */
-    rtiStartCounter(rtiCOUNTER_BLOCK0);
+//    rtiStopCounter(rtiCOUNTER_BLOCK0);
+//    rtiStartCounter(rtiCOUNTER_BLOCK1);
 
     /** - Setup GCLK, HCLK and VCLK clock source for normal operation, power down mode and after wakeup */
     systemREG1->GHVSRC = (uint32)((uint32)SYS_LPO_HIGH << 24U)
@@ -346,13 +347,22 @@ void post_wakeup(void)
 
 //    gioSetPort(gioPORTB, (0x1 << 2));
 
-    rtiStartCounter(rtiCOUNTER_BLOCK0);
+    sciSend(scilinREG,3,(unsigned char *)"5\r\n");
+
+    vTaskStepTick(400);
+
+//    rtiStopCounter(rtiCOUNTER_BLOCK0);
+//    rtiResetCounter(rtiCOUNTER_BLOCK0);
+//
+//    rtiStartCounter(rtiCOUNTER_BLOCK0);
 
     /* Restore original clock source/domain bindings */
     mapClocks();
 
     /* Resume oscillator monitoring */
     systemREG1->CLKTEST = 0x000A0000;
+
+    sciSend(scilinREG,3,(unsigned char *)"6\r\n");
 
 }
 

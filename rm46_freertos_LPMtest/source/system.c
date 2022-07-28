@@ -293,8 +293,8 @@ void mapClocks(void)
     /** - The below assignments can be easily modified using the HALCoGen GUI */
 
     /** - Setup GCLK, HCLK and VCLK clock source for normal operation, power down mode and after wakeup */
-    systemREG1->GHVSRC = (uint32)((uint32)SYS_OSC << 24U)
-                       | (uint32)((uint32)SYS_OSC << 16U)
+    systemREG1->GHVSRC = (uint32)((uint32)SYS_LPO_HIGH << 24U)
+                       | (uint32)((uint32)SYS_LPO_HIGH << 16U)
                        | (uint32)((uint32)SYS_PLL1 << 0U);
 
     /** - Setup RTICLK1 and RTICLK2 clocks */

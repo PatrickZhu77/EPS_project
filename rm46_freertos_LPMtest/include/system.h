@@ -314,8 +314,8 @@ typedef struct system_config_reg
                                 | (uint32)((uint32)0U << 10U)\
                                 | (uint32)((uint32)0U << 11U) )
                       
-#define SYS_GHVSRC_CONFIGVALUE  ( (uint32)((uint32)SYS_OSC << 24U) \
-                                | (uint32)((uint32)SYS_OSC << 16U) \
+#define SYS_GHVSRC_CONFIGVALUE  ( (uint32)((uint32)SYS_LPO_HIGH << 24U) \
+                                | (uint32)((uint32)SYS_LPO_HIGH << 16U) \
                                 | (uint32)((uint32)SYS_PLL1 << 0U) )
                                 
 #define SYS_VCLKASRC_CONFIGVALUE    ( (uint32)((uint32)SYS_VCLK << 8U)\
