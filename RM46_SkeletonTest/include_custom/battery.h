@@ -1,9 +1,3 @@
-/*
- * battery.h
- *
- *  Created on: Mar 7, 2022
- *      Author: sdamkjar
- */
 
 #ifndef INCLUDE_CUSTOM_BATTERY_H_
 #define INCLUDE_CUSTOM_BATTERY_H_
@@ -15,21 +9,30 @@
 #include "ina226.h"
 #include "mppt.h"
 #include "max6698.h"
+#include "flash_data.h"
 
-#define     NUM_OF_BATTERY   2          // 4 is default value according to schematic of battery board, 1 and 3 are grouped, 2 and 4 are grouped.
+#define     NUM_OF_BATTERY_PAIR   2          //There are 4 cells according to schematic of battery board, 1 and 3 are grouped, 2 and 4 are grouped.
 
+#define     BATT_CHARGING_TEMP_MIN_C         0x9E   //Minimum charging temp. 0x9E: 0C according to Panasonic NCR18650B.
+#define     BATT_CHARGING_TEMP_MAX_C         0xB7   //Maximum discharging temp. 0xB7: -20C according to Panasonic NCR18650B.
+#define     BATT_DISCHARGING_TEMP_MIN_C      0xB7   //Minimum discharging temp. 0xB7: -20C according to Panasonic NCR18650B.
+#define     BATT_DISCHARGING_TEMP_MAX_C      0xB7   //Maximum discharging temp. 0xB7: -20C according to Panasonic NCR18650B.
+
+#define     BATT_CHARGING_CURRENT_LIMIT_mA       0x659  //Battery charging current limit. 0x659: 1625mA according to Panasonic NCR18650B.
+#define     BATT_DISCHARGING_CURRENT_LIMIT_mA    0x659  //Battery discharging current limit. 0x659: 1625mA according to Panasonic NCR18650B.
 
 typedef struct
 {
-    uint8_t num;                   //# of battery
-    uint8_t sw;
-    uint8_t temp_charge;          //Voltage of thermistor. -20C:10110111; 0C:10011110; 100C:00001111
-    uint8_t temp_discharge;       //Voltage of thermistor. -20C:10110111; 0C:10011110; 100C:00001111
-    uint32_t maxV;                //mV   battery fully charged voltage
-                                   //10K Thermistor and 8.66K extended register
-}battery_data;
+    uint8_t num;                  //# of battery pair. Starting from 1.
+    uint8_t sw[2];                //Switches. SW1 is charging switch and SW2 is discharging switch. 1:ON, 0:OFF.
+    uint8_t status;               //Status of battery (depending on the direction of current). 1:charging, 0:discharging.
+    uint8_t temp;                 //Voltage of thermistor. -20C:10110111; 0C:10011110; 100C:00001111
+    uint16_t current;             //mA. Battery current.
+    uint16_t voltage;             //mV. Battery voltage.
+}battery_data_t;
 
-static gioPORT_t * BSW[4] = {
+/******************List of SW pins for battery*********************/
+static gioPORT_t * BSW[4] = {                       //SW1 and SW3 are charging switches. SW2 and SW4 are discharging switches.
                                  gioPORTB,
                                  hetPORT2,
                                  gioPORTB,
@@ -42,10 +45,17 @@ static uint32_t BSW_num[4] = {
                                  29
                             };
 
-void battery_on(battery_data *battery);
-void battery_off(battery_data *battery);
-void battery_compareVI(ina226_data *data1, battery_data *data2);
-void battery_compareT(max6698_data *data1, battery_data *data2);
+
+void battery_chargingSW_on(battery_data_t *battery);
+void battery_chargingSW_off(battery_data_t *battery);
+void battery_dischargingSW_on(battery_data_t *battery);
+void battery_dischargingSW_off(battery_data_t *battery);
+
+void battery_check_charging_status(battery_data_t *battery, ina226_housekeeping_t *data);
+void battery_read_rawdata_and_convert(battery_data_t *battery, ina226_housekeeping_t *data1, max6698_housekeeping_t *data2);
+
+void battery_check_temp_then_SW(battery_data_t *battery, system_config_t *data);
+
 
 
 #endif /* INCLUDE_CUSTOM_BATTERY_H_ */

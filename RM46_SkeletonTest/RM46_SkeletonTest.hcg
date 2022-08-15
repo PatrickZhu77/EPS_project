@@ -465,7 +465,9 @@
       <HDRCRC>
         <NAME>crc.h</NAME>
       </HDRCRC>
-      <SRCCRC/>
+      <SRCCRC>
+        <NAME>crc.c</NAME>
+      </SRCCRC>
       <HDRETPWM_R>
         <NAME>reg_etpwm.h</NAME>
       </HDRETPWM_R>
@@ -929,7 +931,7 @@
         <PATH>include\crc.h</PATH>
       </HDRCRC>
       <SRCCRC>
-        <PATH/>
+        <PATH>source\crc.c</PATH>
       </SRCCRC>
     </FILENAMES>
   </CRC>

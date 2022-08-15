@@ -2,37 +2,7 @@
 #define __INA226_H
 
 #include "reg_i2c.h"
-
-#define     CFG_REG         0x00        //Configuration register
-#define     SV_REG          0x01        //Shunt voltage register (shunt resistor here is 0.1 ohm)
-#define     BV_REG          0x02        //Bus voltage register
-#define     PWR_REG         0x03        //Power register
-#define     CUR_REG         0x04        //Current register
-#define     CAL_REG         0x05        //Calibration register
-#define     MASK_REG        0x06        //Mask/Enable register
-#define     AL_REG          0x07        //Alert limit register
-
-#define     INA226_ADDR1    0x41                //SLAVE ADDRESS 1000111 (VS|SCL)
-#define     INA226_err      0xC                 //0001_100. Alert Response slave address
-
-#define     INA226_CFG_SETTING     0x4527       //configuration register with 16 averages and 1.1ms conversion time
-
-#define     BOL             0x2000              //Mask/Enable register enable Bus Voltage Over-Voltage alert
-
-#define     NUM_OF_INA226   27                  // 27 is default value according to schematic of eps
-
-typedef struct
-{
-    uint8_t num;                  //# of the sensor
-    uint8_t address;              //i2c address
-    uint16_t shunt_voltage;       //2.5uV LSB
-    uint16_t bus_voltage;         //1.25mV
-//    uint16_t shunt_resistance;    //mOhm
-    uint16_t config_reg;
-    uint16_t mask_reg;             //0x8000: enable Vshunt overvoltage (overcurrent) alert
-    uint16_t alert_reg;
-    uint32_t timestamp_sec;
-}ina226_data;
+#include "flash_data.h"
 
 /**************List of ina226 sensors**************
  *
@@ -40,9 +10,9 @@ typedef struct
  *  1: overcurrent protection of buck converter 3v3 Vout
  *  2: overcurrent protection of buck converter 1v2 Vout
  *  3: overcurrent protection of buck converter 5v0 Vout
- *  4: current monitor of pv_3v3
- *  5: overcurrent protection of 3v3
- *  6: overcurrent protection of 1v2
+ *  4: overcurrent protection of 3v3
+ *  5: overcurrent protection of 1v2
+ *  6: current monitor of pv_3v3
  *  7: current monitor 1 on battery board
  *  8: current monitor 2 on battery board
  *  9: current monitor of channel 1
@@ -63,28 +33,81 @@ typedef struct
  *  24: current monitor of channel 16
  *  25: current monitor of channel 17
  *  26: current monitor of channel 18
- *  27: store data of the error monitor
- *
  *
  *******************************************/
 
-void INA226_Init(i2cBASE_t *i2c, uint8_t addr, ina226_data *data);
-void INA226_SetRegPointer(i2cBASE_t *i2c, uint8_t addr, uint8_t reg);
+#define     INA226_CFG_REG         0x00        //Configuration register
+#define     INA226_SV_REG          0x01        //Shunt voltage register (shunt resistor here is 0.1 ohm)
+#define     INA226_BV_REG          0x02        //Bus voltage register
+#define     INA226_PWR_REG         0x03        //Power register
+#define     INA226_CUR_REG         0x04        //Current register
+#define     INA226_CAL_REG         0x05        //Calibration register
+#define     INA226_MASK_REG        0x06        //Mask/Enable register
+#define     INA226_AL_REG          0x07        //Alert limit register
+
+#define     INA226_ADDR1    0x47                //SLAVE ADDRESS 1000111 (VS|SCL)
+//All 27 addresses need to be defined
+//#define     NUM_OF_CHANNELS  18     //There are 18 channels according to schematic of eps.
+
+#define     INA226_CFG_SETTING          0x4527       //configuration register with 16 averages and 1.1ms conversion time
+#define     INA226_CAL_SETTING          0x200        //calculated calibration register value: 0.00512/(INA226_CURRENT_LSB(in A) * INA226_SHUNT_RESISTANCE(in Ohm))
+#define     INA226_OVERCURRENT_MASK     0x8000       //Mask for overcurrent protection sensor. 0x8000: enable Vshunt overvoltage (overcurrent) alert
+#define     INA226_OVERCURRENT_ALERT    0x2710       //Alert value for overcurrent protection sensor. 10A overcurrent limit
+#define     INA226_CHANNEL_MASK         0x8000       //Mask for channel sensor. 0x8000: enable Vshunt overvoltage (overcurrent) alert
+#define     INA226_CHANNEL_ALERT        0x2710       //Alert value for channel sensor. 10A overcurrent limit
+#define     INA226_BATTERY_MASK         0x0000       //Mask for battery sensor. Disable alert.
+#define     INA226_MONITOR_MASK         0x8000       //Mask for monitor sensor. 0x8000: enable Vshunt overvoltage (overcurrent) alert
+#define     INA226_MONITOR_ALERT        0x2710       //Alert value for monitor sensor. 10A overcurrent limit
+
+
+//#define     NUM_OF_INA226                           27      // 27 is the default value according to schematic of eps
+//#define     NUM_OF_INA226_OVERCURRENT_PROTECTION    6       // 6 is the default value according to schematic of eps
+//#define     NUM_OF_INA226_BATTERY                   2       // 2 is the default value according to schematic of battery board
+//#define     NUM_OF_INA226_MONITOR                   1       // 1 is the default value according to schematic of eps
+//#define     NUM_OF_INA226_CHANNEL                   18      // 18 is the default value according to schematic of eps
+
+#define     INA226_SHUNT_RESISTANCE    10      //mOhm. 0.01 Ohm is the value of shunt resistor used
+
+#define     INA226_SHUNTV_LSB      2500      //2500nV (=2.5uV) is the LSB of shunt voltage register
+#define     INA226_BUSV_LSB        1250      //1250uV (=1.25mV) is the LSB of bus voltage register
+#define     INA226_CURRENT_LSB     1         //1mA is the chosen LSB of the current register
+#define     INA226_POWER_LSB       25        //25mW is the calculated LSB of the power register
+
+//#define     INA226_err      0xC                 //0001_100. Alert Response slave address
+
+/* Data structure for housekeeping data of ina226 */
+typedef struct
+{
+    uint8_t address;              //i2c address
+//    uint16_t mask_reg;
+    uint16_t alert_reg;           //alert threshold value (normally in mA)
+    uint16_t shunt_voltage;       //shunt voltage (raw data)
+    uint16_t bus_voltage;         //bus voltage (raw data, can be converted to voltage in mV)
+    uint16_t current;             //current (raw data, can be converted to current in mA)
+    uint16_t power;               //power (raw data, can be converted to power in mW)
+    uint32_t timestamp_sec;       //sec.
+}ina226_housekeeping_t;
+
+
+
 void INA226_SendData(i2cBASE_t *i2c,uint8_t addr,uint8_t reg,uint8_t *data);
 void INA226_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data);
 
-void INA226_GetShuntVoltage(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
-void INA226_GetVoltage(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
+uint16_t INA226_CurrentToAlert_ShuntVoltage_Raw(uint16_t current_mA, uint16_t cal_reg);
+uint16_t INA226_VoltageToAlert_BusVoltage_Raw(uint16_t voltage_mV);
 
-//void INA226_GetCurrent(i2cBASE_t *i2c, uint8_t addr, uint32_t *data);
-//void INA226_GetPower(i2cBASE_t *i2c, uint8_t addr, uint32_t *data);
-//void INA226_GetID(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
-void INA226_SetCfgReg(i2cBASE_t *i2c, uint8_t addr,uint16_t data);
-void INA226_SetCalReg(i2cBASE_t *i2c, uint8_t addr,uint16_t data);
-void INA226_SetAlertReg(i2cBASE_t *i2c, uint8_t addr,uint16_t data);
-//void INA226_GetCfgReg(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
-//void INA226_GetCalReg(i2cBASE_t *i2c, uint8_t addr, uint16_t *data);
-void INA226_GetAlertInfo(i2cBASE_t *i2c, ina226_data *data);
+void INA226_Init(i2cBASE_t *i2c, uint16_t Rshunt, sensor_config_t *data2, uint16_t mask, ina226_housekeeping_t *data3);
+void INA226_SetMaskReg(i2cBASE_t *i2c, ina226_housekeeping_t *data, uint16_t mask);
+void INA226_SetAlertReg(i2cBASE_t *i2c, ina226_housekeeping_t *data, uint16_t alert, uint16_t cal_reg);
+
+void INA226_ReadShuntVoltage_Raw(i2cBASE_t *i2c, ina226_housekeeping_t *data);
+void INA226_ReadBusVoltage_Raw(i2cBASE_t *i2c, ina226_housekeeping_t *data);
+void INA226_ReadCurrent_Raw(i2cBASE_t *i2c, ina226_housekeeping_t *data);
+void INA226_ReadPower_Raw(i2cBASE_t *i2c, ina226_housekeeping_t *data);
+
+uint16_t INA226_ConvToCurrent_mA(ina226_housekeeping_t *data);
+uint16_t INA226_ConvToVoltage_mV(ina226_housekeeping_t *data);
+uint16_t INA226_ConvToPower_mW(ina226_housekeeping_t *data);
 
 
 #endif

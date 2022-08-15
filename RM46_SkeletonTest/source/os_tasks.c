@@ -2124,6 +2124,21 @@ BaseType_t xAlreadyYielded = pdFALSE;
 }
 /*-----------------------------------------------------------*/
 
+TickType_t xTaskGetExpectedIdleTime( void )
+{
+TickType_t xTicks;
+
+    /* Critical section required if running on a 16 bit processor. */
+    portTICK_TYPE_ENTER_CRITICAL();
+    {
+        xTicks = prvGetExpectedIdleTime();
+    }
+    portTICK_TYPE_EXIT_CRITICAL();
+
+    return xTicks;
+}
+
+
 TickType_t xTaskGetTickCount( void )
 {
 TickType_t xTicks;
@@ -2137,6 +2152,7 @@ TickType_t xTicks;
 
 	return xTicks;
 }
+/*-----------------------------------------------------------*/
 
 BaseType_t xTaskGetTickOverflowCount( void )
 {
@@ -2152,7 +2168,7 @@ BaseType_t xTaskGetTickOverflowCount( void )
     return xTicks;
 }
 
-/*-----------------------------------------------------------*/
+
 
 TickType_t xTaskGetTickCountFromISR( void )
 {

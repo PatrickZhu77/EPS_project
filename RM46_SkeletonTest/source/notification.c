@@ -55,6 +55,7 @@
 #include "mibspi.h"
 #include "sci.h"
 #include "i2c.h"
+#include "crc.h"
 #include "sys_dma.h"
 
 /* USER CODE BEGIN (0) */
@@ -177,6 +178,15 @@ void sciNotification(sciBASE_t *sci, uint32 flags)
 /* USER CODE END */
 
 
+#pragma WEAK(crcNotification)
+void crcNotification(crcBASE_t *crc, uint32 flags)
+{
+/*  enter user code between the USER CODE BEGIN and USER CODE END. */
+/* USER CODE BEGIN (41) */
+/* USER CODE END */
+}
+/* USER CODE BEGIN (42) */
+/* USER CODE END */
 
 /* USER CODE BEGIN (43) */
 /* USER CODE END */

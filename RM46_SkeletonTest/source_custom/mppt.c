@@ -12,7 +12,7 @@
  *   Pointer to public data structure of MPPT task.
  *
  ******************************************************************************/
-void mppt_hunts(mppt_data *data)
+void mppt_hunts(mppt_data_t *data)
 {
     if(data->dir == data->predir)                       //when the direction does not change
     {
@@ -37,13 +37,13 @@ void mppt_hunts(mppt_data *data)
 }
 
 
-void mppt_getPower(ina3221_data *data1,mppt_data *data2)
+void mppt_getPower(ina3221_housekeeping_t *data1,mppt_data_t *data2)
 {
     data2->power = data1->shunt_voltage[0] * data1->bus_voltage[0];
 }
 
 
-void mppt_getPower_ina226(ina226_data *data1,mppt_data *data2)
+void mppt_getPower_ina226(ina226_housekeeping_t *data1,mppt_data_t *data2)
 {
     data2->power = data1->shunt_voltage * data1->bus_voltage;
 }
@@ -60,7 +60,7 @@ void mppt_getPower_ina226(ina226_data *data1,mppt_data *data2)
  *   Pointer to public data structure of MPPT task.
  *
  ******************************************************************************/
-void mppt_pno_ss(mppt_data *data)
+void mppt_pno_ss(mppt_data_t *data)
 {
 
     if (data->power < data->prePower)
@@ -116,7 +116,7 @@ void mppt_pno_ss(mppt_data *data)
  *   Pointer to public data structure of MPPT task.
  *
  ******************************************************************************/
-void mppt_pno_en(mppt_data *data)
+void mppt_pno_en(mppt_data_t *data)
 {
 
     if (data->power < data->prePower)

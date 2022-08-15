@@ -4,14 +4,30 @@
 #include "FreeRTOS.h"
 #include "os_task.h"
 
-void resetRTC_debug(RTC *clock)
+/***************************************************************************
+ * @brief
+ *   reset real-time clock in debugging mode
+ *
+ * @param[in] clock
+ *   Pointer to Real-time clock data structure
+ *
+ ******************************************************************************/
+void resetRTC_debug(RTC_t *clock)
 {
     clock->initTime = time(0);
     clock->initTick = (uint32_t)xTaskGetTickCount();
     clock->initOverflow = (uint32_t)xTaskGetTickOverflowCount();
 }
 
-void resetRTC(uint32_t t, RTC *clock)
+/***************************************************************************
+ * @brief
+ *   reset real-time clock
+ *
+ * @param[in] clock
+ *   Pointer to Real-time clock data structure
+ *
+ ******************************************************************************/
+void resetRTC(uint32_t t, RTC_t *clock)
 {
     clock->initTime = t;
     clock->initTick = (uint32_t)xTaskGetTickCount();
@@ -19,7 +35,18 @@ void resetRTC(uint32_t t, RTC *clock)
 }
 
 
-uint32_t getcurrTime(RTC *clock)
+/***************************************************************************
+ * @brief
+ *   Calculate current time according to RTC_t and tick counts
+ *
+ * @param[in] clock
+ *   Pointer to Real-time clock data structure
+ *
+ * @return
+ *   Returns current time (in sec)
+ *
+ ******************************************************************************/
+uint32_t getcurrTime(RTC_t *clock)
 {
     uint32_t currTick, currOverflow, t;
 

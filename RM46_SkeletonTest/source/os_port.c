@@ -390,14 +390,12 @@ static void prvSetupTimerInterrupt(void)
 	portRTI_CNT0_COMP0_REG = ( configCPU_CLOCK_HZ / 2 ) / configTICK_RATE_HZ;
 	portRTI_CNT0_UDCP0_REG = ( configCPU_CLOCK_HZ / 2 ) / configTICK_RATE_HZ;
 
-
 	/* Clear interrupts. */
 	portRTI_INTFLAG_REG     =  0x0007000FU;
 	portRTI_CLEARINTENA_REG	= 0x00070F0FU;
 
 	/* Enable the compare 0 interrupt. */
 	portRTI_SETINTENA_REG = 0x00000001U;
-
 	portRTI_GCTRL_REG    |= 0x00000001U;
 }
 /*-----------------------------------------------------------*/

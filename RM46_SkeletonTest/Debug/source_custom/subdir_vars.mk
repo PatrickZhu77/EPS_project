@@ -10,6 +10,7 @@ C_SRCS += \
 ../source_custom/battery.c \
 ../source_custom/channel.c \
 ../source_custom/cmd_interface.c \
+../source_custom/custom_crc.c \
 ../source_custom/fee_function.c \
 ../source_custom/heater.c \
 ../source_custom/ina226.c \
@@ -25,6 +26,7 @@ C_DEPS += \
 ./source_custom/battery.d \
 ./source_custom/channel.d \
 ./source_custom/cmd_interface.d \
+./source_custom/custom_crc.d \
 ./source_custom/fee_function.d \
 ./source_custom/heater.d \
 ./source_custom/ina226.d \
@@ -40,6 +42,7 @@ OBJS += \
 ./source_custom/battery.obj \
 ./source_custom/channel.obj \
 ./source_custom/cmd_interface.obj \
+./source_custom/custom_crc.obj \
 ./source_custom/fee_function.obj \
 ./source_custom/heater.obj \
 ./source_custom/ina226.obj \
@@ -55,6 +58,7 @@ OBJS__QUOTED += \
 "source_custom\battery.obj" \
 "source_custom\channel.obj" \
 "source_custom\cmd_interface.obj" \
+"source_custom\custom_crc.obj" \
 "source_custom\fee_function.obj" \
 "source_custom\heater.obj" \
 "source_custom\ina226.obj" \
@@ -70,6 +74,7 @@ C_DEPS__QUOTED += \
 "source_custom\battery.d" \
 "source_custom\channel.d" \
 "source_custom\cmd_interface.d" \
+"source_custom\custom_crc.d" \
 "source_custom\fee_function.d" \
 "source_custom\heater.d" \
 "source_custom\ina226.d" \
@@ -85,6 +90,7 @@ C_SRCS__QUOTED += \
 "../source_custom/battery.c" \
 "../source_custom/channel.c" \
 "../source_custom/cmd_interface.c" \
+"../source_custom/custom_crc.c" \
 "../source_custom/fee_function.c" \
 "../source_custom/heater.c" \
 "../source_custom/ina226.c" \

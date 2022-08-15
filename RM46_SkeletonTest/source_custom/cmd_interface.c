@@ -1,20 +1,9 @@
 
-#include "ti_fee.h"
-#include "sci.h"
-#include "sys_common.h"
-#include "stdio.h"
-#include "stdlib.h"
-#include "string.h"
-
 #include "cmd_interface.h"
-#include "uart_cmd.h"
-#include "ina226.h"
-#include "ina3221.h"
-#include "battery.h"
 
-static uint16 oResult, Status;
-static uint16_t BlockOffset, Length;
-static uint8 read_data[100]={0};
+//static uint16 oResult, Status;
+//static uint16_t BlockOffset, Length;
+//static uint8 read_data[100]={0};
 
 
 //void get_default()
@@ -49,7 +38,7 @@ static uint8 read_data[100]={0};
 //
 //}
 
-void get_hk_bc(ina3221_data *data)
+void get_hk_bc(ina3221_housekeeping_t *data)
 {
     char temp1[10] = {0}, temp2[10] = {0};
     char temp3[5] = {0};
@@ -67,7 +56,7 @@ void get_hk_bc(ina3221_data *data)
         sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
         sciSend(scilinREG,1,(unsigned char *)"\t");
 
-        sprintf(temp2,"%d",(int)(data+i)->bus_voltage[2]);
+        sprintf(temp2,"%d",(int)(data+i)->bus_voltage[1]);
 
         sciSend(scilinREG,10,(unsigned char *)"Vout of PV");
         sciSend(scilinREG,strlen((const char *)temp3),(unsigned char *)temp3);
@@ -78,7 +67,7 @@ void get_hk_bc(ina3221_data *data)
     }
 }
 
-void get_hk_batt(ina226_data *data, battery_data *battery)
+void get_hk_batt(ina226_housekeeping_t *data, battery_data_t *battery)
 {
     char temp1[10] = {0}, temp2[10] = {0}, temp4[5] = {0};
     char temp3[5] = {0};
@@ -86,7 +75,7 @@ void get_hk_batt(ina226_data *data, battery_data *battery)
     uint8_t i;
 
 
-    for(i=0;i<NUM_OF_BATTERY;i++)
+    for(i=0;i<NUM_OF_BATTERY_PAIR;i++)
     {
         sprintf(temp1,"%d",(int)(data+i)->bus_voltage);
         sprintf(temp3,"%d",i);
@@ -115,7 +104,7 @@ void get_hk_batt(ina226_data *data, battery_data *battery)
         while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,1,(unsigned char *)"\t");
 
-        sprintf(temp2,"%d",(int)(battery+i)->temp_charge);
+//        sprintf(temp2,"%d",(int)(battery+i)->temp_charge);
 
         while ((scilinREG->FLR & 0x4) == 4);
         sciSend(scilinREG,16,(unsigned char *)"Temp. of Battery");
@@ -132,9 +121,9 @@ void get_hk_batt(ina226_data *data, battery_data *battery)
 
 }
 
-void get_hk_channel(ina226_data *data,channel_data *channel)
+void get_hk_channel(ina226_housekeeping_t *data,channel_data_t *channel)
 {
-    char temp1[20] = {0}, temp2[20] = {0}, temp4[20] = {0};
+    char temp1[20] = {0}, temp2[20] = {0};
     char temp3[5] = {0};
 
     uint8_t i;
@@ -143,13 +132,13 @@ void get_hk_channel(ina226_data *data,channel_data *channel)
     for(i=0;i<NUM_OF_CHANNELS;i++)
     {
         sprintf(temp1,"%d",(int)(data+i)->bus_voltage);
-        sprintf(temp4,"%d",(int)(channel+i)->sw);
+        sprintf(temp2,"%d",(int)(channel+i)->sw);
         sprintf(temp3,"%d",i+1);
 
         sciSend(scilinREG,17,(unsigned char *)"Switch of Channel");
         sciSend(scilinREG,strlen((const char *)temp3),(unsigned char *)temp3);
         sciSend(scilinREG,2,(unsigned char *)": ");
-        sciSend(scilinREG,strlen((const char *)temp4),(unsigned char *)temp4);
+        sciSend(scilinREG,strlen((const char *)temp2),(unsigned char *)temp2);
         sciSend(scilinREG,1,(unsigned char *)"\t");
 
 
@@ -163,4 +152,10 @@ void get_hk_channel(ina226_data *data,channel_data *channel)
         sciSend(scilinREG,2,(unsigned char *)"\r\n");
     }
 
+}
+
+void set_default_max6698_init(uint8_t *ptr, uint8_t num, uint8_t value)
+{
+    *(ptr + num) = value;
+    fee_write_8bit(1, ptr);
 }

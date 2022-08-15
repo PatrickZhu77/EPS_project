@@ -20,8 +20,6 @@
  * @param[in] data
  *   Pointer to the data to be transmitted.
  *
- * @return
- *   Returns 0 if register written, <0 if unable to write to register.
  ******************************************************************************/
 void MAX6698_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
 {
@@ -86,8 +84,6 @@ void MAX6698_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
  * @param[out] data
  *   Pointer to the data to be stored.
  *
- * @return
- *   Returns 0 if register written, <0 if unable to write to register.
  ******************************************************************************/
 void MAX6698_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
 {
@@ -169,45 +165,71 @@ void MAX6698_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *dat
 
 }
 
-void MAX6698_GetTM(i2cBASE_t *i2c, uint8_t addr, uint8_t num, uint8_t *data)
+/***************************************************************************
+ * @brief
+ *   Initialize the max6698 sensor (set 3 configuration registers) with predefined values
+ *
+ * @param[in] i2c
+ *   Pointer to I2C peripheral register block.
+ *
+ * @param[in] data
+ *   Pointer to the data structure.
+ ******************************************************************************/
+void MAX6698_Init(i2cBASE_t *i2c, sensor_config_t *data, max6698_housekeeping_t *data2)
 {
-    //int err = -1;
-    uint8_t data_temp[1]={0};           //temp. data from i2c
+    uint8_t config_temp1[1]={0};
+    uint8_t config_temp2[1]={0};
+    uint8_t config_temp3[1]={0};
 
-    MAX6698_ReceiveData(i2c, addr, TM1_REG+(num-1), data_temp);
+    /* Separate the 16bit integers into 8bit arrays */
+    config_temp1[0] = (uint8_t)data->max6698_cfg1_setting;
+    config_temp2[0] = (uint8_t)data->max6698_cfg2_setting;
+    config_temp3[0] = (uint8_t)data->max6698_cfg3_setting;
 
-    *data = data_temp[0];
 
-    //return(err);
+    MAX6698_SendData(i2c, data2->address, CFG1_REG, config_temp1);
+    MAX6698_SendData(i2c, data2->address, CFG2_REG, config_temp2);
+    MAX6698_SendData(i2c, data2->address, CFG3_REG, config_temp3);
+
 }
 
-void MAX6698_SetCfgReg(i2cBASE_t *i2c, uint8_t addr, uint8_t num, uint8_t data)
+/***************************************************************************
+ * @brief
+ *   Get temperature (raw data) from thermistor register
+ *
+ * @param[in] i2c
+ *   Pointer to I2C peripheral register block.
+ *
+ * @param[in] data
+ *   Pointer to the data structure.
+ *
+ * @param[in] channel
+ *   Channel to read
+ *
+ ******************************************************************************/
+void MAX6698_ReadTemp_Raw(i2cBASE_t *i2c, max6698_housekeeping_t *data, uint8_t channel)
 {
-    uint8_t data_temp[1]={data};           //default reg. data
+    uint8_t data_temp[1]={0};
 
-    MAX6698_SendData(i2c,addr, CFG1_REG+(num-1), data_temp);
+    /* Decide which register to read */
+    switch (channel)
+    {
+        case 1:
+            MAX6698_ReceiveData(i2c, data->address, TM1_REG, data_temp);
+            break;
+        case 2:
+            MAX6698_ReceiveData(i2c, data->address, TM2_REG, data_temp);
+            break;
+        default:
+            break;
+    }
+
+    /* Save the raw data to data structure */
+    data->temp[channel-1] = data_temp[0];
 }
 
 
-void MAX6698_SetAlertReg(i2cBASE_t *i2c, uint8_t addr, uint8_t num, uint8_t data)
+void MAX6698_ConvertTemp_C(max6698_housekeeping_t *data)
 {
-    uint8_t data_temp[1]={data};           //default reg. data
-
-    MAX6698_SendData(i2c,addr, CFG1_REG+(num-1), data_temp);
-}
-
-void MAX6698_SetOverTReg(i2cBASE_t *i2c, uint8_t addr, uint8_t num, uint8_t data)
-{
-    uint8_t data_temp[1]={data};           //default reg. data
-
-    MAX6698_SendData(i2c,addr, TM1O_REG+(num-1), data_temp);
-}
-
-
-void MAX6698_Init(i2cBASE_t *i2c, uint8_t addr, max6698_data *data)
-{
-    MAX6698_SetCfgReg(i2c, addr, 1, data->config_reg[0]);
-    MAX6698_SetCfgReg(i2c, addr, 2, data->config_reg[1]);
-    MAX6698_SetCfgReg(i2c, addr, 3, data->config_reg[2]);
 
 }

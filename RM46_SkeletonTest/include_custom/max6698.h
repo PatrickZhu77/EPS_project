@@ -1,14 +1,9 @@
-/*
- * max6698.h
- *
- *  Created on: Mar 15, 2022
- *      Author: sdamkjar
- */
 
 #ifndef INCLUDE_CUSTOM_MAX6698_H_
 #define INCLUDE_CUSTOM_MAX6698_H_
 
 #include "reg_i2c.h"
+#include "flash_data.h"
 
 #define     LC_REG          0x07        //Local temperature register
 #define     RM1_REG         0x01        //Channel 1 remote temperature register
@@ -35,33 +30,31 @@
 #define     TM2O_REG        0X25        //Thermistor 2 overtemperature threshold limit register
 #define     TM3O_REG        0X26        //Thermistor 3 overtemperature threshold limit register
 
-#define     NUM_OF_MAX6698  1
+//#define     NUM_OF_MAX6698  1           // 1 is default value according to schematic of battery board
 
-#define     MAX6698_ADDR1   0x38        //SLAVE ADDRESS 1000111 (VS|SCL)
+#define     MAX6698_ADDR1   0x38        //Slave address
 
-#define     MAX6698_CFG1_SETTING     0x40       //0x40: power-on reset the sensor
-#define     MAX6698_CFG2_SETTING     0x38       //0x38: mask 3 thermistors' alert
-#define     MAX6698_CFG3_SETTING     0x38       //0x38: mask 3 thermistors' overT
+#define     MAX6698_CFG1_SETTING     0x0       //Default value for configuration register 1. 0x0: Initialization. 0x40: power-on reset the sensor
+#define     MAX6698_CFG2_SETTING     0x0       //Default value for configuration register 2. 0x0: Initialization. Disable all alerts. 0x38: mask 3 thermistors' alert
+#define     MAX6698_CFG3_SETTING     0x0       //Default value for configuration register 2. 0x0: Initialization. Disable all overTs. 0x38: mask 3 thermistors' overT
+
+#define     MAX6698_REXT        8660    //Ohm. Resistance of external resistor
 
 
 typedef struct
 {
     uint8_t address;              //i2c address
-    uint8_t config_reg[3];        //
-    uint8_t status_reg[2];        //[0]3 thermistors' alert status, [1]3 thermistors' overT status
-    uint8_t alert_reg[3];
-    uint8_t over_reg[3];
-    uint8_t temp[3];              //Voltage of thermistor. -20C:10110111; 0C:10011110; 100C:00001111
-}max6698_data;
-
+    uint8_t temp[2];              //Voltage of thermistor. -20C:10110111; 0C:10011110; 100C:00001111
+}max6698_housekeeping_t;
 
 
 void MAX6698_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data);
 void MAX6698_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data);
-void MAX6698_GetTM(i2cBASE_t *i2c, uint8_t addr, uint8_t num, uint8_t *data);
-void MAX6698_SetCfgReg(i2cBASE_t *i2c, uint8_t addr, uint8_t num, uint8_t data);
-void MAX6698_SetAlertReg(i2cBASE_t *i2c, uint8_t addr, uint8_t num, uint8_t data);
-void MAX6698_SetOverTReg(i2cBASE_t *i2c, uint8_t addr, uint8_t num, uint8_t data);
-void MAX6698_Init(i2cBASE_t *i2c, uint8_t addr, max6698_data *data);
+
+void MAX6698_Init(i2cBASE_t *i2c, sensor_config_t *data, max6698_housekeeping_t *data2);
+
+void MAX6698_ReadTemp_Raw(i2cBASE_t *i2c, max6698_housekeeping_t *data, uint8_t channel);
+
+void MAX6698_ConvToTemp_C(i2cBASE_t *i2c, max6698_housekeeping_t *data, uint8_t channel); //to be done
 
 #endif /* INCLUDE_CUSTOM_MAX6698_H_ */

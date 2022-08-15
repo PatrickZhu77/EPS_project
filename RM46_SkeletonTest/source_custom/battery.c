@@ -1,79 +1,142 @@
 
-#include "battery.h"
-#include "ina226.h"
-#include "stdio.h"
-#include "mppt.h"
+#include <battery.h>
 
 /***************************************************************************
  * @brief
- *   Switch the battery on (Start to discharge)
+ *   Turn on charging SW
  *
  * @param[in] battery
  *   Pointer to battery data.
  *
- ******************************************************************************/
-void battery_on(battery_data *battery)
+ ****************************************************************************/
+void battery_chargingSW_on(battery_data_t *battery)
 {
-    gioSetBit(BSW[battery->num],BSW_num[battery->num],1);
-    battery->sw = 1;
+    gioSetBit(BSW[((battery->num)-1)*2],BSW_num[((battery->num)-1)*2],1);
+    battery->sw[0] = 1;
 }
 
 /***************************************************************************
  * @brief
- *   Switch the battery off (Stop discharging)
+ *   Turn off charging SW
  *
  * @param[in] battery
  *   Pointer to battery data.
  *
- ******************************************************************************/
-void battery_off(battery_data *battery)
+ ****************************************************************************/
+void battery_chargingSW_off(battery_data_t *battery)
 {
-    gioSetBit(BSW[battery->num],BSW_num[battery->num],0);
-    battery->sw = 0;
+    gioSetBit(BSW[((battery->num)-1)*2],BSW_num[((battery->num)-1)*2],0);
+    battery->sw[0] = 0;
 }
 
 
 /***************************************************************************
  * @brief
- *   Decide how to control charging according to voltage and current
- *
- *  @param[in] data
- *   Pointer to public data structure of current sensor.
+ *   Turn on discharging SW
  *
  * @param[in] battery
  *   Pointer to battery data.
  *
- ******************************************************************************/
-void battery_compareVI(ina226_data *data1, battery_data *data2)
+ ****************************************************************************/
+void battery_dischargingSW_on(battery_data_t *battery)
 {
-
-    if((data1->bus_voltage *1250 /1000) > data2->maxV)               //when battery is full. (sumV LSB=1.25mV)
-    {
-        battery_off(data2);
-    }
+    gioSetBit(BSW[((battery->num)-1)*2+1],BSW_num[((battery->num)-1)*2+1],1);
+    battery->sw[1] = 1;
 }
 
 /***************************************************************************
  * @brief
- *   Decide when to turn battery off according to temperature
- *
- *  @param[in] data
- *   Pointer to public data structure of current sensor.
+ *   Turn off discharging SW
  *
  * @param[in] battery
  *   Pointer to battery data.
  *
- ******************************************************************************/
-void battery_compareT(max6698_data *data1, battery_data *data2)
+ ****************************************************************************/
+void battery_dischargingSW_off(battery_data_t *battery)
 {
-    if(data1->temp[0] < data2->temp_charge)               //when battery temp. < 10C
+    gioSetBit(BSW[((battery->num)-1)*2+1],BSW_num[((battery->num)-1)*2+1],0);
+    battery->sw[1] = 0;
+}
+
+/***************************************************************************
+ * @brief
+ *   Update battery status
+ *
+ * @param[in] battery
+ *   Pointer to battery data.
+ *
+ * @param[in] data
+ *   Pointer to data structure of current sensor data structure.
+ *
+ ****************************************************************************/
+void battery_check_charging_status(battery_data_t *battery, ina226_housekeeping_t *data)
+{
+    if(data->shunt_voltage & 0x8000)        //if current is negative
     {
-        battery_off(data2);
+        battery->status = 0;                //battery is discharging
+    }
+    else
+    {
+        battery->status = 1;                //battery is charging
     }
 
-    if(data1->temp[0] < data2->temp_discharge)               //when battery temp. < -20C
-    {
-        battery_off(data2);
-    }
+}
 
+/***************************************************************************
+ * @brief
+ *   Update battery measurement values
+ *
+ * @param[in] battery
+ *   Pointer to battery data.
+ *
+ * @param[in] data1
+ *   Pointer to data structure of current sensor data structure.
+ *
+ * @param[in] data2
+ *   Pointer to data structure of temperature sensor data structure.
+ *
+ ****************************************************************************/
+void battery_read_rawdata_and_convert(battery_data_t *battery, ina226_housekeeping_t *data1, max6698_housekeeping_t *data2)
+{
+    battery->current = INA226_ConvToCurrent_mA(data1);
+    battery->voltage = INA226_ConvToVoltage_mV(data1);
+    battery->temp = data2->temp[battery->num-1];
+}
+
+
+/***************************************************************************
+ * @brief
+ *   Control switches depending on temperature
+ *
+ * @param[in] battery
+ *   Pointer to battery data.
+ *
+ * @param[in] data
+ *   Pointer to data structure of non-volatile data.
+ *
+ ****************************************************************************/
+void battery_check_temp_then_SW(battery_data_t *battery, system_config_t *data)
+{
+    if(battery->status == 1)
+    {
+        if((battery->temp < data->batt_charging_temp_min_c) || (battery->temp > data->batt_charging_temp_max_c))    //if temperature is in the range
+        {
+            battery_chargingSW_off(battery);
+        }
+        else
+        {
+            battery_chargingSW_on(battery);
+        }
+    }
+    else
+    {
+        if((battery->temp < data->batt_discharging_temp_min_c) || (battery->temp > data->batt_discharging_temp_max_c))  //if temperature is in the range
+        {
+            battery_dischargingSW_off(battery);
+        }
+        else
+        {
+            battery_dischargingSW_on(battery);
+        }
+    }
 }

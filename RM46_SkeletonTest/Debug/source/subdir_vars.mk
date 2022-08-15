@@ -20,6 +20,7 @@ C_SRCS += \
 ../source/Device_RM46.c \
 ../source/Fapi_UserDefinedFunctions.c \
 ../source/can.c \
+../source/crc.c \
 ../source/errata_SSWF021_45.c \
 ../source/esm.c \
 ../source/gio.c \
@@ -36,6 +37,7 @@ C_SRCS += \
 ../source/os_tasks.c \
 ../source/os_timer.c \
 ../source/pinmux.c \
+../source/rti.c \
 ../source/sci.c \
 ../source/sys_dma.c \
 ../source/sys_pcr.c \
@@ -64,6 +66,7 @@ C_DEPS += \
 ./source/Device_RM46.d \
 ./source/Fapi_UserDefinedFunctions.d \
 ./source/can.d \
+./source/crc.d \
 ./source/errata_SSWF021_45.d \
 ./source/esm.d \
 ./source/gio.d \
@@ -80,6 +83,7 @@ C_DEPS += \
 ./source/os_tasks.d \
 ./source/os_timer.d \
 ./source/pinmux.d \
+./source/rti.d \
 ./source/sci.d \
 ./source/sys_dma.d \
 ./source/sys_pcr.d \
@@ -108,6 +112,7 @@ OBJS += \
 ./source/Device_RM46.obj \
 ./source/Fapi_UserDefinedFunctions.obj \
 ./source/can.obj \
+./source/crc.obj \
 ./source/dabort.obj \
 ./source/errata_SSWF021_45.obj \
 ./source/esm.obj \
@@ -126,6 +131,7 @@ OBJS += \
 ./source/os_tasks.obj \
 ./source/os_timer.obj \
 ./source/pinmux.obj \
+./source/rti.obj \
 ./source/sci.obj \
 ./source/sys_core.obj \
 ./source/sys_dma.obj \
@@ -166,6 +172,7 @@ OBJS__QUOTED += \
 "source\Device_RM46.obj" \
 "source\Fapi_UserDefinedFunctions.obj" \
 "source\can.obj" \
+"source\crc.obj" \
 "source\dabort.obj" \
 "source\errata_SSWF021_45.obj" \
 "source\esm.obj" \
@@ -184,6 +191,7 @@ OBJS__QUOTED += \
 "source\os_tasks.obj" \
 "source\os_timer.obj" \
 "source\pinmux.obj" \
+"source\rti.obj" \
 "source\sci.obj" \
 "source\sys_core.obj" \
 "source\sys_dma.obj" \
@@ -216,6 +224,7 @@ C_DEPS__QUOTED += \
 "source\Device_RM46.d" \
 "source\Fapi_UserDefinedFunctions.d" \
 "source\can.d" \
+"source\crc.d" \
 "source\errata_SSWF021_45.d" \
 "source\esm.d" \
 "source\gio.d" \
@@ -232,6 +241,7 @@ C_DEPS__QUOTED += \
 "source\os_tasks.d" \
 "source\os_timer.d" \
 "source\pinmux.d" \
+"source\rti.d" \
 "source\sci.d" \
 "source\sys_dma.d" \
 "source\sys_pcr.d" \
@@ -268,6 +278,7 @@ C_SRCS__QUOTED += \
 "../source/Device_RM46.c" \
 "../source/Fapi_UserDefinedFunctions.c" \
 "../source/can.c" \
+"../source/crc.c" \
 "../source/errata_SSWF021_45.c" \
 "../source/esm.c" \
 "../source/gio.c" \
@@ -284,6 +295,7 @@ C_SRCS__QUOTED += \
 "../source/os_tasks.c" \
 "../source/os_timer.c" \
 "../source/pinmux.c" \
+"../source/rti.c" \
 "../source/sci.c" \
 "../source/sys_dma.c" \
 "../source/sys_pcr.c" \

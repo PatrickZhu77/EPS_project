@@ -39,7 +39,7 @@ void get_binary(uint16_t data, uint8_t out_channel)
  *   Pointer to mppt data.
  *
  ******************************************************************************/
-void dac_write_en(gioPORT_t *spi, mppt_data *data)
+void dac_write_en(gioPORT_t *spi, mppt_data_t *data)
 {
     uint16_t t;
 
@@ -114,7 +114,7 @@ void dac_write_en_ss(gioPORT_t *spi,uint16_t value)
 }
 
 
-void dac_write_ss(gioPORT_t *spi, mppt_data *data)
+void dac_write_ss(gioPORT_t *spi, mppt_data_t *data)
 {
     uint16_t t;
 

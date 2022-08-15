@@ -1289,6 +1289,18 @@ TickType_t xTaskGetTickCount( void ) PRIVILEGED_FUNCTION;
 
 /**
  * task. h
+ * <PRE>TickType_t xTaskGetExpectedIdleTime( void );</PRE>
+ *
+ * @return The count of ticks for expected idle task.
+ *
+ * \defgroup xTaskGetExpectedIdleTime xTaskGetExpectedIdleTime
+ * \ingroup TaskUtils
+ */
+TickType_t xTaskGetExpectedIdleTime( void ) PRIVILEGED_FUNCTION;
+
+
+/**
+ * task. h
  * <PRE>BaseType_t xTaskGetTickOverflowCount( void );</PRE>
  *
  * @return The count of tick overflows since vTaskStartScheduler was called.
