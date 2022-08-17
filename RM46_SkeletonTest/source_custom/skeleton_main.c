@@ -98,12 +98,13 @@
 */
 
 /* USER CODE BEGIN (2) */
-
+#define DEBUGGING_MODE 1
 /*******************************************************/
 
 #define TIMER_ID                1
 #define DELAY_10_SECONDS        10000UL /* 1000 ticks per sec on this H/W */
 #define DELAY_1_SECOND          1000UL
+#define DELAY_100_MS_SECONDS    100UL
 #define TIMER_CHECK_THRESHOLD   9
 
 /*****************RTC Variables************************/
@@ -114,13 +115,13 @@ static RTC_t *global_prealtimeClock = &global_realtimeClock;
 
 /***************FLASH Data***************/
 /*Writing Access: init_task, receiveCMD_task*/
-/*Reading Access: init_task, outputchanCtrl_task, powerConvertion_and_battCtrl_task, heaterCtrl_task, receiveCMD_task*/
+/*Reading Access: init_task, outputchanCtrl_task, powerConversion_and_battCtrl_task, heaterCtrl_task, receiveCMD_task*/
 
 static system_config_t global_flashD = {BATT_CHARGING_TEMP_MIN_C, BATT_CHARGING_TEMP_MAX_C, BATT_DISCHARGING_TEMP_MIN_C, BATT_DISCHARGING_TEMP_MAX_C,
                             HEATER_SUNSHINE_TEMP_ON_C, HEATER_SUNSHINE_TEMP_OFF_C, HEATER_ECLIPSE_TEMP_ON_C, HEATER_ECLIPSE_TEMP_OFF_C,
                             {INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT},
                             {INA226_MONITOR_ALERT}, INA226_SHUNT_RESISTANCE, BATT_CHARGING_CURRENT_LIMIT_mA, BATT_DISCHARGING_CURRENT_LIMIT_mA,
-                            HEATER_TUMBLE_THRESHOLD_TIME_S, HEATER_SOLAR_PANEL_THRESHOLD_POWER_S, HEATER_DELAY_TIME_S,
+                            HEATER_TUMBLE_THRESHOLD_TIME_S, HEATER_SOLAR_PANEL_THRESHOLD_POWER_mW, HEATER_DELAY_TIME_S,
                             DAC_INIT, EN_STEPSIZE_INIT, {0}};
 static system_config_t *pglobal_flashD = &global_flashD;
 
@@ -131,7 +132,7 @@ static sensor_config_t *pglobal_flash_sensor_config = &global_flash_senser_confi
 
 /*******************Sensor Data**********************/
 /*Writing Access: init_task, receiveCMD_task, getHK_task*/
-/*Reading Access: outputchanCtrl_task, powerConvertion_and_battCtrl_task, heaterCtrl_task, receiveCMD_task*/
+/*Reading Access: outputchanCtrl_task, powerConversion_and_battCtrl_task, heaterCtrl_task, receiveCMD_task*/
 
 static ina226_housekeeping_t global_ina226D[NUM_OF_INA226];
 static ina226_housekeeping_t *pglobal_ina226D = &global_ina226D[0];
@@ -154,16 +155,16 @@ static uint8_t global_delay_counter=0;
 //static uint8_t watchdog_counter = 0;
 
 /*****************MPPT Data*************************/
-/*Writing Access: powerConvertion_and_battCtrl_task*/
-/*Reading Access: powerConvertion_and_battCtrl_task, receiveCMD_task*/
+/*Writing Access: powerConversion_and_battCtrl_task*/
+/*Reading Access: powerConversion_and_battCtrl_task, receiveCMD_task*/
 
 static mppt_data_t global_mpptD[NUM_OF_MPPTS];
 static mppt_data_t *pglobal_mpptD = &global_mpptD[0];
 static uint8_t global_mppt_counter = 0;
 
 /*****************Battery Data*************************/
-/*Writing Access: powerConvertion_and_battCtrl_task*/
-/*Reading Access: powerConvertion_and_battCtrl_task, receiveCMD_task*/
+/*Writing Access: powerConversion_and_battCtrl_task*/
+/*Reading Access: powerConversion_and_battCtrl_task, receiveCMD_task*/
 
 static battery_data_t global_battD[NUM_OF_BATTERY_PAIR];
 static battery_data_t *pglobal_battD = &global_battD[0];
@@ -195,7 +196,7 @@ static uint32_t global_chanctrl_last_ticktime = 0;
 /*Writing Access: getHK_task*/
 static uint32_t global_hk_last_ticktime = 0;
 
-/*Writing Access: powerConvertion_and_battCtrl_task*/
+/*Writing Access: powerConversion_and_battCtrl_task*/
 static uint32_t global_batt_last_ticktime = 0;
 
 /*Writing Access: heaterCtrl_task*/
@@ -214,19 +215,22 @@ int main(void)
 /* USER CODE BEGIN (3) */
 
     /*Check FLASH memory*/
-    checkFlashECC();
-    checkFlashEEPROMECC();
+//    checkFlashECC();
+//    checkFlashEEPROMECC();
+
 
     /*Part of main function standard template*/
     _enable_IRQ();
 
-    /*Initialize peripherals that will be used*/
+    /*TI built-in code will do some initialization but the following initialization functions still need to be called*/
+    /*Initialize peripherals that will be used. The details of initial configuration is done using TI tool HAL Code Generator*/
     sciInit();      //serial port for debugging
-    gioInit();      //general-purpose I/O
-    i2cInit();      //i2c interface for current sensors and temp. sensors)
-    canInit();      //interface to cubesat space protocal (CSP)
-    mibspiInit();   //SPI interface to digital to analog converter
+    gioInit();      //general-purpose I/O (The initialization parameters are defined in other TI tool called HalCoGen)
+    i2cInit();      //i2c interface for current sensors and temp. sensors (The initialization parameters are defined in other TI tool called HalCoGen)
+    canInit();      //interface to cubesat space protocal (CSP) (The initialization parameters are defined in other TI tool called HalCoGen)
+    mibspiInit();   //SPI interface to digital to analog converter (The initialization parameters are defined in other TI tool called HalCoGen)
 
+    /*The following functions are included for clarity. The same effect can be done using HALCoGen*/
     /* Wakeup mask setting to enable rti counter1 and counter2 to wake the system from snooze (low-power) mode*/
     vimREG->WAKEMASKSET0 = 1<<2 | 1<<3;
 
@@ -246,11 +250,9 @@ int main(void)
     /* Reset real-time clock in debugging mode */
     resetRTC_debug(global_prealtimeClock);
 
+#ifdef DEBUGGING_MODE
     sciSend(scilinREG,19,(unsigned char *)"init_task created\r\n");
-
-
-//    xQueue = xQueueCreate(1, sizeof(unsigned char*));
-//    configASSERT( xQueue );
+#endif
 
     vTaskStartScheduler();
 
@@ -284,6 +286,10 @@ void init_task(void *pvParameters)
     /*Initialize tick_counter for tasks*/
     /**************************/
 
+
+    /*In the case of sensors, both data structures and the hardware are initialized in this task. For other modules, only data structures are initialized in this task.
+     * The hardware components will be initialized in controlling tasks using data in data structures*/
+
     /*Initialize MPPT data structure*/
     for(global_mppt_counter=0; global_mppt_counter<NUM_OF_MPPTS; global_mppt_counter++)
     {
@@ -297,7 +303,7 @@ void init_task(void *pvParameters)
         global_mpptD[global_mppt_counter].power = 0;
     }
 
-    /*Initialize INA226 single-channel current sensor data structure*/
+    /*Initialize INA226 single-channel current sensor data structure and the hardware*/
 
     /*sensors of overcurrent protection module*/
     global_loop_counter = 0;
@@ -305,7 +311,7 @@ void init_task(void *pvParameters)
     {
         global_ina226D[global_ina226_counter].address = INA226_ADDR1;
 //        global_ina226D[global_ina226_counter].mask_reg = pglobal_flash_sensor_config->ina226_overcurrent_mask;
-        global_ina226D[global_ina226_counter].alert_reg = global_flashD.overcurrent_protection_alert[global_ina226_counter];
+        global_ina226D[global_ina226_counter].alert_reg = global_flashD.overcurrent_protection_alert_mA[global_ina226_counter];
 
         INA226_Init(i2cREG1, pglobal_flashD->overcurrent_protection_Rshunt[global_loop_counter], pglobal_flash_sensor_config, pglobal_flash_sensor_config->ina226_overcurrent_mask, pglobal_ina226D+global_ina226_counter);
         global_loop_counter++;
@@ -317,7 +323,7 @@ void init_task(void *pvParameters)
     {
         global_ina226D[global_ina226_counter].address = INA226_ADDR1;
 //        global_ina226D[global_ina226_counter].mask_reg = pglobal_flash_sensor_config->ina226_monitor_mask;
-        global_ina226D[global_ina226_counter].alert_reg = global_flashD.current_monitor_alert[global_ina226_counter-NUM_OF_INA226_OVERCURRENT_PROTECTION];
+        global_ina226D[global_ina226_counter].alert_reg = global_flashD.current_monitor_alert_mA[global_ina226_counter-NUM_OF_INA226_OVERCURRENT_PROTECTION];
 
         INA226_Init(i2cREG1, pglobal_flashD->current_monitor_Rshunt[global_loop_counter], pglobal_flash_sensor_config, pglobal_flash_sensor_config->ina226_monitor_mask, pglobal_ina226D+global_ina226_counter);
         global_loop_counter++;
@@ -348,7 +354,7 @@ void init_task(void *pvParameters)
     }
 
 
-    /*Initialize INA3221 triple-channel current sensor data structure*/
+    /*Initialize INA3221 triple-channel current sensor data structure and the hardware*/
     for(global_ina3221_counter=0;global_ina3221_counter<NUM_OF_INA3221;global_ina3221_counter++)
     {
         global_ina3221D[global_ina3221_counter].address = INA3221_ADDR1;
@@ -356,7 +362,7 @@ void init_task(void *pvParameters)
         INA3221_Init(i2cREG1, pglobal_flash_sensor_config, pglobal_ina3221D+global_ina3221_counter);
     }
 
-    /*Initialize MAX6698 temperature sensor data structure*/
+    /*Initialize MAX6698 temperature sensor data structure  and the hardware*/
     for(global_max6698_counter=0;global_max6698_counter<NUM_OF_MAX6698;global_max6698_counter++)
     {
         global_max6698D[global_max6698_counter].address = MAX6698_ADDR1;
@@ -364,7 +370,7 @@ void init_task(void *pvParameters)
         MAX6698_Init(i2cREG1, pglobal_flash_sensor_config, pglobal_max6698D+global_max6698_counter);
     }
 
-    /*Initialize battery heater data structure, updated in power conversion and battery controlling task*/
+    /*Initialize battery heater data structure, and the hardware is updated in power conversion and battery controlling task*/
     for(global_heater_counter=0;global_heater_counter<NUM_OF_HEATER;global_heater_counter++)
     {
         global_heaterD[global_heater_counter].num = global_heater_counter+1;
@@ -372,7 +378,7 @@ void init_task(void *pvParameters)
         global_heaterD[global_heater_counter].profile = 1;
     }
 
-    /*Initialize battery data structure, updated in battery controlling task*/
+    /*Initialize battery data structure, and the hardware is updated in battery controlling task*/
     for(global_battery_counter=0;global_battery_counter<NUM_OF_BATTERY_PAIR;global_battery_counter++)
     {
         global_battD[global_battery_counter].num = global_battery_counter+1;
@@ -381,7 +387,7 @@ void init_task(void *pvParameters)
     }
 
 
-    /*Initialize channel data structure, update*/
+    /*Initialize channel data structure,  and the hardware is updated in channel controlling task*/
     for(global_channel_counter=0;global_channel_counter<NUM_OF_CHANNELS;global_channel_counter++)
     {
         global_channelD[global_channel_counter].num = global_channel_counter+1;
@@ -392,8 +398,9 @@ void init_task(void *pvParameters)
     }
 
 
-    /* Create other tasks */
+    /* Create all the other tasks */
 
+    /*Create output channel controlling task*/
     xTaskCreate((TaskFunction_t )outputchanCtrl_task,
                 (const char*    )"outputchanCtrl_task",
                 (uint16_t       )outputchanCtrl_STK_SIZE,
@@ -402,7 +409,8 @@ void init_task(void *pvParameters)
                 (TaskHandle_t*  )&outputchanCtrlTask_Handle);
     sciSend(scilinREG,22,(unsigned char *)"Output channel task created\r\n");
 
-
+#ifdef DEBUGGING_MODE
+    /**/
     xTaskCreate((TaskFunction_t )receiveCMD_task,
                 (const char*    )"receiveCMD_task",
                 (uint16_t       )receiveCMD_STK_SIZE,
@@ -410,16 +418,16 @@ void init_task(void *pvParameters)
                 (UBaseType_t    )(receiveCMD_TASK_PRIO|portPRIVILEGE_BIT),
                 (TaskHandle_t*  )&receiveCMDTask_Handle);
     sciSend(scilinREG,25,(unsigned char *)"receiveCMD task created\r\n");
+#else
 
-
-//    xTaskCreate((TaskFunction_t )executeCMD_task,
-//                (const char*    )"executeCMD_task",
-//                (uint16_t       )executeCMD_STK_SIZE,
-//                (void*          )NULL,
-//                (UBaseType_t    )executeCMD_TASK_PRIO,
-//                (TaskHandle_t*  )&executeCMDTask_Handler);
-//    sciSend(scilinREG,25,(unsigned char *)"executeCMD task created\r\n");
-
+    xTaskCreate((TaskFunction_t )executeCMD_task,
+                (const char*    )"executeCMD_task",
+                (uint16_t       )executeCMD_STK_SIZE,
+                (void*          )NULL,
+                (UBaseType_t    )executeCMD_TASK_PRIO,
+                (TaskHandle_t*  )&executeCMDTask_Handler);
+    sciSend(scilinREG,25,(unsigned char *)"executeCMD task created\r\n");
+#endif
 
     xTaskCreate((TaskFunction_t )getHK_task,
                 (const char*    )"getHK_task",
@@ -439,15 +447,6 @@ void init_task(void *pvParameters)
     sciSend(scilinREG,24,(unsigned char *)"check_other_tasks_activity task created\r\n");
 
 
-//    xTaskCreate((TaskFunction_t )watchdog_task,
-//                (const char*    )"watchdog_task",
-//                (uint16_t       )watchdog_STK_SIZE,
-//                (void*          )NULL,
-//                (UBaseType_t    )(watchdog_TASK_PRIO|portPRIVILEGE_BIT),
-//                (TaskHandle_t*  )&watchdogTask_Handle);
-//    sciSend(scilinREG,23,(unsigned char *)"watchdog task created\r\n");
-
-
     xTaskCreate((TaskFunction_t )heaterCtrl_task,
                 (const char*    )"heaterCtrl_task",
                 (uint16_t       )heaterCtrl_STK_SIZE,
@@ -457,12 +456,12 @@ void init_task(void *pvParameters)
     sciSend(scilinREG,34,(unsigned char *)"heater controlling task created\r\n");
 
 
-    xTaskCreate((TaskFunction_t )powerConvertion_and_battCtrl_task,
-                (const char*    )"powerConvertion_and_battCtrl_task",
-                (uint16_t       )powerConvertion_and_battCtrl_STK_SIZE,
+    xTaskCreate((TaskFunction_t )powerConversion_and_battCtrl_task,
+                (const char*    )"powerConversion_and_battCtrl_task",
+                (uint16_t       )powerConversion_and_battCtrl_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )(powerConvertion_and_battCtrl_TASK_PRIO|portPRIVILEGE_BIT),            //could be run in user mode
-                (TaskHandle_t*  )&powerConvertion_and_battCtrlTask_Handle);
+                (UBaseType_t    )(powerConversion_and_battCtrl_TASK_PRIO|portPRIVILEGE_BIT),            //could be run in user mode
+                (TaskHandle_t*  )&powerConversion_and_battCtrlTask_Handle);
     sciSend(scilinREG,34,(unsigned char *)"power convertion and battery controlling task created\r\n");
 
 
@@ -481,7 +480,7 @@ void getHK_task(void *pvParameters)
 
     while(1)
     {
-        /* Read raw data from ina226 single-channel current sensor registers and save them to data structure */
+        /* Read raw data from ina226 single-channel current sensor registers and update the data structure */
         for(global_ina226_counter=0;global_ina226_counter<NUM_OF_INA226;global_ina226_counter++)
         {
             INA226_ReadShuntVoltage_Raw(i2cREG1, pglobal_ina226D+global_ina226_counter);
@@ -493,7 +492,7 @@ void getHK_task(void *pvParameters)
             global_ina226D[global_ina226_counter].timestamp_sec = getcurrTime(global_prealtimeClock);
         }
 
-        /* Read raw data from ina3221 multi-channel current sensor registers and save them to data structure */
+        /* Read raw data from ina3221 multi-channel current sensor registers and update the data structure */
         for(global_ina3221_counter=0;global_ina3221_counter<NUM_OF_INA3221;global_ina3221_counter++)
         {
 
@@ -507,7 +506,7 @@ void getHK_task(void *pvParameters)
             global_ina3221D[global_ina3221_counter].timestamp_sec = getcurrTime(global_prealtimeClock);
         }
 
-        /* Read raw data from max6698 multi-channel temperature sensor registers and save them to data structure */
+        /* Read raw data from max6698 multi-channel temperature sensor registers and update the data structure */
         for(global_max6698_counter=0;global_max6698_counter<NUM_OF_MAX6698;global_max6698_counter++)
         {
             MAX6698_ReadTemp_Raw(i2cREG1, pglobal_max6698D+global_max6698_counter, 1);
@@ -528,7 +527,8 @@ void getHK_task(void *pvParameters)
 void check_other_tasks_activity_task(void *pvParameters)
 {
 
-    const portTickType xDelay = pdMS_TO_TICKS(4000);
+    const portTickType xDelay = pdMS_TO_TICKS(4*DELAY_1_SECOND);        //This delay time should be longer than the period of all the other tasks.
+                                                                        //4 seconds gives the chance for other tasks to run at least onece
     static uint32_t preTick[5] = {0};
     char str_temp[1] = {0};
 
@@ -549,11 +549,6 @@ void check_other_tasks_activity_task(void *pvParameters)
             preTick[1] = global_chanctrl_last_ticktime;
             global_selfCheck_counter++;
         }
-//        if(wdt_t != preTick[2])
-//        {
-//            preTick[2] = wdt_t;
-//            global_selfCheck_counter++;
-//        }
         if(global_heater_last_ticktime != preTick[3])
         {
             preTick[3] = global_heater_last_ticktime;
@@ -566,7 +561,7 @@ void check_other_tasks_activity_task(void *pvParameters)
         }
 
 
-        if(global_selfCheck_counter == 5) // all tasks are checked
+        if(global_selfCheck_counter == 5) // all other tasks are verified to be running
         {
             /* pet the watchdog timer */
             gioSetBit(hetPORT2,11,1);
@@ -579,11 +574,14 @@ void check_other_tasks_activity_task(void *pvParameters)
         }
         else
         {
+#ifdef DEBUGGING_MODE
             sprintf(str_temp,"%d",(int)global_selfCheck_counter);
             while (sciIsTxReady == 0);
             sciSend(scilinREG,15,(unsigned char *)"Working tasks: ");
             sciSend(scilinREG,strlen((const char *)str_temp),(unsigned char *)str_temp);
             sciSend(scilinREG,4,(unsigned char *)"\r\n\r\n");
+#endif
+            /*Here we should insert error message to log file*/
         }
 
 
@@ -592,62 +590,26 @@ void check_other_tasks_activity_task(void *pvParameters)
     }
 }
 
-//void watchdog_task(void *pvParameters)
-//{
-////    printf( "selfCheck task running\n");
-//
-//    const portTickType xDelay = pdMS_TO_TICKS(1000);
-//
-//    uint16_t rst = 0;
-//    char temp1[20] = {0};
-//    char pcWriteBuffer[100] = {0};
-//
-////    char temp1[40] = {0};
-//
-//
-//    while(1)
-//    {
-//        if(watchdog_counter>4)
-//        {
-////            seconds2 = time(NULL);
-//            while (sciIsTxReady == 0);
-//            sciSend(scilinREG,23,(unsigned char *)"Failed to contact OBC\r\n");
-//            watchdog_counter=0;
-//
-//            rst = (uint16_t)systemREG1->SYSESR;
-//            sprintf(temp1,"%d",(int)rst);
-//            sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
-//            sciSend(scilinREG,2,(unsigned char *)"\r\n");
-//
-////            printf("seconds since January 1, 1970 = %d\n", seconds);
-//
-//        }
-//        watchdog_counter++;
-//
-//        wdt_t = (uint32_t)xTaskGetTickCount();
-//
-////        vTaskGetRunTimeStats(pcWriteBuffer);
-////        sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
-////        sciSend(scilinREG,2,(unsigned char *)"\r\n");
-//
-//
-//        vTaskDelay(xDelay);
-//
-//    }
-//}
 
-
+/*****************************
+ * Read data from sensor data structure (updated by getHK_task).
+ * Update channel control data structure.
+ * Detect errors according to the channel control data structure.
+ * Update the hardware according to the channel control data structure.
+ * */
 void outputchanCtrl_task(void *pvParameters)
 {
 
-    const portTickType xDelay = pdMS_TO_TICKS(100);
+    const portTickType xDelay = pdMS_TO_TICKS(CHAN_CTRL_TASK_PERIOD);
     vTaskDelay(xDelay);
 
     while(1)
     {
 
-        channel_check_mode(pglobal_channelD, global_sys_mode);
-        channel_resume(pglobal_channelD);
+        channel_check_mode(pglobal_channelD, global_sys_mode);      //check if the channel is allowed to be on in the current mode
+        channel_resume(pglobal_channelD);                           //re-enable task that was disabled for one period
+        channel_check_overcurrent_then_config_and_resume(pglobal_channelD, pglobal_ina226D+(NUM_OF_INA226-NUM_OF_INA226_CHANNEL),
+                                                         pglobal_flashD, pglobal_flash_sensor_config, i2cREG1);
 
         channel_check_batteryV_then_SW(pglobal_channelD, pglobal_battD, pglobal_flashD);
         channel_check_batteryI_then_SW(pglobal_channelD, pglobal_battD, pglobal_flashD);
@@ -656,7 +618,7 @@ void outputchanCtrl_task(void *pvParameters)
         channel_read_rawdata_and_convert(pglobal_channelD, pglobal_ina226D+(NUM_OF_INA226-NUM_OF_INA226_CHANNEL));
 
 
-        global_chanctrl_last_ticktime = (uint32_t)xTaskGetTickCount();
+        global_chanctrl_last_ticktime = (uint32_t)xTaskGetTickCount();      //update last ticktime to indicate task activity
         vTaskDelay(xDelay);
     }
 }
@@ -672,6 +634,7 @@ void heaterCtrl_task(void *pvParameters)
     {
         for(global_heater_counter=0; global_heater_counter<NUM_OF_HEATER; global_heater_counter++)
         {
+            heater_update_profile(pglobal_heaterD+global_heater_counter, pglobal_flashD, pglobal_ina3221D, getcurrTime(global_prealtimeClock));
             heater_read_rawdata_and_convert(pglobal_heaterD+global_heater_counter, pglobal_max6698D);
             heater_temp_SW(pglobal_heaterD+global_heater_counter, pglobal_flashD);
         }
@@ -682,7 +645,7 @@ void heaterCtrl_task(void *pvParameters)
 }
 
 
-void powerConvertion_and_battCtrl_task(void *pvParameters)
+void powerConversion_and_battCtrl_task(void *pvParameters)
 {
 
     const portTickType xDelay = pdMS_TO_TICKS(MPPT_TASK_DELAY);
@@ -793,7 +756,7 @@ void receiveCMD_task(void *pvParameters)
 
 }
 
-
+/*what is turned off and what is still running in this mode?*/
 void enter_snooze(void)
 {
     /* RTI is configured to generate compare 1 interrupt every 1 second using 16MHz OSCIN as source */

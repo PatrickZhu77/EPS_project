@@ -96,6 +96,7 @@ source_custom/skeleton_main.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include
 source_custom/skeleton_main.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/cmd_interface.h
 source_custom/skeleton_main.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/battery.h
 source_custom/skeleton_main.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/channel.h
+source_custom/skeleton_main.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/realtimeClock.h
 source_custom/skeleton_main.obj: F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdlib.h
 source_custom/skeleton_main.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/realtimeClock.h
 
@@ -195,5 +196,6 @@ E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/uart_cmd.h:
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/cmd_interface.h: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/battery.h: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/channel.h: 
+E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/realtimeClock.h: 
 F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdlib.h: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/realtimeClock.h: 

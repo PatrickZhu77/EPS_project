@@ -53,18 +53,14 @@
 #define     INA226_CAL_SETTING          0x200        //calculated calibration register value: 0.00512/(INA226_CURRENT_LSB(in A) * INA226_SHUNT_RESISTANCE(in Ohm))
 #define     INA226_OVERCURRENT_MASK     0x8000       //Mask for overcurrent protection sensor. 0x8000: enable Vshunt overvoltage (overcurrent) alert
 #define     INA226_OVERCURRENT_ALERT    0x2710       //Alert value for overcurrent protection sensor. 10A overcurrent limit
-#define     INA226_CHANNEL_MASK         0x8000       //Mask for channel sensor. 0x8000: enable Vshunt overvoltage (overcurrent) alert
+#define     INA226_CHANNEL_MASK         0x8001       //Mask for channel sensor. 0x8001: enable Vshunt overvoltage (overcurrent) alert
+                                                     //Bit 0 is Alert Latch Enable bit. It is set to Latch mode, which means the Alert pin and Alert Flag bit remains
+                                                     //active following a fault until the Mask/Enable Register has been read.
 #define     INA226_CHANNEL_ALERT        0x2710       //Alert value for channel sensor. 10A overcurrent limit
 #define     INA226_BATTERY_MASK         0x0000       //Mask for battery sensor. Disable alert.
 #define     INA226_MONITOR_MASK         0x8000       //Mask for monitor sensor. 0x8000: enable Vshunt overvoltage (overcurrent) alert
 #define     INA226_MONITOR_ALERT        0x2710       //Alert value for monitor sensor. 10A overcurrent limit
 
-
-//#define     NUM_OF_INA226                           27      // 27 is the default value according to schematic of eps
-//#define     NUM_OF_INA226_OVERCURRENT_PROTECTION    6       // 6 is the default value according to schematic of eps
-//#define     NUM_OF_INA226_BATTERY                   2       // 2 is the default value according to schematic of battery board
-//#define     NUM_OF_INA226_MONITOR                   1       // 1 is the default value according to schematic of eps
-//#define     NUM_OF_INA226_CHANNEL                   18      // 18 is the default value according to schematic of eps
 
 #define     INA226_SHUNT_RESISTANCE    10      //mOhm. 0.01 Ohm is the value of shunt resistor used
 
@@ -72,6 +68,8 @@
 #define     INA226_BUSV_LSB        1250      //1250uV (=1.25mV) is the LSB of bus voltage register
 #define     INA226_CURRENT_LSB     1         //1mA is the chosen LSB of the current register
 #define     INA226_POWER_LSB       25        //25mW is the calculated LSB of the power register
+
+#define     MASK_REG_ALERT_FLAG_MASK    16
 
 //#define     INA226_err      0xC                 //0001_100. Alert Response slave address
 
@@ -99,6 +97,7 @@ uint16_t INA226_VoltageToAlert_BusVoltage_Raw(uint16_t voltage_mV);
 void INA226_Init(i2cBASE_t *i2c, uint16_t Rshunt, sensor_config_t *data2, uint16_t mask, ina226_housekeeping_t *data3);
 void INA226_SetMaskReg(i2cBASE_t *i2c, ina226_housekeeping_t *data, uint16_t mask);
 void INA226_SetAlertReg(i2cBASE_t *i2c, ina226_housekeeping_t *data, uint16_t alert, uint16_t cal_reg);
+uint16_t INA226_ReadMaskReg(i2cBASE_t *i2c, ina226_housekeeping_t *data);
 
 void INA226_ReadShuntVoltage_Raw(i2cBASE_t *i2c, ina226_housekeeping_t *data);
 void INA226_ReadBusVoltage_Raw(i2cBASE_t *i2c, ina226_housekeeping_t *data);

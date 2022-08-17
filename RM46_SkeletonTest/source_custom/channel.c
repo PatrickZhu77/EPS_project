@@ -299,3 +299,41 @@ void channel_resume(channel_data_t *Fchannel)
     }
 
 }
+
+
+void channel_check_overcurrent_then_config_and_resume(channel_data_t *Fchannel, ina226_housekeeping_t *Fdata, system_config_t *data, sensor_config_t *data2, i2cBASE_t *i2c)
+{
+    uint8_t i, j;
+
+    for(i=0; i<NUM_OF_CHANNELS; i++)
+    {
+        if((INA226_ReadMaskReg(i2c, Fdata+i) & MASK_REG_ALERT_FLAG_MASK))           //mask register alert flag is 1
+        {
+            /*Record the latest three trip time intervals*/
+            (Fchannel+i)->t_interval[2] = (Fchannel+i)->t_interval[1];
+            (Fchannel+i)->t_interval[1] = (Fchannel+i)->t_interval[0];
+            (Fchannel+i)->t_interval[0] = (uint32_t)xTaskGetTickCount() - (Fchannel+i)->t_lastTrip;
+
+            /*Record the trip time in tick*/
+            (Fchannel+i)->t_lastTrip = (uint32_t)xTaskGetTickCount();
+
+            uint64_t t_interval_avg = 0;
+            for(j=0; j<NUM_OF_T_INTERVAL; j++)
+            {
+                t_interval_avg += (Fchannel+i)->t_interval[j];
+            }
+            t_interval_avg /= NUM_OF_T_INTERVAL;
+
+            if(t_interval_avg < MINIMUM_TIME_INTERVAL_AVERAGE)                      //average time interval smaller than minimum threshold
+            {
+                /*Update the global data structure of RAM copy and proper sensor*/
+                data->chan_config_data[i].maxI_mA += data->chan_config_data[i].maxI_increment_mA;
+                (Fdata+i)->alert_reg = data->chan_config_data[i].maxI_mA;
+
+                /*Update the sensor register*/
+                INA226_Init(i2c, data->channel_monitor_Rshunt[i], data2, data2->ina226_channel_mask, (Fdata+i));
+
+            }
+        }
+    }
+}

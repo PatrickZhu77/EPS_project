@@ -31,6 +31,7 @@ source_custom/cmd_interface.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include
 source_custom/cmd_interface.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include/i2c.h
 source_custom/cmd_interface.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/max6698.h
 source_custom/cmd_interface.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/channel.h
+source_custom/cmd_interface.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/realtimeClock.h
 source_custom/cmd_interface.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/fee_function.h
 source_custom/cmd_interface.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include/ti_fee.h
 source_custom/cmd_interface.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include/fee_interface.h
@@ -98,6 +99,7 @@ E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/ina3221.h:
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include/i2c.h: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/max6698.h: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/channel.h: 
+E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/realtimeClock.h: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/fee_function.h: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include/ti_fee.h: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include/fee_interface.h: 

@@ -44,6 +44,8 @@ source_custom/heater.obj: F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cg
 source_custom/heater.obj: F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_string.h
 source_custom/heater.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/max6698.h
 source_custom/heater.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include/reg_i2c.h
+source_custom/heater.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/ina3221.h
+source_custom/heater.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include/i2c.h
 
 ../source_custom/heater.c: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/heater.h: 
@@ -89,3 +91,5 @@ F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/s
 F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/xlocale/_string.h: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/max6698.h: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include/reg_i2c.h: 
+E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/ina3221.h: 
+E:/CCSv8//\ workspace/RM46_SkeletonTest/include/i2c.h: 

@@ -8,6 +8,7 @@
 #include "ina226.h"
 #include "battery.h"
 #include "flash_data.h"
+#include "realtimeClock.h"
 
 //#define     NUM_OF_CHANNELS  18     //There are 18 channels according to schematic of eps.
 
@@ -16,6 +17,11 @@
 #define     MID_CH      2
 #define     HIGH_CH     3
 #define     HIGHEST_CH  4
+
+#define     MINIMUM_TIME_INTERVAL_AVERAGE       200     //ms
+#define     NUM_OF_T_INTERVAL           3
+
+#define     OVERCURRENT_THRESHOLD_INCREMENT     100     //mA
 
 typedef struct
 {
@@ -28,6 +34,8 @@ typedef struct
     uint16_t current;              //mA
     uint16_t voltage;              //mV
     uint32_t group_mask;           //group mask channels. 1 bit for each channel. If grouped with a channel, that bit is set to 1
+    uint32_t t_lastTrip;           //in tick. Tick time of last trip
+    uint32_t t_interval[NUM_OF_T_INTERVAL];        //in tick. Time intervals to the last trip
 }channel_data_t;
 
 
@@ -85,5 +93,7 @@ void channel_check_batteryV_then_SW(channel_data_t *Fchannel, battery_data_t *Fd
 void channel_check_batteryI_then_SW(channel_data_t *Fchannel, battery_data_t *Fdata1, system_config_t *Fdata2);
 void channel_check_chanV_then_SW(channel_data_t *Fchannel, system_config_t *Fdata);
 void channel_resume(channel_data_t *Fchannel);
+
+void channel_check_overcurrent_then_config_and_resume(channel_data_t *Fchannel, ina226_housekeeping_t *Fdata, system_config_t *data, sensor_config_t *data2, i2cBASE_t *i2c);
 
 #endif /* INCLUDE_CUSTOM_CHANNEL_H_ */

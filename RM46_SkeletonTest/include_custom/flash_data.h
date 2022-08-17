@@ -5,6 +5,40 @@
 
 #include "data_structure_const.h"
 
+#define     FACTORY_COPY    1
+#define     CONFIG_COPY     2
+
+/*******************************************************
+ * List of blocks in EEPROM
+ *
+ * Block 1 - Sensor configuration 8 bits data
+ * Block 2 - Sensor configuration 16 bits data
+ * Block 3 - Factory copy 8 bits data
+ * Block 4 - Factory copy 16 bits data
+ * Block 5 - Factory copy of channel configuration 8 bits data
+ * Block 6 - Factory copy of channel configuration 16 bits data
+ * Block 7 - Factory copy of channel configuration 32 bits data
+ * Block 8 - Flashed copy 8 bits data and its crc code (including channel configuration)
+ * Block 9 - Flashed copy 16 bits data and its crc code (including channel configuration)
+ * Block 10 - Flashed copy of channel configuration 8 bits data and its crc code (including channel configuration)
+ * Block 11 - Flashed copy of channel configuration 16 bits data and its crc code (including channel configuration)
+ * Block 12 - Flashed copy of channel configuration 32 bits data and its crc code (including channel configuration)
+ *
+ * *****************************************************/
+#define     SENSOR_CONFIG_8BIT_BLOCK_NUM            1
+#define     SENSOR_CONFIG_16BIT_BLOCK_NUM           2
+#define     FACTORY_COPY_8BIT_BLOCK_NUM             3
+#define     FACTORY_COPY_16BIT_BLOCK_NUM            4
+#define     CHANNEL_FACTORY_COPY_8BIT_BLOCK_NUM     5
+#define     CHANNEL_FACTORY_COPY_16BIT_BLOCK_NUM    6
+#define     CHANNEL_FACTORY_COPY_32BIT_BLOCK_NUM    7
+#define     FLASHED_COPY_8BIT_BLOCK_NUM             8
+#define     FLASHED_COPY_16BIT_BLOCK_NUM            9
+#define     CHANNEL_FLASHED_COPY_8BIT_BLOCK_NUM     10
+#define     CHANNEL_FLASHED_COPY_16BIT_BLOCK_NUM    11
+#define     CHANNEL_FLASHED_COPY_32BIT_BLOCK_NUM    12
+
+/*This data structure must be 32 bit aligned in order to fit the 32 bit crc*/
 typedef struct
 {
     uint8_t priority;              //priority of channel
@@ -13,10 +47,11 @@ typedef struct
     uint16_t maxI_mA;                 //mA. overcurrent alert threshold
     uint16_t maxV_mV;                 //mV. overvoltage limit
     uint16_t minV_mV;                 //mV. undervoltage limit
+    uint16_t maxI_increment_mA;       //mA. increment of overcurrent threshold
     uint32_t group_mask;           //group mask channels. 1 bit for each channel. If grouped with a channel, that bit is set to 1
 }channel_config_t;
 
-
+/*This data structure must be 32 bit aligned in order to fit the 32 bit crc*/
 typedef struct
 {
     uint8_t batt_charging_temp_min_c;               //C. battery minimum charging temperature
@@ -27,8 +62,8 @@ typedef struct
     uint8_t heater_sunshine_temp_off_c;             //C. heater switch off temperature threshold in sunshine profile
     uint8_t heater_eclipse_temp_on_c;               //C. heater switch on temperature threshold in eclipse profile
     uint8_t heater_eclipse_temp_off_c;              //C. heater switch off temperature threshold in eclipse profile
-    uint16_t overcurrent_protection_alert[NUM_OF_INA226_OVERCURRENT_PROTECTION];    //overcurrent alert for ina226 of overcurrent protection module
-    uint16_t current_monitor_alert[NUM_OF_INA226_MONITOR];                          //overcurrent alert for ina226 of current monitor module
+    uint16_t overcurrent_protection_alert_mA[NUM_OF_INA226_OVERCURRENT_PROTECTION];    //mA. overcurrent alert for ina226 of overcurrent protection module
+    uint16_t current_monitor_alert_mA[NUM_OF_INA226_MONITOR];                          //mA. overcurrent alert for ina226 of current monitor module
 //    uint16_t current_sensor_shunt_resistance;       //mOhm. Shunt resistance for both ina226 and ina3221
     uint16_t overcurrent_protection_Rshunt[NUM_OF_INA226_OVERCURRENT_PROTECTION];         //mOhm. Shunt resistance for overcurrent module
     uint16_t current_monitor_Rshunt[NUM_OF_INA226_MONITOR];                //mOhm. Shunt resistance for current monitor module
@@ -45,7 +80,7 @@ typedef struct
     channel_config_t chan_config_data[NUM_OF_CHANNELS];
 }system_config_t;
 
-
+/*This data structure must be 32 bit aligned in order to fit the 32 bit crc*/
 typedef struct
 {
     uint8_t software_version;           //# of software version (used to verify the version of eps board)

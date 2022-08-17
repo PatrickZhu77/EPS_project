@@ -6,7 +6,7 @@
 #ifndef SOURCE_TASK_HEADER_H_
 #define SOURCE_TASK_HEADER_H_
 
-#define init_TASK_PRIO         18
+#define init_TASK_PRIO         18       //note the init_task is in critical section so the priority is not important
 #define init_STK_SIZE         128
 TaskHandle_t initTask_Handle;
 void init_task(void *pvParameters);
@@ -35,10 +35,10 @@ TaskHandle_t outputchanCtrlTask_Handle;
 void outputchanCtrl_task(void *pvParameters);
 
 
-#define powerConvertion_and_battCtrl_TASK_PRIO         10
-#define powerConvertion_and_battCtrl_STK_SIZE         128
-TaskHandle_t powerConvertion_and_battCtrlTask_Handle;
-void powerConvertion_and_battCtrl_task(void *pvParameters);
+#define powerConversion_and_battCtrl_TASK_PRIO         10
+#define powerConversion_and_battCtrl_STK_SIZE         128
+TaskHandle_t powerConversion_and_battCtrlTask_Handle;
+void powerConversion_and_battCtrl_task(void *pvParameters);
 
 
 #define heaterCtrl_TASK_PRIO         12
@@ -58,6 +58,13 @@ void receiveCMD_task(void *pvParameters);
 TaskHandle_t executeCMDTask_Handle;
 void executeCMD_task(void *pvParameters);
 
+/*Repetition period of each task*/
+#define CHAN_CTRL_TASK_PERIOD       100     //in ms. Determined by the recovery delay of task
+//
+//
 
 
+
+
+//...
 #endif /* SOURCE_TASK_HEADER_H_ */

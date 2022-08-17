@@ -30,6 +30,7 @@ source_custom/channel.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custo
 source_custom/channel.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/ina3221.h
 source_custom/channel.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include/i2c.h
 source_custom/channel.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/max6698.h
+source_custom/channel.obj: E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/realtimeClock.h
 source_custom/channel.obj: F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdio.h
 source_custom/channel.obj: F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdarg.h
 
@@ -63,5 +64,6 @@ E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/mppt.h:
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/ina3221.h: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include/i2c.h: 
 E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/max6698.h: 
+E:/CCSv8//\ workspace/RM46_SkeletonTest/include_custom/realtimeClock.h: 
 F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdio.h: 
 F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdarg.h: 

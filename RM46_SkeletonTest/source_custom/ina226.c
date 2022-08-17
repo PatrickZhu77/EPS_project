@@ -316,6 +316,28 @@ void INA226_SetAlertReg(i2cBASE_t *i2c, ina226_housekeeping_t *data, uint16_t al
 
 /***************************************************************************
  * @brief
+ *   Read mask register value
+ *
+ * @param[in] i2c
+ *   Pointer to I2C peripheral register block.
+ *
+ * @param[in] data
+ *   Pointer to the data structure.
+ *
+ * @return
+ *   Return the register value
+ ******************************************************************************/
+uint16_t INA226_ReadMaskReg(i2cBASE_t *i2c, ina226_housekeeping_t *data)
+{
+    uint8_t data_temp[2]={0};
+
+    INA226_ReceiveData(i2c, data->address, INA226_MASK_REG, data_temp);
+
+    return ((data_temp[0]<<8) | data_temp[1]);
+}
+
+/***************************************************************************
+ * @brief
  *   Get shunt voltage (raw data) from shunt voltage register
  *
  * @param[in] i2c
