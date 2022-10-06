@@ -43,6 +43,7 @@
 
 
 /* USER CODE BEGIN (0) */
+/*All the custom user codes must be inserted in between "USER CODE BEGIN" and correspond "USER CODE END" statement*/
 /* USER CODE END */
 
 /* Include Files */
@@ -50,6 +51,7 @@
 #include "sys_common.h"
 
 /* USER CODE BEGIN (1) */
+//The include statements go here
 #include "stdio.h"
 #include "string.h"
 #include "system.h"
@@ -86,6 +88,7 @@
 #include "battery.h"
 #include "flash_data.h"
 #include "data_structure_const.h"
+#include "low_power_mode.h"
 
 /* USER CODE END */
 
@@ -98,6 +101,8 @@
 */
 
 /* USER CODE BEGIN (2) */
+//Global symbol definitions and data structures
+
 #define DEBUGGING_MODE 1
 /*******************************************************/
 
@@ -116,19 +121,25 @@ static RTC_t *global_prealtimeClock = &global_realtimeClock;
 /***************FLASH Data***************/
 /*Writing Access: init_task, receiveCMD_task*/
 /*Reading Access: init_task, outputchanCtrl_task, powerConversion_and_battCtrl_task, heaterCtrl_task, receiveCMD_task*/
+static uint8_t global_RAM_copy_array[FLASHED_DATA_LENGTH] = {0};   //Converted configuration data (in uint8_t array format). Used for writing to/reading from FLASH and for transmission by commands
+static uint8_t *pglobal_RAM_copy_array = &global_RAM_copy_array[0];
 
-static system_config_t global_flashD = {BATT_CHARGING_TEMP_MIN_C, BATT_CHARGING_TEMP_MAX_C, BATT_DISCHARGING_TEMP_MIN_C, BATT_DISCHARGING_TEMP_MAX_C,
-                            HEATER_SUNSHINE_TEMP_ON_C, HEATER_SUNSHINE_TEMP_OFF_C, HEATER_ECLIPSE_TEMP_ON_C, HEATER_ECLIPSE_TEMP_OFF_C,
+static system_config_t global_RAM_copyD = {NUM_OF_CONFIG_VERSION,
                             {INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT},
                             {INA226_MONITOR_ALERT}, INA226_SHUNT_RESISTANCE, BATT_CHARGING_CURRENT_LIMIT_mA, BATT_DISCHARGING_CURRENT_LIMIT_mA,
-                            HEATER_TUMBLE_THRESHOLD_TIME_S, HEATER_SOLAR_PANEL_THRESHOLD_POWER_mW, HEATER_DELAY_TIME_S,
-                            DAC_INIT, EN_STEPSIZE_INIT, {0}};
-static system_config_t *pglobal_flashD = &global_flashD;
+                            HEATER_TUMBLE_THRESHOLD_TIME_S, HEATER_SOLAR_PANEL_THRESHOLD_POWER_mW, HEATER_ORBIT_PERIOD_S, HEATER_HEAT_UP_TIME_S,
+                            DAC_INIT, EN_STEPSIZE_INIT,
+                            (int)BATT_CHARGING_TEMP_MIN_C, (int)BATT_CHARGING_TEMP_MAX_C, (int)BATT_DISCHARGING_TEMP_MIN_C, (int)BATT_DISCHARGING_TEMP_MAX_C,
+                            (int)HEATER_SUNSHINE_TEMP_ON_C, (int)HEATER_SUNSHINE_TEMP_OFF_C, (int)HEATER_ECLIPSE_TEMP_ON_C, (int)HEATER_ECLIPSE_TEMP_OFF_C,
+                            {NUM_OF_SOFTWARE_VERSION, MAX6698_CFG1_SETTING, MAX6698_CFG2_SETTING, MAX6698_CFG3_SETTING, INA226_CFG_SETTING, INA226_OVERCURRENT_MASK, INA226_MONITOR_MASK, INA226_BATTERY_MASK, INA226_CHANNEL_MASK, INA3221_CFG_SETTING, INA3221_MASK_SETTING},
+                            {0}
+                            };
+static system_config_t *pglobal_RAM_copyD = &global_RAM_copyD;
 
-static sensor_config_t global_flash_senser_config = {0, MAX6698_CFG1_SETTING, MAX6698_CFG2_SETTING, MAX6698_CFG3_SETTING,
-                                                     INA226_CFG_SETTING, INA226_OVERCURRENT_MASK, INA226_MONITOR_MASK, INA226_BATTERY_MASK, INA226_CHANNEL_MASK,
-                                                     INA3221_CFG_SETTING, INA3221_MASK_SETTING};
-static sensor_config_t *pglobal_flash_sensor_config = &global_flash_senser_config;
+//static sensor_config_t global_flash_senser_config = {0, MAX6698_CFG1_SETTING, MAX6698_CFG2_SETTING, MAX6698_CFG3_SETTING,
+//                                                     INA226_CFG_SETTING, INA226_OVERCURRENT_MASK, INA226_MONITOR_MASK, INA226_BATTERY_MASK, INA226_CHANNEL_MASK,
+//                                                     INA3221_CFG_SETTING, INA3221_MASK_SETTING};
+//static sensor_config_t *pglobal_flash_sensor_config = &global_flash_senser_config;
 
 /*******************Sensor Data**********************/
 /*Writing Access: init_task, receiveCMD_task, getHK_task*/
@@ -202,21 +213,31 @@ static uint32_t global_batt_last_ticktime = 0;
 /*Writing Access: heaterCtrl_task*/
 static uint32_t global_heater_last_ticktime = 0;
 
-//static uint32_t rxCMD_t = 0;
-//static uint32_t wdt_t = 0;
+/*Writing Access: wdt_task*/
+static uint32_t wdt_ticktime = 0;
+
+/***************Software watchdog timer data**********************/
+/*Writing Access: wdt_task, receiveCMD_task*/
+/*Reading Access: wdt_task, receiveCMD_task*/
+
+static uint32_t global_wdt_counter_obc = WDT_COUNTER_OBC;            //counter used by software watchdog timer task
+static uint32_t global_wdt_counter_ground = WDT_COUNTER_GROUND;      //counter used by software watchdog timer task
+
+static uint8_t  global_wdt_reset_obc = 0;
+static uint8_t  global_wdt_reset_ground = 0;
+
 /***************Others**********************/
 static uint8_t global_sys_mode = 1;        //variable that stores system mode. 0:critical mode, 1:safe mode, 2:full mode.
 static uint8_t global_loop_counter = 0;    //global variable used for internal counter of loops
+
+
 
 /* USER CODE END */
 
 int main(void)
 {
 /* USER CODE BEGIN (3) */
-
-    /*Check FLASH memory*/
-//    checkFlashECC();
-//    checkFlashEEPROMECC();
+//
 
 
     /*Part of main function standard template*/
@@ -227,7 +248,7 @@ int main(void)
     sciInit();      //serial port for debugging
     gioInit();      //general-purpose I/O (The initialization parameters are defined in other TI tool called HalCoGen)
     i2cInit();      //i2c interface for current sensors and temp. sensors (The initialization parameters are defined in other TI tool called HalCoGen)
-    canInit();      //interface to cubesat space protocal (CSP) (The initialization parameters are defined in other TI tool called HalCoGen)
+    canInit();      //interface to Cubesat Space Protocal (CSP) (The initialization parameters are defined in other TI tool called HalCoGen)
     mibspiInit();   //SPI interface to digital to analog converter (The initialization parameters are defined in other TI tool called HalCoGen)
 
     /*The following functions are included for clarity. The same effect can be done using HALCoGen*/
@@ -265,26 +286,42 @@ int main(void)
 
 /* USER CODE BEGIN (4) */
 
-/*
+/***********************************************
  * Initialization task:
+ * - run in critical section
  * - initialize data structures
  * - create other tasks
  * - delete itself in the end
  *
- */
+ ***********************************************/
 void init_task(void *pvParameters)
 {
     taskENTER_CRITICAL();
 
+    fee_initial();      //Initialize the Flash EEPROM module
 
-    /* Read data from FLASH and save to flash_data_t data strcuture*/
-//
-//
-//    sciSend(scilinREG,10,(unsigned char *)"Fee read\r\n");
-//    for(delay=0;delay<100;delay++);
+    /* Read packaged data from reboot copy in FLASH */
+    fee_read_flashed_config(REBOOT_COPY, pglobal_RAM_copy_array, FLASHED_DATA_LENGTH);
 
-    /*Initialize tick_counter for tasks*/
-    /**************************/
+    /* If CRC is good, unpackage it and store it in global data structure of configurations */
+    if(fee_check_crc_then_unpackage_data(pglobal_RAM_copy_array, pglobal_RAM_copyD))
+    {
+        /* If CRC is bad, read packaged data from factory copy 1 in FLASH*/
+        fee_read_flashed_config(FACTORY_COPY_1, pglobal_RAM_copy_array, FLASHED_DATA_LENGTH);
+        /* If CRC is good, unpackage it and store it in global data structure of configurations */
+        if(fee_check_crc_then_unpackage_data(pglobal_RAM_copy_array, pglobal_RAM_copyD))
+        {
+            /* If CRC is bad, read packaged data from factory copy 2 in FLASH*/
+            fee_read_flashed_config(FACTORY_COPY_2, pglobal_RAM_copy_array, FLASHED_DATA_LENGTH);
+            /* If CRC is good, unpackage it and store it in global data structure of configurations */
+            if(fee_check_crc_then_unpackage_data(pglobal_RAM_copy_array, pglobal_RAM_copyD))
+            {
+                /* If CRC is still bad, ignore the crc and unpackage the data and store it in global data structure of configurations*/
+                fee_unpackage_data_ignore_crc(pglobal_RAM_copy_array, pglobal_RAM_copyD);
+            }
+        }
+    }
+
 
 
     /*In the case of sensors, both data structures and the hardware are initialized in this task. For other modules, only data structures are initialized in this task.
@@ -297,8 +334,8 @@ void init_task(void *pvParameters)
         global_mpptD[global_mppt_counter].counter = 0;
         global_mpptD[global_mppt_counter].dir = 0xFF;
         global_mpptD[global_mppt_counter].predir = 0xFF;
-        global_mpptD[global_mppt_counter].stepsize = global_flashD.dac_stepsize_init;
-        global_mpptD[global_mppt_counter].dacOUT = global_flashD.dac_init;
+        global_mpptD[global_mppt_counter].stepsize = global_RAM_copyD.dac_stepsize_init;
+        global_mpptD[global_mppt_counter].dacOUT = global_RAM_copyD.dac_init;
         global_mpptD[global_mppt_counter].prePower = 0;
         global_mpptD[global_mppt_counter].power = 0;
     }
@@ -310,10 +347,9 @@ void init_task(void *pvParameters)
     for(global_ina226_counter=0;global_ina226_counter<NUM_OF_INA226_OVERCURRENT_PROTECTION;global_ina226_counter++)
     {
         global_ina226D[global_ina226_counter].address = INA226_ADDR1;
-//        global_ina226D[global_ina226_counter].mask_reg = pglobal_flash_sensor_config->ina226_overcurrent_mask;
-        global_ina226D[global_ina226_counter].alert_reg = global_flashD.overcurrent_protection_alert_mA[global_ina226_counter];
+        global_ina226D[global_ina226_counter].alert_reg = global_RAM_copyD.overcurrent_protection_alert_mA[global_ina226_counter];
 
-        INA226_Init(i2cREG1, pglobal_flashD->overcurrent_protection_Rshunt[global_loop_counter], pglobal_flash_sensor_config, pglobal_flash_sensor_config->ina226_overcurrent_mask, pglobal_ina226D+global_ina226_counter);
+        INA226_Init(i2cREG1, pglobal_RAM_copyD->overcurrent_protection_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_overcurrent_mask, pglobal_ina226D+global_ina226_counter);
         global_loop_counter++;
     }
 
@@ -322,10 +358,9 @@ void init_task(void *pvParameters)
     for(global_ina226_counter=NUM_OF_INA226_OVERCURRENT_PROTECTION;global_ina226_counter<NUM_OF_INA226_OVERCURRENT_PROTECTION+NUM_OF_INA226_MONITOR;global_ina226_counter++)
     {
         global_ina226D[global_ina226_counter].address = INA226_ADDR1;
-//        global_ina226D[global_ina226_counter].mask_reg = pglobal_flash_sensor_config->ina226_monitor_mask;
-        global_ina226D[global_ina226_counter].alert_reg = global_flashD.current_monitor_alert_mA[global_ina226_counter-NUM_OF_INA226_OVERCURRENT_PROTECTION];
+        global_ina226D[global_ina226_counter].alert_reg = global_RAM_copyD.current_monitor_alert_mA[global_ina226_counter-NUM_OF_INA226_OVERCURRENT_PROTECTION];
 
-        INA226_Init(i2cREG1, pglobal_flashD->current_monitor_Rshunt[global_loop_counter], pglobal_flash_sensor_config, pglobal_flash_sensor_config->ina226_monitor_mask, pglobal_ina226D+global_ina226_counter);
+        INA226_Init(i2cREG1, pglobal_RAM_copyD->current_monitor_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_monitor_mask, pglobal_ina226D+global_ina226_counter);
         global_loop_counter++;
     }
 
@@ -334,10 +369,9 @@ void init_task(void *pvParameters)
     for(global_ina226_counter=NUM_OF_INA226_OVERCURRENT_PROTECTION+NUM_OF_INA226_MONITOR;global_ina226_counter<NUM_OF_INA226_OVERCURRENT_PROTECTION+NUM_OF_INA226_MONITOR+NUM_OF_INA226_BATTERY;global_ina226_counter++)
     {
         global_ina226D[global_ina226_counter].address = INA226_ADDR1;
-//        global_ina226D[global_ina226_counter].mask_reg = pglobal_flash_sensor_config->ina226_battery_mask;
         global_ina226D[global_ina226_counter].alert_reg = 0x0;
 
-        INA226_Init(i2cREG1, pglobal_flashD->battery_protection_Rshunt[global_loop_counter], pglobal_flash_sensor_config, pglobal_flash_sensor_config->ina226_battery_mask, pglobal_ina226D+global_ina226_counter);
+        INA226_Init(i2cREG1, pglobal_RAM_copyD->battery_protection_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_battery_mask, pglobal_ina226D+global_ina226_counter);
         global_loop_counter++;
     }
 
@@ -346,10 +380,9 @@ void init_task(void *pvParameters)
     for(global_ina226_counter=NUM_OF_INA226-NUM_OF_INA226_CHANNEL;global_ina226_counter<NUM_OF_INA226;global_ina226_counter++)
     {
         global_ina226D[global_ina226_counter].address = INA226_ADDR1;
-//        global_ina226D[global_ina226_counter].mask_reg = pglobal_flash_sensor_config->ina226_channel_mask;
-        global_ina226D[global_ina226_counter].alert_reg = global_flashD.chan_config_data[global_ina226_counter-(NUM_OF_INA226-NUM_OF_INA226_CHANNEL)].maxI_mA;
+        global_ina226D[global_ina226_counter].alert_reg = global_RAM_copyD.chan_config_data[global_ina226_counter-(NUM_OF_INA226-NUM_OF_INA226_CHANNEL)].maxI_mA;
 
-        INA226_Init(i2cREG1, pglobal_flashD->channel_monitor_Rshunt[global_loop_counter], pglobal_flash_sensor_config, pglobal_flash_sensor_config->ina226_channel_mask, pglobal_ina226D+global_ina226_counter);
+        INA226_Init(i2cREG1, pglobal_RAM_copyD->channel_monitor_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_channel_mask, pglobal_ina226D+global_ina226_counter);
         global_loop_counter++;
     }
 
@@ -359,7 +392,7 @@ void init_task(void *pvParameters)
     {
         global_ina3221D[global_ina3221_counter].address = INA3221_ADDR1;
 
-        INA3221_Init(i2cREG1, pglobal_flash_sensor_config, pglobal_ina3221D+global_ina3221_counter);
+        INA3221_Init(i2cREG1, pglobal_RAM_copyD->sensor_config_data, pglobal_ina3221D+global_ina3221_counter);
     }
 
     /*Initialize MAX6698 temperature sensor data structure  and the hardware*/
@@ -367,7 +400,7 @@ void init_task(void *pvParameters)
     {
         global_max6698D[global_max6698_counter].address = MAX6698_ADDR1;
 
-        MAX6698_Init(i2cREG1, pglobal_flash_sensor_config, pglobal_max6698D+global_max6698_counter);
+        MAX6698_Init(i2cREG1, pglobal_RAM_copyD->sensor_config_data, pglobal_max6698D+global_max6698_counter);
     }
 
     /*Initialize battery heater data structure, and the hardware is updated in power conversion and battery controlling task*/
@@ -391,9 +424,9 @@ void init_task(void *pvParameters)
     for(global_channel_counter=0;global_channel_counter<NUM_OF_CHANNELS;global_channel_counter++)
     {
         global_channelD[global_channel_counter].num = global_channel_counter+1;
-        global_channelD[global_channel_counter].priority = global_flashD.chan_config_data[global_channel_counter].priority;
+        global_channelD[global_channel_counter].priority = global_RAM_copyD.chan_config_data[global_channel_counter].priority;
         global_channelD[global_channel_counter].sw = 0;
-        global_channelD[global_channel_counter].group_mask = global_flashD.chan_config_data[global_channel_counter].group_mask;
+        global_channelD[global_channel_counter].group_mask = global_RAM_copyD.chan_config_data[global_channel_counter].group_mask;
         global_channelD[global_channel_counter].resume = 0;
     }
 
@@ -410,12 +443,12 @@ void init_task(void *pvParameters)
     sciSend(scilinREG,22,(unsigned char *)"Output channel task created\r\n");
 
 #ifdef DEBUGGING_MODE
-    /**/
+    /*Create command receive task*/
     xTaskCreate((TaskFunction_t )receiveCMD_task,
                 (const char*    )"receiveCMD_task",
                 (uint16_t       )receiveCMD_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )(receiveCMD_TASK_PRIO|portPRIVILEGE_BIT),
+                (UBaseType_t    )(receiveCMD_TASK_PRIO|portPRIVILEGE_BIT),      //could be run in user mode
                 (TaskHandle_t*  )&receiveCMDTask_Handle);
     sciSend(scilinREG,25,(unsigned char *)"receiveCMD task created\r\n");
 #else
@@ -429,6 +462,7 @@ void init_task(void *pvParameters)
     sciSend(scilinREG,25,(unsigned char *)"executeCMD task created\r\n");
 #endif
 
+    /*Create get housekeeping task*/
     xTaskCreate((TaskFunction_t )getHK_task,
                 (const char*    )"getHK_task",
                 (uint16_t       )getHK_STK_SIZE,
@@ -437,32 +471,41 @@ void init_task(void *pvParameters)
                 (TaskHandle_t*  )&getHKTask_Handle);
     sciSend(scilinREG,20,(unsigned char *)"getHK task created\r\n");
 
-
+    /*Create check task activity task*/
     xTaskCreate((TaskFunction_t )check_other_tasks_activity_task,
                 (const char*    )"check_other_tasks_activity_task",
                 (uint16_t       )checkActive_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )(checkActive_TASK_PRIO|portPRIVILEGE_BIT),         //could be run in user mode
+                (UBaseType_t    )(checkActive_TASK_PRIO|portPRIVILEGE_BIT),
                 (TaskHandle_t*  )&checkActiveTask_Handle);
     sciSend(scilinREG,24,(unsigned char *)"check_other_tasks_activity task created\r\n");
 
-
+    /*Create heater control task*/
     xTaskCreate((TaskFunction_t )heaterCtrl_task,
                 (const char*    )"heaterCtrl_task",
                 (uint16_t       )heaterCtrl_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )(heaterCtrl_TASK_PRIO|portPRIVILEGE_BIT),          //could be run in user mode
+                (UBaseType_t    )(heaterCtrl_TASK_PRIO|portPRIVILEGE_BIT),
                 (TaskHandle_t*  )&heaterCtrlTask_Handle);
     sciSend(scilinREG,34,(unsigned char *)"heater controlling task created\r\n");
 
-
+    /*Create power conversion and battery control task*/
     xTaskCreate((TaskFunction_t )powerConversion_and_battCtrl_task,
                 (const char*    )"powerConversion_and_battCtrl_task",
                 (uint16_t       )powerConversion_and_battCtrl_STK_SIZE,
                 (void*          )NULL,
-                (UBaseType_t    )(powerConversion_and_battCtrl_TASK_PRIO|portPRIVILEGE_BIT),            //could be run in user mode
+                (UBaseType_t    )(powerConversion_and_battCtrl_TASK_PRIO|portPRIVILEGE_BIT),
                 (TaskHandle_t*  )&powerConversion_and_battCtrlTask_Handle);
     sciSend(scilinREG,34,(unsigned char *)"power convertion and battery controlling task created\r\n");
+
+    /*Create software watchdog timer task*/
+    xTaskCreate((TaskFunction_t )sw_wdt_task,
+                (const char*    )"powerConversion_and_battCtrl_task",
+                (uint16_t       )sw_wdt_STK_SIZE,
+                (void*          )NULL,
+                (UBaseType_t    )(sw_wdt_TASK_PRIO|portPRIVILEGE_BIT),
+                (TaskHandle_t*  )&sw_wdtTask_Handle);
+    sciSend(scilinREG,34,(unsigned char *)"software watchdog timer task created\r\n");
 
 
     taskEXIT_CRITICAL();
@@ -472,11 +515,15 @@ void init_task(void *pvParameters)
 }
 
 
-
+/***********************************************
+ * Get housekeeping data task:
+ * - Read raw data from sensors and update all the global data structure of sensors
+ *
+ **********************************************/
 void getHK_task(void *pvParameters)
 {
 
-    const portTickType xDelay = pdMS_TO_TICKS(1000);
+    const portTickType xDelay = pdMS_TO_TICKS(GET_HK_TASK_PERIOD);
 
     while(1)
     {
@@ -524,11 +571,17 @@ void getHK_task(void *pvParameters)
 }
 
 
+/***********************************************
+ * Check activity task:
+ * - Check the activity of all the other tasks
+ * - Pet the watchdog timer if all the tasks is active
+ * - Store (print) the error message if some tasks are inactive
+ *
+ **********************************************/
 void check_other_tasks_activity_task(void *pvParameters)
 {
 
-    const portTickType xDelay = pdMS_TO_TICKS(4*DELAY_1_SECOND);        //This delay time should be longer than the period of all the other tasks.
-                                                                        //4 seconds gives the chance for other tasks to run at least onece
+    const portTickType xDelay = pdMS_TO_TICKS(CHECK_ACTIVE_TASK_PERIOD);
     static uint32_t preTick[5] = {0};
     char str_temp[1] = {0};
 
@@ -581,7 +634,7 @@ void check_other_tasks_activity_task(void *pvParameters)
             sciSend(scilinREG,strlen((const char *)str_temp),(unsigned char *)str_temp);
             sciSend(scilinREG,4,(unsigned char *)"\r\n\r\n");
 #endif
-            /*Here we should insert error message to log file*/
+
         }
 
 
@@ -591,12 +644,57 @@ void check_other_tasks_activity_task(void *pvParameters)
 }
 
 
-/*****************************
- * Read data from sensor data structure (updated by getHK_task).
- * Update channel control data structure.
- * Detect errors according to the channel control data structure.
- * Update the hardware according to the channel control data structure.
- * */
+/***********************************************
+ * Software watchdog timer task:
+ * - If there is no command from OBC for 1 min or no command from ground station for 1 week, the system will be reset
+ *
+ **********************************************/
+void sw_wdt_task(void *pvParameters)
+{
+    const portTickType xDelay = pdMS_TO_TICKS(WDT_TASK_PERIOD);
+    vTaskDelay(xDelay);
+
+    while(1)
+    {
+        if(global_wdt_reset_obc == 0)       //if global reset variable is not set to 1, which means there is no command
+        {
+            global_wdt_counter_obc--;
+        }
+        else                                //reset the counter
+        {
+            global_wdt_counter_obc = WDT_COUNTER_OBC;
+            global_wdt_reset_obc = 0;
+        }
+
+        if(global_wdt_reset_ground == 0)    //if global reset variable is not set to 1, which means there is no command
+        {
+            global_wdt_counter_ground--;
+        }
+        else                                //reset the counter
+        {
+            global_wdt_counter_ground = WDT_COUNTER_GROUND;
+            global_wdt_reset_ground = 0;
+        }
+
+
+        if(global_wdt_counter_obc == 0 || global_wdt_counter_ground == 0)
+        {
+            systemREG1->SYSECR = 0x8000;        //soft reset the system
+        }
+
+        vTaskDelay(xDelay);
+    }
+
+}
+
+/***********************************************
+ * Output channel control task:
+ * - Read data from sensor data structure (updated by getHK_task).
+ * - Update channel data structure.
+ * - Detect errors according to the channel data structure and configuration data structure.
+ * - Update the hardware according to the channel data structure.
+ *
+ **********************************************/
 void outputchanCtrl_task(void *pvParameters)
 {
 
@@ -609,11 +707,11 @@ void outputchanCtrl_task(void *pvParameters)
         channel_check_mode(pglobal_channelD, global_sys_mode);      //check if the channel is allowed to be on in the current mode
         channel_resume(pglobal_channelD);                           //re-enable task that was disabled for one period
         channel_check_overcurrent_then_config_and_resume(pglobal_channelD, pglobal_ina226D+(NUM_OF_INA226-NUM_OF_INA226_CHANNEL),
-                                                         pglobal_flashD, pglobal_flash_sensor_config, i2cREG1);
+                                                         pglobal_RAM_copyD, pglobal_RAM_copyD->sensor_config_data, i2cREG1);
 
-        channel_check_batteryV_then_SW(pglobal_channelD, pglobal_battD, pglobal_flashD);
-        channel_check_batteryI_then_SW(pglobal_channelD, pglobal_battD, pglobal_flashD);
-        channel_check_chanV_then_SW(pglobal_channelD, pglobal_flashD);
+        channel_check_batteryV_then_update_switch(pglobal_channelD, pglobal_battD, pglobal_RAM_copyD);
+        channel_check_batteryI_then_update_switch(pglobal_channelD, pglobal_battD, pglobal_RAM_copyD);
+        channel_check_chanV_then_update_switch(pglobal_channelD, pglobal_RAM_copyD);
 
         channel_read_rawdata_and_convert(pglobal_channelD, pglobal_ina226D+(NUM_OF_INA226-NUM_OF_INA226_CHANNEL));
 
@@ -624,19 +722,26 @@ void outputchanCtrl_task(void *pvParameters)
 }
 
 
+/***********************************************
+ * Heater control task:
+ * - Read data from sensor data structure (updated by getHK_task).
+ * - Update heater data structure.
+ * - Update the hardware according to the heater data structure and configuration data structure.
+ *
+ **********************************************/
 void heaterCtrl_task(void *pvParameters)
 {
 
-    const portTickType xDelay = pdMS_TO_TICKS(2000);
+    const portTickType xDelay = pdMS_TO_TICKS(HEATER_CTRL_TASK_PERIOD);
     vTaskDelay(xDelay);
 
     while(1)
     {
         for(global_heater_counter=0; global_heater_counter<NUM_OF_HEATER; global_heater_counter++)
         {
-            heater_update_profile(pglobal_heaterD+global_heater_counter, pglobal_flashD, pglobal_ina3221D, getcurrTime(global_prealtimeClock));
+            heater_update_profile(pglobal_heaterD+global_heater_counter, pglobal_RAM_copyD, pglobal_ina3221D, getcurrTime(global_prealtimeClock));
             heater_read_rawdata_and_convert(pglobal_heaterD+global_heater_counter, pglobal_max6698D);
-            heater_temp_SW(pglobal_heaterD+global_heater_counter, pglobal_flashD);
+            heater_temp_SW(pglobal_heaterD+global_heater_counter, pglobal_RAM_copyD);
         }
 
         global_heater_last_ticktime = (uint32_t)xTaskGetTickCount();
@@ -644,18 +749,25 @@ void heaterCtrl_task(void *pvParameters)
     }
 }
 
-
+/***********************************************
+ * Power conversion and battery control task:
+ * - Read data from sensor data structure (updated by getHK_task).
+ * - Update mppt data structure and battery data structure.
+ * - Detect errors according to the battery data structure and configuration data structure.
+ * - Update the hardware according to the battery data structure.
+ *
+ **********************************************/
 void powerConversion_and_battCtrl_task(void *pvParameters)
 {
 
-    const portTickType xDelay = pdMS_TO_TICKS(MPPT_TASK_DELAY);
+    const portTickType xDelay = pdMS_TO_TICKS(POWER_CONV_TASK_PERIOD);
     vTaskDelay(xDelay);
 
 
     while(1)
     {
 
-        /*EN_pin Controlling*/
+        /*FB_pin Control MPPT Algorithm*/
         for(global_mppt_counter=0;global_mppt_counter<NUM_OF_INA3221;global_mppt_counter++)
         {
 
@@ -663,17 +775,17 @@ void powerConversion_and_battCtrl_task(void *pvParameters)
 
             mppt_getPower_ina226(pglobal_ina226D+global_mppt_counter, pglobal_mpptD+global_mppt_counter);
 
-            mppt_pno_en(pglobal_mpptD+global_mppt_counter);
+            mppt_pno_fb(pglobal_mpptD+global_mppt_counter);
 
-            dac_write_en(mibspiPORT3,pglobal_mpptD+global_mppt_counter);
+            dac_write_fb(mibspiPORT3,pglobal_mpptD+global_mppt_counter, global_mppt_counter);
          }
 
-
+        /*Control battery switches according to the thresholds*/
         for(global_battery_counter=0;global_battery_counter<NUM_OF_BATTERY_PAIR;global_battery_counter++)
         {
             battery_check_charging_status(pglobal_battD+global_battery_counter, pglobal_ina226D+NUM_OF_INA226_OVERCURRENT_PROTECTION+NUM_OF_INA226_MONITOR+global_battery_counter);
             battery_read_rawdata_and_convert(pglobal_battD+global_battery_counter, pglobal_ina226D+NUM_OF_INA226_OVERCURRENT_PROTECTION+NUM_OF_INA226_MONITOR+global_battery_counter, pglobal_max6698D);
-            battery_check_temp_then_SW(pglobal_battD+global_battery_counter, pglobal_flashD);
+            battery_check_temp_then_SW(pglobal_battD+global_battery_counter, pglobal_RAM_copyD);
         }
 
 
@@ -683,12 +795,18 @@ void powerConversion_and_battCtrl_task(void *pvParameters)
     }
 }
 
+/***********************************************
+ * Receive command task:
+ * - Receive command through serial port.
+ * - Execute the command.
+ *
+ **********************************************/
 void receiveCMD_task(void *pvParameters)
 {
     unsigned char *cmd1;
 //    uint32_t current_sec = 0;
 
-    const portTickType xDelay = pdMS_TO_TICKS(100);
+    const portTickType xDelay = pdMS_TO_TICKS(RECEIVE_CMD_TASK_PERIOD);
     while(1)
     {
 
@@ -724,28 +842,7 @@ void receiveCMD_task(void *pvParameters)
             cmd1 = uart_tx(16,(unsigned char*)"\r\nWhat value?\r\n");
             uint8_t value = atoi((const char*)cmd1);
 
-//            set_default_max6698_init(pmax6698_init, num, value);
         }
-//        else if(strcmp((const char *)cmd1, (const char *)"get_time")==0)
-//        {
-//            current_sec = getcurrTime(global_prealtimeClock);
-//            temp1[0] = '0'+ current_sec/1000000000;
-//            temp1[1] = '0'+ current_sec%1000000000/100000000;
-//            temp1[2] = '0'+ current_sec%1000000000%100000000/10000000;
-//            temp1[3] = '0'+ current_sec%1000000000%100000000%10000000/1000000;
-//            temp1[4] = '0'+ current_sec%1000000000%100000000%10000000%1000000/100000;
-//            temp1[5] = '0'+ current_sec%1000000000%100000000%10000000%1000000%100000/10000;
-//            temp1[6] = '0'+ current_sec%1000000000%100000000%10000000%1000000%100000%10000/1000;
-//            temp1[7] = '0'+ current_sec%1000000000%100000000%10000000%1000000%100000%10000%1000/100;
-//            temp1[8] = '0'+ current_sec%1000000000%100000000%10000000%1000000%100000%10000%1000%100/10;
-//            temp1[9] = '0'+ current_sec%1000000000%100000000%10000000%1000000%100000%10000%1000%100%10;
-//
-//            sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
-//
-//
-//            sciSend(scilinREG,4,(unsigned char *)"\r\n\r\n");
-//
-//        }
         else
         {
             sciSend(scilinREG,15,(unsigned char *)"Wrong command\r\n");
@@ -753,143 +850,6 @@ void receiveCMD_task(void *pvParameters)
 
         vTaskDelay(xDelay);
     }
-
-}
-
-/*what is turned off and what is still running in this mode?*/
-void enter_snooze(void)
-{
-    /* RTI is configured to generate compare 1 interrupt every 1 second using 16MHz OSCIN as source */
-    /* Change this to use the LF LPO, which is typically 80KHz */
-    rtiStopCounter(rtiCOUNTER_BLOCK1);
-    rtiResetCounter(rtiCOUNTER_BLOCK1);
-
-    /* Clock RTI using LF LPO, the 80KHz clock source */
-    systemREG1->RCLKSRC = 0x4;
-
-    /** - Setup compare 1 value. This value is compared with selected free running counter. */
-    rtiREG1->CMP[1U].COMPx = (uint32_t)xTaskGetExpectedIdleTime();
-
-    /** - Setup update compare 1 value. This value is added to the compare 1 value on each compare match. */
-    rtiREG1->CMP[1U].UDCPx = (uint32_t)xTaskGetExpectedIdleTime();
-
-    /** - Clear all pending interrupts */
-    rtiREG1->INTFLAG = 0x0007000FU;
-
-    /** - Disable all interrupts */
-    rtiREG1->CLEARINTENA = 0x00070F0FU;
-
-    /** - Enable RTI Compare 1 Interrupt **/
-    rtiREG1->SETINTENA = rtiNOTIFICATION_COMPARE1;
-
-    flashWREG->FPAC2 = 0x7;
-
-    /* Bank 7 */
-    flashWREG->FMAC = 0x6;
-    flashWREG->FBAC = 0x70F;
-
-    /* Bank 0 */
-    flashWREG->FMAC = 0x0;
-    flashWREG->FBAC = 0x70F;
-
-    /* Setup flash module to change fallback modes for banks/pump to be "sleep" */
-    flashWREG->FBFALLBACK = 0x00000000U
-                          | (uint32)((uint32)SYS_SLEEP << 14U) /* BANK 7 */
-                          | (uint32)((uint32)SYS_SLEEP << 2U)  /* BANK 1 */
-                          | (uint32)((uint32)SYS_SLEEP << 0U); /* BANK 0 */
-
-    /* Disable oscillator monitoring to prevent detection of osc fail */
-    systemREG1->CLKTEST = 0x010A0000;
-
-    /* Start counter 1 */
-    rtiStartCounter(rtiCOUNTER_BLOCK1);
-
-    /** - Setup GCLK, HCLK and VCLK clock source for normal operation, power down mode and after wakeup */
-    systemREG1->GHVSRC = (uint32)((uint32)SYS_LPO_HIGH << 24U)
-                       | (uint32)((uint32)SYS_LPO_HIGH << 16U)
-                       | (uint32)((uint32)SYS_PLL1 << 0U);
-
-    /* Enable low-power modes */
-    systemREG1->VRCTL = 0x0F;
-
-    /* turn off all clock sources except LF LPO */
-    systemREG1->CSDISSET = 0xEF;
-
-    /* turn off all clock domains except RTICLK */
-    systemREG1->CDDISSET = 0xFFBF;
-
-
-    asm(" WFI");
-    asm(" nop");
-    asm(" nop");
-    asm(" nop");
-    asm(" nop");
-
-}
-
-void post_wakeup(void)
-{
-
-    /* Restart main oscillator, LF LPO and HF LPO first */
-    systemREG1->CSDISCLR = 0x31;
-
-    /* Configure PLLs based on original configuration */
-    /**   - Setup pll control register 1:
-    *     - Setup reset on oscillator slip
-    *     - Setup bypass on pll slip
-    *     - setup Pll output clock divider to max before Lock
-    *     - Setup reset on oscillator fail
-    *     - Setup reference clock divider
-    *     - Setup Pll multiplier
-    */
-    systemREG1->PLLCTL1 =  (uint32)0x00000000U
-                        |  (uint32)0x20000000U
-                        |  (uint32)((uint32)0x1FU << 24U)
-                        |  (uint32)0x00000000U
-                        |  (uint32)((uint32)(6U - 1U)<< 16U)
-                        |  (uint32)((uint32)(165U - 1U)<< 8U);
-
-    /**   - Setup pll control register 2
-    *     - Setup spreading rate
-    *     - Setup bandwidth adjustment
-    *     - Setup internal Pll output divider
-    *     - Setup spreading amount
-    */
-    systemREG1->PLLCTL2 =  (uint32)((uint32)255U << 22U)
-                        |  (uint32)((uint32)7U << 12U)
-                        |  (uint32)((uint32)(2U - 1U) << 9U)
-                        |  (uint32)61U;
-
-    /** @b Initialize @b Pll2: */
-
-    /**   - Setup pll2 control register :
-    *     - setup Pll output clock divider to max before Lock
-    *     - Setup reference clock divider
-    *     - Setup internal Pll output divider
-    *     - Setup Pll multiplier
-    */
-    systemREG2->PLLCTL3 = (uint32)((uint32)(2U - 1U) << 29U)
-                        | (uint32)((uint32)0x1FU << 24U)
-                        | (uint32)((uint32)(6U - 1U)<< 16U)
-                        | (uint32)((uint32)(165U - 1U) << 8U);
-
-    /* Restart all other clock sources. All clock domains are enabled automatically. */
-    systemREG1->CSDISCLR = 0xFF;
-
-    /* Reconfigure flash bank/pump fallback modes to be "active" */
-    /** - Setup flash bank power modes */
-    flashWREG->FBFALLBACK = 0x00000000U
-                          | (uint32)((uint32)SYS_ACTIVE << 14U) /* BANK 7 */
-                          | (uint32)((uint32)SYS_ACTIVE << 2U)  /* BANK 1 */
-                          | (uint32)((uint32)SYS_ACTIVE << 0U); /* BANK 0 */
-
-    vTaskStepTick(400);
-
-    /* Restore original clock source/domain bindings */
-    mapClocks();
-
-    /* Resume oscillator monitoring */
-    systemREG1->CLKTEST = 0x000A0000;
 
 }
 

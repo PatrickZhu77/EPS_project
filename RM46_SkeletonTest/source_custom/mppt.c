@@ -116,7 +116,7 @@ void mppt_pno_ss(mppt_data_t *data)
  *   Pointer to public data structure of MPPT task.
  *
  ******************************************************************************/
-void mppt_pno_en(mppt_data_t *data)
+void mppt_pno_fb(mppt_data_t *data)
 {
 
     if (data->power < data->prePower)

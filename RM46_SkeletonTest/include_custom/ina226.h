@@ -79,7 +79,7 @@ typedef struct
     uint8_t address;              //i2c address
 //    uint16_t mask_reg;
     uint16_t alert_reg;           //alert threshold value (normally in mA)
-    uint16_t shunt_voltage;       //shunt voltage (raw data)
+    uint16_t shunt_voltage;       //shunt voltage (raw data, can be negative in 2's complement format)
     uint16_t bus_voltage;         //bus voltage (raw data, can be converted to voltage in mV)
     uint16_t current;             //current (raw data, can be converted to current in mA)
     uint16_t power;               //power (raw data, can be converted to power in mW)
@@ -94,7 +94,7 @@ void INA226_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data
 uint16_t INA226_CurrentToAlert_ShuntVoltage_Raw(uint16_t current_mA, uint16_t cal_reg);
 uint16_t INA226_VoltageToAlert_BusVoltage_Raw(uint16_t voltage_mV);
 
-void INA226_Init(i2cBASE_t *i2c, uint16_t Rshunt, sensor_config_t *data2, uint16_t mask, ina226_housekeeping_t *data3);
+void INA226_Init(i2cBASE_t *i2c, uint16_t Rshunt, sensor_config_t data2, uint16_t mask, ina226_housekeeping_t *data3);
 void INA226_SetMaskReg(i2cBASE_t *i2c, ina226_housekeeping_t *data, uint16_t mask);
 void INA226_SetAlertReg(i2cBASE_t *i2c, ina226_housekeeping_t *data, uint16_t alert, uint16_t cal_reg);
 uint16_t INA226_ReadMaskReg(i2cBASE_t *i2c, ina226_housekeeping_t *data);

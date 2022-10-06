@@ -177,7 +177,7 @@ void channel_read_rawdata_and_convert(channel_data_t *Fchannel, ina226_housekeep
  *   Pointer to the first non-volatile data structure.
  *
  ******************************************************************************/
-void channel_check_batteryV_then_SW(channel_data_t *Fchannel, battery_data_t *Fdata1, system_config_t *Fdata2)
+void channel_check_batteryV_then_update_switch(channel_data_t *Fchannel, battery_data_t *Fdata1, system_config_t *Fdata2)
 {
     uint8_t i;
 
@@ -213,7 +213,7 @@ void channel_check_batteryV_then_SW(channel_data_t *Fchannel, battery_data_t *Fd
  *   Pointer to the first non-volatile data structure.
  *
  ******************************************************************************/
-void channel_check_batteryI_then_SW(channel_data_t *Fchannel, battery_data_t *Fdata1, system_config_t *Fdata2)
+void channel_check_batteryI_then_update_switch(channel_data_t *Fchannel, battery_data_t *Fdata1, system_config_t *Fdata2)
 {
     uint8_t i;
     uint8_t low_pri = 0;
@@ -251,7 +251,7 @@ void channel_check_batteryI_then_SW(channel_data_t *Fchannel, battery_data_t *Fd
  *   Pointer to the first non-volatile data structure.
  *
  ******************************************************************************/
-void channel_check_chanV_then_SW(channel_data_t *Fchannel, system_config_t *Fdata)
+void channel_check_chanV_then_update_switch(channel_data_t *Fchannel, system_config_t *Fdata)
 {
     uint8_t i;
 
@@ -300,8 +300,27 @@ void channel_resume(channel_data_t *Fchannel)
 
 }
 
-
-void channel_check_overcurrent_then_config_and_resume(channel_data_t *Fchannel, ina226_housekeeping_t *Fdata, system_config_t *data, sensor_config_t *data2, i2cBASE_t *i2c)
+/***************************************************************************
+ * @brief
+ *   Check the overcurrent condition of the channels. If overcurrent happens very often in a short time, then increase the threshold value
+ *
+ * @param[in] Fchannel
+ *   Pointer to FIRST channel. (Must be the pointer to first channel!!!)
+ *
+ * @param[in] Fdata
+ *   Pointer to the current sensor of the first channel.
+ *
+ * @param[in] data
+ *   Pointer to the config data structure.
+ *
+ * @param[in] data2
+ *   Pointer to the sensor config data structure.
+ *
+ * @param[in] i2c
+ *   Pointer to I2C peripheral register block.
+ *
+ ******************************************************************************/
+void channel_check_overcurrent_then_config_and_resume(channel_data_t *Fchannel, ina226_housekeeping_t *Fdata, system_config_t *data, sensor_config_t data2, i2cBASE_t *i2c)
 {
     uint8_t i, j;
 
@@ -331,7 +350,7 @@ void channel_check_overcurrent_then_config_and_resume(channel_data_t *Fchannel, 
                 (Fdata+i)->alert_reg = data->chan_config_data[i].maxI_mA;
 
                 /*Update the sensor register*/
-                INA226_Init(i2c, data->channel_monitor_Rshunt[i], data2, data2->ina226_channel_mask, (Fdata+i));
+                INA226_Init(i2c, data->channel_monitor_Rshunt[i], data2, data2.ina226_channel_mask, (Fdata+i));
 
             }
         }

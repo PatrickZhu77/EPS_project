@@ -13,22 +13,25 @@
 
 #define     NUM_OF_BATTERY_PAIR   2          //There are 4 cells according to schematic of battery board, 1 and 3 are grouped, 2 and 4 are grouped.
 
-#define     BATT_CHARGING_TEMP_MIN_C         0x9E   //Minimum charging temp. 0x9E: 0C according to Panasonic NCR18650B.
-#define     BATT_CHARGING_TEMP_MAX_C         0xB7   //Maximum discharging temp. 0xB7: -20C according to Panasonic NCR18650B.
-#define     BATT_DISCHARGING_TEMP_MIN_C      0xB7   //Minimum discharging temp. 0xB7: -20C according to Panasonic NCR18650B.
-#define     BATT_DISCHARGING_TEMP_MAX_C      0xB7   //Maximum discharging temp. 0xB7: -20C according to Panasonic NCR18650B.
+#define     BATT_CHARGING_TEMP_MIN_C         10    //C. Minimum charging temp. according to Panasonic NCR18650B.
+#define     BATT_CHARGING_TEMP_MAX_C         45    //C. Maximum charging temp. according to Panasonic NCR18650B.
+#define     BATT_DISCHARGING_TEMP_MIN_C      -20   //C. Minimum discharging temp. according to Panasonic NCR18650B.
+#define     BATT_DISCHARGING_TEMP_MAX_C      60    //C. Maximum discharging temp. according to Panasonic NCR18650B.
 
 #define     BATT_CHARGING_CURRENT_LIMIT_mA       0x659  //Battery charging current limit. 0x659: 1625mA according to Panasonic NCR18650B.
 #define     BATT_DISCHARGING_CURRENT_LIMIT_mA    0x659  //Battery discharging current limit. 0x659: 1625mA according to Panasonic NCR18650B.
+
+#define     BATT_STATUS_CHARGING        1
+#define     BATT_STATUS_DISCHARGING     0
 
 typedef struct
 {
     uint8_t num;                  //# of battery pair. Starting from 1.
     uint8_t sw[2];                //Switches. SW1 is charging switch and SW2 is discharging switch. 1:ON, 0:OFF.
     uint8_t status;               //Status of battery (depending on the direction of current). 1:charging, 0:discharging.
-    uint8_t temp;                 //Voltage of thermistor. -20C:10110111; 0C:10011110; 100C:00001111
     uint16_t current;             //mA. Battery current.
     uint16_t voltage;             //mV. Battery voltage.
+    int32_t temp;                     //Voltage of thermistor.
 }battery_data_t;
 
 /******************List of SW pins for battery*********************/

@@ -19,10 +19,7 @@
 #define V1_2   1494         // D = (Vout * (2^N))/Vref = (1.204V * (2^12))/3.3V = 1494.42 => 1495
 #define V0_4    496         // D = (Vout * (2^N))/Vref = (0.4V * (2^12))/3.3V = 496.48 => 496
 
-//void dac_write_en(spiBASE_t *spi, mppt_data_t *data);
-void dac_write_ss(gioPORT_t *spi, mppt_data_t *data);
-void dac_write_en(gioPORT_t *spi, mppt_data_t *data);
-void dac_write_en_ss(gioPORT_t *spi,uint16_t value);
+void dac_write_fb(gioPORT_t *spi, mppt_data_t *data, uint8_t out_channel);
 void get_binary(uint16_t data, uint8_t out_channel);
 
 #endif /* INCLUDE_AD5324_H_ */

@@ -153,9 +153,3 @@ void get_hk_channel(ina226_housekeeping_t *data,channel_data_t *channel)
     }
 
 }
-
-void set_default_max6698_init(uint8_t *ptr, uint8_t num, uint8_t value)
-{
-    *(ptr + num) = value;
-    fee_write_8bit(1, ptr);
-}

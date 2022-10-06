@@ -73,7 +73,7 @@ void battery_check_charging_status(battery_data_t *battery, ina226_housekeeping_
 {
     if(data->shunt_voltage & 0x8000)        //if current is negative
     {
-        battery->status = 0;                //battery is discharging
+        battery->status = 0;                //battery is discharging only
     }
     else
     {
@@ -100,7 +100,7 @@ void battery_read_rawdata_and_convert(battery_data_t *battery, ina226_housekeepi
 {
     battery->current = INA226_ConvToCurrent_mA(data1);
     battery->voltage = INA226_ConvToVoltage_mV(data1);
-    battery->temp = data2->temp[battery->num-1];
+    battery->temp = MAX6698_ConvertTemp_C(data2,battery->num);
 }
 
 
@@ -117,26 +117,26 @@ void battery_read_rawdata_and_convert(battery_data_t *battery, ina226_housekeepi
  ****************************************************************************/
 void battery_check_temp_then_SW(battery_data_t *battery, system_config_t *data)
 {
-    if(battery->status == 1)
+    if(battery->status == BATT_STATUS_CHARGING)
     {
-        if((battery->temp < data->batt_charging_temp_min_c) || (battery->temp > data->batt_charging_temp_max_c))    //if temperature is in the range
+        if((battery->temp < data->batt_charging_temp_min_c) || (battery->temp > data->batt_charging_temp_max_c))
         {
-            battery_chargingSW_off(battery);
+            battery_chargingSW_off(battery);            //temperature is out of range, stop charging
         }
         else
         {
-            battery_chargingSW_on(battery);
+            battery_chargingSW_on(battery);             //temperature is in range, continue charging
         }
     }
     else
     {
-        if((battery->temp < data->batt_discharging_temp_min_c) || (battery->temp > data->batt_discharging_temp_max_c))  //if temperature is in the range
+        if((battery->temp < data->batt_discharging_temp_min_c) || (battery->temp > data->batt_discharging_temp_max_c))
         {
-            battery_dischargingSW_off(battery);
+            battery_dischargingSW_off(battery);         //temperature is out of range, stop discharging
         }
         else
         {
-            battery_dischargingSW_on(battery);
+            battery_dischargingSW_on(battery);          //temperature is in range, continue discharging
         }
     }
 }

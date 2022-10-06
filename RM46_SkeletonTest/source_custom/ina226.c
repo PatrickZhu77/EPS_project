@@ -208,7 +208,7 @@ uint16_t INA226_VoltageToAlert_BusVoltage_Raw(uint16_t voltage_mV)
  ******************************************************************************/
 uint16_t INA226_RshuntToCalReg(uint16_t Rshunt_mOhm)
 {
-    uint32_t calreg_temp = 512 / (1 * Rshunt_mOhm);         //calculated calibration register value: 0.00512/(INA226_CURRENT_LSB(in A) * INA226_SHUNT_RESISTANCE(in Ohm))
+    uint32_t calreg_temp = 5120 / (1 * Rshunt_mOhm);         //calculated calibration register value: 0.00512/(INA226_CURRENT_LSB(in A) * INA226_SHUNT_RESISTANCE(in Ohm))
     return (uint16_t)calreg_temp;
 }
 
@@ -228,7 +228,7 @@ uint16_t INA226_RshuntToCalReg(uint16_t Rshunt_mOhm)
  * @param[in] alert
  *   Value to be used for initializing alert register.
  ******************************************************************************/
-void INA226_Init(i2cBASE_t *i2c, uint16_t Rshunt, sensor_config_t *data2, uint16_t mask, ina226_housekeeping_t *data3)
+void INA226_Init(i2cBASE_t *i2c, uint16_t Rshunt, sensor_config_t data2, uint16_t mask, ina226_housekeeping_t *data3)
 {
     uint8_t config_temp[2]={0};
     uint8_t cal_temp[2]={0};
@@ -245,8 +245,8 @@ void INA226_Init(i2cBASE_t *i2c, uint16_t Rshunt, sensor_config_t *data2, uint16
     alert_raw = INA226_CurrentToAlert_ShuntVoltage_Raw(data3->alert_reg, cal_calculated);
 
     /* Separate the 16bit integers into 8bit arrays */
-    config_temp[0] = (uint8_t)(data2->ina226_cfg_setting >> 8);
-    config_temp[1] = (uint8_t)data2->ina226_cfg_setting;
+    config_temp[0] = (uint8_t)(data2.ina226_cfg_setting >> 8);
+    config_temp[1] = (uint8_t)data2.ina226_cfg_setting;
     cal_temp[0] = (uint8_t)(cal_calculated >> 8);
     cal_temp[1] = (uint8_t)cal_calculated;
     mask_temp[0] = (uint8_t)(mask >> 8);

@@ -54,7 +54,7 @@ typedef struct
 void INA3221_SendData(i2cBASE_t *i2c,uint8_t addr,uint8_t reg,uint8_t *data);
 void INA3221_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data);
 
-void INA3221_Init(i2cBASE_t *i2c, sensor_config_t *data2, ina3221_housekeeping_t *data3);
+void INA3221_Init(i2cBASE_t *i2c, sensor_config_t data2, ina3221_housekeeping_t *data3);
 void INA3221_ReadShuntVoltage_Raw(i2cBASE_t *i2c, ina3221_housekeeping_t *data, uint8_t channel);
 void INA3221_ReadBusVoltage_Raw(i2cBASE_t *i2c, ina3221_housekeeping_t *data, uint8_t channel);
 

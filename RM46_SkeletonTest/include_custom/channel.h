@@ -9,6 +9,8 @@
 #include "battery.h"
 #include "flash_data.h"
 #include "realtimeClock.h"
+#include "FreeRTOS.h"
+#include "os_task.h"
 
 //#define     NUM_OF_CHANNELS  18     //There are 18 channels according to schematic of eps.
 
@@ -89,11 +91,11 @@ void channel_set_group_mask(channel_data_t *Fchannel, channel_data_t *channel1, 
 void channel_check_mode(channel_data_t *Fchannel, uint8_t sys_mode);
 void channel_read_rawdata_and_convert(channel_data_t *Fchannel, ina226_housekeeping_t *Fdata);
 
-void channel_check_batteryV_then_SW(channel_data_t *Fchannel, battery_data_t *Fdata1, system_config_t *Fdata2);
-void channel_check_batteryI_then_SW(channel_data_t *Fchannel, battery_data_t *Fdata1, system_config_t *Fdata2);
-void channel_check_chanV_then_SW(channel_data_t *Fchannel, system_config_t *Fdata);
+void channel_check_batteryV_then_update_switch(channel_data_t *Fchannel, battery_data_t *Fdata1, system_config_t *Fdata2);
+void channel_check_batteryI_then_update_switch(channel_data_t *Fchannel, battery_data_t *Fdata1, system_config_t *Fdata2);
+void channel_check_chanV_then_update_switch(channel_data_t *Fchannel, system_config_t *Fdata);
 void channel_resume(channel_data_t *Fchannel);
 
-void channel_check_overcurrent_then_config_and_resume(channel_data_t *Fchannel, ina226_housekeeping_t *Fdata, system_config_t *data, sensor_config_t *data2, i2cBASE_t *i2c);
+void channel_check_overcurrent_then_config_and_resume(channel_data_t *Fchannel, ina226_housekeeping_t *Fdata, system_config_t *data, sensor_config_t data2, i2cBASE_t *i2c);
 
 #endif /* INCLUDE_CUSTOM_CHANNEL_H_ */

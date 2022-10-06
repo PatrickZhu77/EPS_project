@@ -15,6 +15,7 @@ C_SRCS += \
 ../source_custom/heater.c \
 ../source_custom/ina226.c \
 ../source_custom/ina3221.c \
+../source_custom/low_power_mode.c \
 ../source_custom/max6698.c \
 ../source_custom/mppt.c \
 ../source_custom/realtimeClock.c \
@@ -31,6 +32,7 @@ C_DEPS += \
 ./source_custom/heater.d \
 ./source_custom/ina226.d \
 ./source_custom/ina3221.d \
+./source_custom/low_power_mode.d \
 ./source_custom/max6698.d \
 ./source_custom/mppt.d \
 ./source_custom/realtimeClock.d \
@@ -47,6 +49,7 @@ OBJS += \
 ./source_custom/heater.obj \
 ./source_custom/ina226.obj \
 ./source_custom/ina3221.obj \
+./source_custom/low_power_mode.obj \
 ./source_custom/max6698.obj \
 ./source_custom/mppt.obj \
 ./source_custom/realtimeClock.obj \
@@ -63,6 +66,7 @@ OBJS__QUOTED += \
 "source_custom\heater.obj" \
 "source_custom\ina226.obj" \
 "source_custom\ina3221.obj" \
+"source_custom\low_power_mode.obj" \
 "source_custom\max6698.obj" \
 "source_custom\mppt.obj" \
 "source_custom\realtimeClock.obj" \
@@ -79,6 +83,7 @@ C_DEPS__QUOTED += \
 "source_custom\heater.d" \
 "source_custom\ina226.d" \
 "source_custom\ina3221.d" \
+"source_custom\low_power_mode.d" \
 "source_custom\max6698.d" \
 "source_custom\mppt.d" \
 "source_custom\realtimeClock.d" \
@@ -95,6 +100,7 @@ C_SRCS__QUOTED += \
 "../source_custom/heater.c" \
 "../source_custom/ina226.c" \
 "../source_custom/ina3221.c" \
+"../source_custom/low_power_mode.c" \
 "../source_custom/max6698.c" \
 "../source_custom/mppt.c" \
 "../source_custom/realtimeClock.c" \

@@ -8,6 +8,17 @@
 
 static uint16_t binary[16] = {0};
 
+/***************************************************************************
+ * @brief
+ *   Internal function used during data conversion process
+ *
+ * @param[in] data
+ *   Data to be sent
+ *
+ * @param[in] out_channel
+ *   Output channel number of the DAC
+ *
+ ******************************************************************************/
 void get_binary(uint16_t data, uint8_t out_channel)
 {
 
@@ -30,7 +41,7 @@ void get_binary(uint16_t data, uint8_t out_channel)
 
 /***************************************************************************
  * @brief
- *   Generate real output for DAC5324 in EN controlling method
+ *   Generate real output for DAC5324 in FB controlling method
  *
  *  @param[in] spi
  *   Pointer to SPI peripheral register block.
@@ -39,94 +50,16 @@ void get_binary(uint16_t data, uint8_t out_channel)
  *   Pointer to mppt data.
  *
  ******************************************************************************/
-void dac_write_en(gioPORT_t *spi, mppt_data_t *data)
+void dac_write_fb(gioPORT_t *spi, mppt_data_t *data, uint8_t out_channel)
 {
     uint16_t t;
 
-//    gioSetDirection(hetPORT2, 0x40); //0x40 -> 100_0000, set N2HET2[6] as output, others for input
-//    gioToggleBit(hetPORT2, 0x40);
 
     gioToggleBit(spi, 0x600);
     gioSetDirection(spi,0x600); //0x600 -> 110_0000_0000, set port 9(CLK) and port 10(MOSI) as output, others for input
 
 
-//    uint16_t sample = 0x6FFF;
-    get_binary(data->dacOUT,dac_OUT_A);
-
-    uint16_t i;
-
-    gioSetBit(spi,9,0);
-    gioSetBit(spi,9,1);
-    gioSetBit(gioPORTA,7,0);
-    for(t=0;t<0x80;t++);
-
-    for(i=0;i<16;i++)
-    {
-        gioSetBit(spi,10,binary[i]);
-        for(t=0;t<0x80;t++);
-        gioSetBit(spi,9,0);
-        for(t=0;t<0x80;t++);
-
-        gioSetBit(spi,9,1);
-        for(t=0;t<0x80;t++);
-
-    }
-
-    gioSetBit(gioPORTA,7,1);
-
-}
-
-void dac_write_en_ss(gioPORT_t *spi,uint16_t value)
-{
-    uint16_t t;
-
-//    gioSetDirection(hetPORT2, 0x40); //0x40 -> 100_0000, set N2HET2[6] as output, others for input
-//    gioToggleBit(hetPORT2, 0x40);
-
-    gioToggleBit(spi, 0x600);
-    gioSetDirection(spi,0x600); //0x600 -> 110_0000_0000, set port 9(CLK) and port 10(MOSI) as output, others for input
-
-
-//    uint16_t sample = 0x6FFF;
-    get_binary(value,dac_OUT_B);
-
-    uint16_t i;
-
-    gioSetBit(spi,9,0);
-    gioSetBit(spi,9,1);
-    gioSetBit(gioPORTA,7,0);
-    for(t=0;t<0x80;t++);
-
-    for(i=0;i<16;i++)
-    {
-        gioSetBit(spi,10,binary[i]);
-        for(t=0;t<0x80;t++);
-        gioSetBit(spi,9,0);
-        for(t=0;t<0x80;t++);
-
-        gioSetBit(spi,9,1);
-        for(t=0;t<0x80;t++);
-
-    }
-
-    gioSetBit(gioPORTA,7,1);
-
-}
-
-
-void dac_write_ss(gioPORT_t *spi, mppt_data_t *data)
-{
-    uint16_t t;
-
-//    gioSetDirection(hetPORT2, 0x40); //0x40 -> 100_0000, set N2HET2[6] as output, others for input
-//    gioToggleBit(hetPORT2, 0x40);
-
-    gioToggleBit(spi, 0x600);
-    gioSetDirection(spi,0x600); //0x600 -> 110_0000_0000, set port 9(CLK) and port 10(MOSI) as output, others for input
-
-
-//    uint16_t sample = 0x6FFF;
-    get_binary(data->dacOUT,dac_OUT_B);
+    get_binary(data->dacOUT, out_channel);
 
     uint16_t i;
 

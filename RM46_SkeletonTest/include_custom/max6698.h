@@ -44,17 +44,17 @@
 typedef struct
 {
     uint8_t address;              //i2c address
-    uint8_t temp[2];              //Voltage of thermistor. -20C:10110111; 0C:10011110; 100C:00001111
+    uint8_t temp[2];              //Raw data of the thermistor.
 }max6698_housekeeping_t;
 
 
 void MAX6698_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data);
 void MAX6698_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data);
 
-void MAX6698_Init(i2cBASE_t *i2c, sensor_config_t *data, max6698_housekeeping_t *data2);
+void MAX6698_Init(i2cBASE_t *i2c, sensor_config_t data, max6698_housekeeping_t *data2);
 
 void MAX6698_ReadTemp_Raw(i2cBASE_t *i2c, max6698_housekeeping_t *data, uint8_t channel);
 
-void MAX6698_ConvToTemp_C(i2cBASE_t *i2c, max6698_housekeeping_t *data, uint8_t channel); //to be done
+int MAX6698_ConvertTemp_C(max6698_housekeeping_t *data, uint8_t channel);
 
 #endif /* INCLUDE_CUSTOM_MAX6698_H_ */

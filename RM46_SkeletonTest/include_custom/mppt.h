@@ -37,7 +37,7 @@ void mppt_hunts(mppt_data_t *data);
 void mppt_getPower(ina3221_housekeeping_t *data1,mppt_data_t *data2);
 void mppt_getPower_ina226(ina226_housekeeping_t *data1,mppt_data_t *data2);
 void mppt_pno_ss(mppt_data_t *data);
-void mppt_pno_en(mppt_data_t *data);
+void mppt_pno_fb(mppt_data_t *data);
 
 
 #endif /* INCLUDE_MPPT_H_ */
