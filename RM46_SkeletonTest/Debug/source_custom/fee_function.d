@@ -35,6 +35,7 @@ source_custom/fee_function.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/softwa
 source_custom/fee_function.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/data_structure_const.h
 source_custom/fee_function.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/flash_data.h
 source_custom/fee_function.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/custom_crc.h
+source_custom/fee_function.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/error_message.h
 source_custom/fee_function.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include/sys_common.h
 
 ../source_custom/fee_function.c: 
@@ -72,4 +73,5 @@ E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_cus
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/data_structure_const.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/flash_data.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/custom_crc.h: 
+E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/error_message.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include/sys_common.h: 

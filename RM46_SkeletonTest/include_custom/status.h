@@ -8,14 +8,17 @@
 #ifndef INCLUDE_CUSTOM_STATUS_H_
 #define INCLUDE_CUSTOM_STATUS_H_
 
+#include "data_structure_const.h"
+
 typedef struct
 {
-    uint8_t num_of_reset;               //number of the reset time
-    uint8_t config_ver;                 //version of the current configuration setting
-    uint16_t runtime_ms;                //ms. millisecond of system runtime
-    uint16_t current_time_ms;           //ms. millisecond of current time
-    uint32_t runtime_s;                 //s. second of system runtime
-    uint32_t current_time_s;            //s. second of current time
+    uint8_t config_ver;                                     //version of the current configuration RAM copy
+    uint16_t solar_panel_input_power_mW[NUM_OF_INA3221];    //mW. input power of solar panels
+    uint16_t battery_voltage_mV[NUM_OF_INA226_BATTERY];     //mW. voltage of battery pairs
+    uint16_t num_of_ON_channels;                            //number of the output channels that is ON
+    uint32_t runtime_s;                                     //sec. system runtime
+    uint32_t last_time_update_config_to_flash_s;            //sec. last time user update the configuration RAM copy to flash (either to reboot copy or to factory copy)
+    uint32_t last_time_user_request_HK_s;                   //sec. last time user request housekeeping data
 }system_status_t;
 
 

@@ -2,7 +2,7 @@
 #ifndef INCLUDE_CUSTOM_BATTERY_H_
 #define INCLUDE_CUSTOM_BATTERY_H_
 
-#include "stdint.h"
+#include "stdio.h"
 #include "gio.h"
 #include "het.h"
 

@@ -92,10 +92,10 @@ void fee_initial(void)
  * @brief
  *   Package config data in 8bit format with CRC checksum
  *
- * @param[in] data
+ * @param[in] source_data
  *   Pointer to the source config data.
  *
- * @param[in] data
+ * @param[in] packed_data
  *   Pointer to the destination packaged data .
  ******************************************************************************/
 void fee_package_data_with_crc(system_config_t *source_data, uint8_t *packed_data)
@@ -375,10 +375,10 @@ void fee_package_data_with_crc(system_config_t *source_data, uint8_t *packed_dat
  * @brief
  *   Check CRC checksum of packaged data and then unpackage it if CRC is good
  *
- * @param[in] data
+ * @param[in] packed_data
  *   Pointer to the data to be unpackaged.
  *
- * @param[in] data
+ * @param[in] dest_data
  *   Pointer to the destination data structure to store the config data.
  *
  * @return
@@ -463,21 +463,21 @@ uint8_t fee_check_crc_then_unpackage_data(uint8_t *packed_data, system_config_t 
     dest_data->dac_stepsize_init = combine_8bit_to_uint16(packed_data + pointer_counter);
     pointer_counter = pointer_counter+2;
 
-    dest_data->batt_charging_temp_min_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->batt_charging_temp_min_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->batt_charging_temp_max_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->batt_charging_temp_max_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->batt_discharging_temp_min_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->batt_discharging_temp_min_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->batt_discharging_temp_max_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->batt_discharging_temp_max_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->heater_sunshine_temp_on_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->heater_sunshine_temp_on_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->heater_sunshine_temp_off_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->heater_sunshine_temp_off_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->heater_eclipse_temp_on_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->heater_eclipse_temp_on_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->heater_eclipse_temp_off_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->heater_eclipse_temp_off_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
 
     /*Sensor config struct*/
@@ -533,10 +533,10 @@ uint8_t fee_check_crc_then_unpackage_data(uint8_t *packed_data, system_config_t 
  * @brief
  *   Unpackage data directly (ignore the CRC)
  *
- * @param[in] data
+ * @param[in] packed_data
  *   Pointer to the data to be unpackaged.
  *
- * @param[in] data
+ * @param[in] dest_data
  *   Pointer to the destination data structure to store the config data.
  *
  ******************************************************************************/
@@ -608,21 +608,21 @@ void fee_unpackage_data_ignore_crc(uint8_t *packed_data, system_config_t *dest_d
     dest_data->dac_stepsize_init = combine_8bit_to_uint16(packed_data + pointer_counter);
     pointer_counter = pointer_counter+2;
 
-    dest_data->batt_charging_temp_min_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->batt_charging_temp_min_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->batt_charging_temp_max_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->batt_charging_temp_max_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->batt_discharging_temp_min_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->batt_discharging_temp_min_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->batt_discharging_temp_max_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->batt_discharging_temp_max_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->heater_sunshine_temp_on_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->heater_sunshine_temp_on_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->heater_sunshine_temp_off_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->heater_sunshine_temp_off_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->heater_eclipse_temp_on_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->heater_eclipse_temp_on_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
-    dest_data->heater_eclipse_temp_off_c = (int)combine_8bit_to_uint32(packed_data + pointer_counter);
+    dest_data->heater_eclipse_temp_off_c = (int32_t)combine_8bit_to_uint32(packed_data + pointer_counter);
     pointer_counter = pointer_counter+4;
 
     /*Sensor config struct*/
@@ -685,7 +685,7 @@ void fee_unpackage_data_ignore_crc(uint8_t *packed_data, system_config_t *dest_d
  * @param[in] length
  *   Length of the data to be read (in byte)
  ******************************************************************************/
-void fee_read_flashed_config(uint16_t BlockNumber, uint8_t *pData, uint16_t length)
+void fee_read_flashed_data(uint16_t BlockNumber, uint8_t *pData, uint16_t length)
 {
     oResult=TI_Fee_Read(BlockNumber, 0, pData, length);
     do
@@ -695,5 +695,111 @@ void fee_read_flashed_config(uint16_t BlockNumber, uint8_t *pData, uint16_t leng
         Status=TI_Fee_GetStatus(0);
     }
     while(Status!=IDLE);
+}
+
+/***************************************************************************
+ * @brief
+ *   Package error message timestamp_sec in 8bit array format
+ *
+ * @param[in] source_data
+ *   Pointer to the source data
+ *
+ * @param[in] packed_data
+ *   Pointer to the destination packaged array .
+ ******************************************************************************/
+void fee_package_err_msg_timestamp_s(uint32_t *source_data, uint8_t *packed_data)
+{
+    uint8_t i = 0;
+    uint16_t pointer_counter = 0;
+
+    /*Start packaging data*/
+    for(i=0; i<ERROR_BUFFER_SIZE; i++)
+    {
+        *(packed_data + pointer_counter) = pick_highest8bit_of_uint32(*(source_data+i));
+        pointer_counter++;
+        *(packed_data + pointer_counter) = pick_high8bit_of_uint32(*(source_data+i));
+        pointer_counter++;
+        *(packed_data + pointer_counter) = pick_low8bit_of_uint32(*(source_data+i));
+        pointer_counter++;
+        *(packed_data + pointer_counter) = pick_lowest8bit_of_uint32(*(source_data+i));
+        pointer_counter++;
+    }
+
+}
+
+/***************************************************************************
+ * @brief
+ *   Unpackage error message timestamp_sec data
+ *
+ * @param[in] packed_data
+ *   Pointer to the data to be unpackaged.
+ *
+ * @param[in] dest_data
+ *   Pointer to the destination array.
+ *
+ ******************************************************************************/
+void fee_unpackage_err_msg_timestamp_s(uint8_t *packed_data, uint32_t *dest_data)
+{
+    uint8_t i = 0;
+    uint16_t pointer_counter = 0;
+
+    /*Start unpackaging data*/
+    for(i=0; i<ERROR_BUFFER_SIZE; i++)
+    {
+        *(dest_data+i) = combine_8bit_to_uint32(packed_data + pointer_counter);
+        pointer_counter = pointer_counter+4;
+    }
+
+}
+
+/***************************************************************************
+ * @brief
+ *   Package error message timestamp_ms in 8bit array format
+ *
+ * @param[in] source_data
+ *   Pointer to the source data
+ *
+ * @param[in] packed_data
+ *   Pointer to the destination packaged array .
+ ******************************************************************************/
+void fee_package_err_msg_timestamp_ms(uint16_t *source_data, uint8_t *packed_data)
+{
+    uint8_t i = 0;
+    uint16_t pointer_counter = 0;
+
+    /*Start packaging data*/
+    for(i=0; i<ERROR_BUFFER_SIZE; i++)
+    {
+        *(packed_data + pointer_counter) = pick_high8bit_of_uint16(*(source_data+i));
+        pointer_counter++;
+        *(packed_data + pointer_counter) = pick_low8bit_of_uint16(*(source_data+i));
+        pointer_counter++;
+    }
+
+}
+
+/***************************************************************************
+ * @brief
+ *   Unpackage error message timestamp_ms data
+ *
+ * @param[in] packed_data
+ *   Pointer to the data to be unpackaged.
+ *
+ * @param[in] dest_data
+ *   Pointer to the destination array.
+ *
+ ******************************************************************************/
+void fee_unpackage_err_msg_timestamp_ms(uint8_t *packed_data, uint16_t *dest_data)
+{
+    uint8_t i = 0;
+    uint16_t pointer_counter = 0;
+
+    /*Start unpackaging data*/
+    for(i=0; i<ERROR_BUFFER_SIZE; i++)
+    {
+        *(dest_data+i) = combine_8bit_to_uint16(packed_data + pointer_counter);
+        pointer_counter = pointer_counter+2;
+    }
+
 }
 

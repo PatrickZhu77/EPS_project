@@ -89,6 +89,8 @@
 #include "flash_data.h"
 #include "data_structure_const.h"
 #include "low_power_mode.h"
+#include "error_message.h"
+#include "status.h"
 
 /* USER CODE END */
 
@@ -118,28 +120,30 @@ static RTC_t *global_prealtimeClock = &global_realtimeClock;
 //static char temp1[10] = {0};
 
 
-/***************FLASH Data***************/
+/***************FLASH Data Array***************/
 /*Writing Access: init_task, receiveCMD_task*/
 /*Reading Access: init_task, outputchanCtrl_task, powerConversion_and_battCtrl_task, heaterCtrl_task, receiveCMD_task*/
 static uint8_t global_RAM_copy_array[FLASHED_DATA_LENGTH] = {0};   //Converted configuration data (in uint8_t array format). Used for writing to/reading from FLASH and for transmission by commands
 static uint8_t *pglobal_RAM_copy_array = &global_RAM_copy_array[0];
 
+static uint8_t global_err_msg_timestamp_s_array[4*ERROR_BUFFER_SIZE];      //Converted error message timestamp in sec (in uint8_t array format)
+static uint8_t *pglobal_err_msg_timestamp_s_array = &global_err_msg_timestamp_s_array[0];
+static uint8_t global_err_msg_timestamp_ms_array[2*ERROR_BUFFER_SIZE];      //Converted error message timestamp in ms (in uint8_t array format)
+static uint8_t *pglobal_err_msg_timestamp_ms_array = &global_err_msg_timestamp_ms_array[0];
+
+/***************Configuration Data***************/
 static system_config_t global_RAM_copyD = {NUM_OF_CONFIG_VERSION,
-                            {INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT},
-                            {INA226_MONITOR_ALERT}, INA226_SHUNT_RESISTANCE, BATT_CHARGING_CURRENT_LIMIT_mA, BATT_DISCHARGING_CURRENT_LIMIT_mA,
+                            {INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT},{INA226_MONITOR_ALERT},
+                            {INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE}, {INA226_SHUNT_RESISTANCE},
+                            {INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE},{0},{INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE},
+                            BATT_CHARGING_CURRENT_LIMIT_mA, BATT_DISCHARGING_CURRENT_LIMIT_mA,
                             HEATER_TUMBLE_THRESHOLD_TIME_S, HEATER_SOLAR_PANEL_THRESHOLD_POWER_mW, HEATER_ORBIT_PERIOD_S, HEATER_HEAT_UP_TIME_S,
                             DAC_INIT, EN_STEPSIZE_INIT,
-                            (int)BATT_CHARGING_TEMP_MIN_C, (int)BATT_CHARGING_TEMP_MAX_C, (int)BATT_DISCHARGING_TEMP_MIN_C, (int)BATT_DISCHARGING_TEMP_MAX_C,
-                            (int)HEATER_SUNSHINE_TEMP_ON_C, (int)HEATER_SUNSHINE_TEMP_OFF_C, (int)HEATER_ECLIPSE_TEMP_ON_C, (int)HEATER_ECLIPSE_TEMP_OFF_C,
-                            {NUM_OF_SOFTWARE_VERSION, MAX6698_CFG1_SETTING, MAX6698_CFG2_SETTING, MAX6698_CFG3_SETTING, INA226_CFG_SETTING, INA226_OVERCURRENT_MASK, INA226_MONITOR_MASK, INA226_BATTERY_MASK, INA226_CHANNEL_MASK, INA3221_CFG_SETTING, INA3221_MASK_SETTING},
-                            {0}
-                            };
+                            BATT_CHARGING_TEMP_MIN_C, BATT_CHARGING_TEMP_MAX_C, BATT_DISCHARGING_TEMP_MIN_C, BATT_DISCHARGING_TEMP_MAX_C,
+                            HEATER_SUNSHINE_TEMP_ON_C, HEATER_SUNSHINE_TEMP_OFF_C, HEATER_ECLIPSE_TEMP_ON_C, HEATER_ECLIPSE_TEMP_OFF_C,
+                            {0},{0}};
 static system_config_t *pglobal_RAM_copyD = &global_RAM_copyD;
 
-//static sensor_config_t global_flash_senser_config = {0, MAX6698_CFG1_SETTING, MAX6698_CFG2_SETTING, MAX6698_CFG3_SETTING,
-//                                                     INA226_CFG_SETTING, INA226_OVERCURRENT_MASK, INA226_MONITOR_MASK, INA226_BATTERY_MASK, INA226_CHANNEL_MASK,
-//                                                     INA3221_CFG_SETTING, INA3221_MASK_SETTING};
-//static sensor_config_t *pglobal_flash_sensor_config = &global_flash_senser_config;
 
 /*******************Sensor Data**********************/
 /*Writing Access: init_task, receiveCMD_task, getHK_task*/
@@ -214,9 +218,9 @@ static uint32_t global_batt_last_ticktime = 0;
 static uint32_t global_heater_last_ticktime = 0;
 
 /*Writing Access: wdt_task*/
-static uint32_t wdt_ticktime = 0;
+static uint32_t global_wdt_last_ticktime = 0;
 
-/***************Software watchdog timer data**********************/
+/***************Software Watchdog Timer Data**********************/
 /*Writing Access: wdt_task, receiveCMD_task*/
 /*Reading Access: wdt_task, receiveCMD_task*/
 
@@ -225,6 +229,26 @@ static uint32_t global_wdt_counter_ground = WDT_COUNTER_GROUND;      //counter u
 
 static uint8_t  global_wdt_reset_obc = 0;
 static uint8_t  global_wdt_reset_ground = 0;
+
+/***************Error message buffer**********************/
+/*Writing Access: wdt_task, getHK_task, receiveCMD_task*/
+/*Reading Access: init_task, wdt_task, getHK_task, receiveCMD_task*/
+static uint8_t global_err_msg_buffer[2+2*ERROR_BUFFER_SIZE] = {0};      //bit 0 is the write pointer of the circular buffer, bit 1 is the number of error message logged
+                                                                        //write pointer indicates the next bit to write
+                                                                        //starting from bit 2, even bit stores the type of the error and odd bit stores data of the error
+                                                                        //for example: bit 2 stores a 1 (ERROR_BAD_CRC), bit 3 stores 3 (REBOOT_COPY has this error)
+static uint8_t *pglobal_err_msg_buffer = &global_err_msg_buffer[0];
+
+static uint32_t global_err_msg_timestamp_s_buffer[ERROR_BUFFER_SIZE] = {0};
+static uint32_t *pglobal_err_msg_timestamp_s_buffer = &global_err_msg_timestamp_s_buffer[0];
+
+static uint16_t global_err_msg_timestamp_ms_buffer[ERROR_BUFFER_SIZE] = {0};
+static uint16_t *pglobal_err_msg_timestamp_ms_buffer = &global_err_msg_timestamp_ms_buffer[0];
+
+
+/***************System Status Data**********************/
+/*Writing Access: init_task, getHK_task, receiveCMD_task*/
+/*Reading Access: receiveCMD_task*/
 
 /***************Others**********************/
 static uint8_t global_sys_mode = 1;        //variable that stores system mode. 0:critical mode, 1:safe mode, 2:full mode.
@@ -251,6 +275,8 @@ int main(void)
     canInit();      //interface to Cubesat Space Protocal (CSP) (The initialization parameters are defined in other TI tool called HalCoGen)
     mibspiInit();   //SPI interface to digital to analog converter (The initialization parameters are defined in other TI tool called HalCoGen)
 
+    fee_initial();      //Initialize the Flash EEPROM module
+
     /*The following functions are included for clarity. The same effect can be done using HALCoGen*/
     /* Wakeup mask setting to enable rti counter1 and counter2 to wake the system from snooze (low-power) mode*/
     vimREG->WAKEMASKSET0 = 1<<2 | 1<<3;
@@ -259,14 +285,39 @@ int main(void)
     systemREG1->RCLKSRC = 0x4;
 
 
-    /*Create initialization task*/
-    xTaskCreate((TaskFunction_t )init_task,
-                (const char*    )"init_task",
-                (uint16_t       )init_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )(init_TASK_PRIO|portPRIVILEGE_BIT),
-                (TaskHandle_t*  )&initTask_Handle);
+    /* Read error message and corresponding timestamp from copies in FLASH*/
+    fee_read_flashed_data(ERR_MSG_COPY, pglobal_err_msg_buffer, 2+2*ERROR_BUFFER_SIZE);
+    fee_read_flashed_data(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array, 4*ERROR_BUFFER_SIZE);
+    fee_read_flashed_data(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array, 2*ERROR_BUFFER_SIZE);
+    fee_unpackage_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_array, pglobal_err_msg_timestamp_s_buffer);
+    fee_unpackage_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_array, pglobal_err_msg_timestamp_ms_buffer);
 
+    int32_t check_task_creation = 0;
+
+    /*Create initialization task*/
+    check_task_creation = xTaskCreate((TaskFunction_t )init_task,
+                                      (const char*    )"init_task",
+                                      (uint16_t       )init_STK_SIZE,
+                                      (void*          )NULL,
+                                      (UBaseType_t    )(init_TASK_PRIO|portPRIVILEGE_BIT),
+                                      (TaskHandle_t*  )&initTask_Handle);
+
+    if(check_task_creation == -1)      //if the task is not created successfully
+    {
+        /*log the error*/
+        error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_CREATED, TASK_INIT);
+        error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, 0, 0);
+
+        /*Update the error log to FLASH*/
+        fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+        fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+        TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+
+        /*Software reset the system*/
+        systemREG1->SYSECR = 0x8000;
+    }
 
     /* Reset real-time clock in debugging mode */
     resetRTC_debug(global_prealtimeClock);
@@ -298,25 +349,34 @@ void init_task(void *pvParameters)
 {
     taskENTER_CRITICAL();
 
-    fee_initial();      //Initialize the Flash EEPROM module
-
     /* Read packaged data from reboot copy in FLASH */
-    fee_read_flashed_config(REBOOT_COPY, pglobal_RAM_copy_array, FLASHED_DATA_LENGTH);
+    fee_read_flashed_data(REBOOT_COPY, pglobal_RAM_copy_array, FLASHED_DATA_LENGTH);
 
     /* If CRC is good, unpackage it and store it in global data structure of configurations */
     if(fee_check_crc_then_unpackage_data(pglobal_RAM_copy_array, pglobal_RAM_copyD))
     {
-        /* If CRC is bad, read packaged data from factory copy 1 in FLASH*/
-        fee_read_flashed_config(FACTORY_COPY_1, pglobal_RAM_copy_array, FLASHED_DATA_LENGTH);
+        /* If CRC is bad, log the error and read packaged data from factory copy 1 in FLASH*/
+        error_log_the_data(pglobal_err_msg_buffer, ERROR_BAD_CRC, REBOOT_COPY);
+        error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+
+        fee_read_flashed_data(FACTORY_COPY_1, pglobal_RAM_copy_array, FLASHED_DATA_LENGTH);
+
         /* If CRC is good, unpackage it and store it in global data structure of configurations */
         if(fee_check_crc_then_unpackage_data(pglobal_RAM_copy_array, pglobal_RAM_copyD))
         {
-            /* If CRC is bad, read packaged data from factory copy 2 in FLASH*/
-            fee_read_flashed_config(FACTORY_COPY_2, pglobal_RAM_copy_array, FLASHED_DATA_LENGTH);
+            /* If CRC is bad, log the error and read packaged data from factory copy 2 in FLASH*/
+            error_log_the_data(pglobal_err_msg_buffer, ERROR_BAD_CRC, FACTORY_COPY_1);
+            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+
+            fee_read_flashed_data(FACTORY_COPY_2, pglobal_RAM_copy_array, FLASHED_DATA_LENGTH);
+
             /* If CRC is good, unpackage it and store it in global data structure of configurations */
             if(fee_check_crc_then_unpackage_data(pglobal_RAM_copy_array, pglobal_RAM_copyD))
             {
-                /* If CRC is still bad, ignore the crc and unpackage the data and store it in global data structure of configurations*/
+                /* If CRC is still bad, log the error and ignore the crc then unpackage the data and store it in global data structure of configurations*/
+                error_log_the_data(pglobal_err_msg_buffer, ERROR_BAD_CRC, FACTORY_COPY_2);
+                error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+
                 fee_unpackage_data_ignore_crc(pglobal_RAM_copy_array, pglobal_RAM_copyD);
             }
         }
@@ -432,80 +492,205 @@ void init_task(void *pvParameters)
 
 
     /* Create all the other tasks */
+    int32_t check_task_creation = 0;
+
+
+    /*Create get housekeeping task*/
+    check_task_creation = xTaskCreate((TaskFunction_t )getHK_task,
+                                      (const char*    )"getHK_task",
+                                      (uint16_t       )getHK_STK_SIZE,
+                                      (void*          )NULL,
+                                      (UBaseType_t    )(getHK_TASK_PRIO|portPRIVILEGE_BIT),
+                                      (TaskHandle_t*  )&getHKTask_Handle);
+//    sciSend(scilinREG,20,(unsigned char *)"getHK task created\r\n");
+    if(check_task_creation == -1)      //if the task is not created successfully
+    {
+        /*log the error*/
+        error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_CREATED, TASK_GET_HK);
+        error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, 0, 0);
+
+        /*Update the error log to FLASH*/
+        fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+        fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+        TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+
+        /*Software reset the system*/
+        systemREG1->SYSECR = 0x8000;
+    }
+
+    taskEXIT_CRITICAL();
+
+    taskENTER_CRITICAL();
 
     /*Create output channel controlling task*/
-    xTaskCreate((TaskFunction_t )outputchanCtrl_task,
-                (const char*    )"outputchanCtrl_task",
-                (uint16_t       )outputchanCtrl_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )(outputchanCtrl_TASK_PRIO|portPRIVILEGE_BIT),      //could be run in user mode
-                (TaskHandle_t*  )&outputchanCtrlTask_Handle);
-    sciSend(scilinREG,22,(unsigned char *)"Output channel task created\r\n");
+    check_task_creation = xTaskCreate((TaskFunction_t )outputchanCtrl_task,
+                                      (const char*    )"outputchanCtrl_task",
+                                      (uint16_t       )outputchanCtrl_STK_SIZE,
+                                      (void*          )NULL,
+                                      (UBaseType_t    )(outputchanCtrl_TASK_PRIO|portPRIVILEGE_BIT),      //could be run in user mode
+                                      (TaskHandle_t*  )&outputchanCtrlTask_Handle);
+//    sciSend(scilinREG,22,(unsigned char *)"Output channel task created\r\n");
+
+    if(check_task_creation == -1)      //if the task is not created successfully
+    {
+        /*log the error*/
+        error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_CREATED, TASK_CHAN_CTRL);
+        error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, 0, 0);
+
+        /*Update the error log to FLASH*/
+        fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+        fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+        TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+
+        /*Software reset the system*/
+        systemREG1->SYSECR = 0x8000;
+    }
+
 
 #ifdef DEBUGGING_MODE
     /*Create command receive task*/
-    xTaskCreate((TaskFunction_t )receiveCMD_task,
-                (const char*    )"receiveCMD_task",
-                (uint16_t       )receiveCMD_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )(receiveCMD_TASK_PRIO|portPRIVILEGE_BIT),      //could be run in user mode
-                (TaskHandle_t*  )&receiveCMDTask_Handle);
-    sciSend(scilinREG,25,(unsigned char *)"receiveCMD task created\r\n");
+    check_task_creation = xTaskCreate((TaskFunction_t )receiveCMD_task,
+                                      (const char*    )"receiveCMD_task",
+                                      (uint16_t       )receiveCMD_STK_SIZE,
+                                      (void*          )NULL,
+                                      (UBaseType_t    )(receiveCMD_TASK_PRIO|portPRIVILEGE_BIT),      //could be run in user mode
+                                      (TaskHandle_t*  )&receiveCMDTask_Handle);
+//    sciSend(scilinREG,25,(unsigned char *)"receiveCMD task created\r\n");
 #else
 
-    xTaskCreate((TaskFunction_t )executeCMD_task,
-                (const char*    )"executeCMD_task",
-                (uint16_t       )executeCMD_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )executeCMD_TASK_PRIO,
-                (TaskHandle_t*  )&executeCMDTask_Handler);
-    sciSend(scilinREG,25,(unsigned char *)"executeCMD task created\r\n");
+    check_task_creation = xTaskCreate((TaskFunction_t )executeCMD_task,
+                                      (const char*    )"executeCMD_task",
+                                      (uint16_t       )executeCMD_STK_SIZE,
+                                      (void*          )NULL,
+                                      (UBaseType_t    )executeCMD_TASK_PRIO,
+                                      (TaskHandle_t*  )&executeCMDTask_Handler);
+//    sciSend(scilinREG,25,(unsigned char *)"executeCMD task created\r\n");
 #endif
+    if(check_task_creation == -1)      //if the task is not created successfully
+    {
+        /*log the error*/
+        error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_CREATED, TASK_RECEIVE_CMD);
+        error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, 0, 0);
 
-    /*Create get housekeeping task*/
-    xTaskCreate((TaskFunction_t )getHK_task,
-                (const char*    )"getHK_task",
-                (uint16_t       )getHK_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )(getHK_TASK_PRIO|portPRIVILEGE_BIT),
-                (TaskHandle_t*  )&getHKTask_Handle);
-    sciSend(scilinREG,20,(unsigned char *)"getHK task created\r\n");
+        /*Update the error log to FLASH*/
+        fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+        fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+        TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+
+        /*Software reset the system*/
+        systemREG1->SYSECR = 0x8000;
+    }
+
 
     /*Create check task activity task*/
-    xTaskCreate((TaskFunction_t )check_other_tasks_activity_task,
-                (const char*    )"check_other_tasks_activity_task",
-                (uint16_t       )checkActive_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )(checkActive_TASK_PRIO|portPRIVILEGE_BIT),
-                (TaskHandle_t*  )&checkActiveTask_Handle);
-    sciSend(scilinREG,24,(unsigned char *)"check_other_tasks_activity task created\r\n");
+    check_task_creation = xTaskCreate((TaskFunction_t )check_other_tasks_activity_task,
+                                      (const char*    )"check_other_tasks_activity_task",
+                                      (uint16_t       )checkActive_STK_SIZE,
+                                      (void*          )NULL,
+                                      (UBaseType_t    )(checkActive_TASK_PRIO|portPRIVILEGE_BIT),
+                                      (TaskHandle_t*  )&checkActiveTask_Handle);
+//    sciSend(scilinREG,24,(unsigned char *)"check_other_tasks_activity task created\r\n");
+    if(check_task_creation == -1)      //if the task is not created successfully
+    {
+        /*log the error*/
+        error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_CREATED, TASK_CHECK_ACTIVE);
+        error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, 0, 0);
+
+        /*Update the error log to FLASH*/
+        fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+        fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+        TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+
+        /*Software reset the system*/
+        systemREG1->SYSECR = 0x8000;
+    }
+
 
     /*Create heater control task*/
-    xTaskCreate((TaskFunction_t )heaterCtrl_task,
-                (const char*    )"heaterCtrl_task",
-                (uint16_t       )heaterCtrl_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )(heaterCtrl_TASK_PRIO|portPRIVILEGE_BIT),
-                (TaskHandle_t*  )&heaterCtrlTask_Handle);
-    sciSend(scilinREG,34,(unsigned char *)"heater controlling task created\r\n");
+    check_task_creation = xTaskCreate((TaskFunction_t )heaterCtrl_task,
+                                      (const char*    )"heaterCtrl_task",
+                                      (uint16_t       )heaterCtrl_STK_SIZE,
+                                      (void*          )NULL,
+                                      (UBaseType_t    )(heaterCtrl_TASK_PRIO|portPRIVILEGE_BIT),
+                                      (TaskHandle_t*  )&heaterCtrlTask_Handle);
+//    sciSend(scilinREG,34,(unsigned char *)"heater controlling task created\r\n");
+    if(check_task_creation == -1)      //if the task is not created successfully
+    {
+        /*log the error*/
+        error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_CREATED, TASK_HEATER_CTRL);
+        error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, 0, 0);
+
+        /*Update the error log to FLASH*/
+        fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+        fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+        TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+
+        /*Software reset the system*/
+        systemREG1->SYSECR = 0x8000;
+    }
+
 
     /*Create power conversion and battery control task*/
-    xTaskCreate((TaskFunction_t )powerConversion_and_battCtrl_task,
-                (const char*    )"powerConversion_and_battCtrl_task",
-                (uint16_t       )powerConversion_and_battCtrl_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )(powerConversion_and_battCtrl_TASK_PRIO|portPRIVILEGE_BIT),
-                (TaskHandle_t*  )&powerConversion_and_battCtrlTask_Handle);
-    sciSend(scilinREG,34,(unsigned char *)"power convertion and battery controlling task created\r\n");
+    check_task_creation = xTaskCreate((TaskFunction_t )powerConversion_and_battCtrl_task,
+                                      (const char*    )"powerConversion_and_battCtrl_task",
+                                      (uint16_t       )powerConversion_and_battCtrl_STK_SIZE,
+                                      (void*          )NULL,
+                                      (UBaseType_t    )(powerConversion_and_battCtrl_TASK_PRIO|portPRIVILEGE_BIT),
+                                      (TaskHandle_t*  )&powerConversion_and_battCtrlTask_Handle);
+//    sciSend(scilinREG,34,(unsigned char *)"power convertion and battery controlling task created\r\n");
+    if(check_task_creation == -1)      //if the task is not created successfully
+    {
+        /*log the error*/
+        error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_CREATED, TASK_POWER_CONV);
+        error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, 0, 0);
+
+        /*Update the error log to FLASH*/
+        fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+        fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+        TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+
+        /*Software reset the system*/
+        systemREG1->SYSECR = 0x8000;
+    }
+
 
     /*Create software watchdog timer task*/
-    xTaskCreate((TaskFunction_t )sw_wdt_task,
-                (const char*    )"powerConversion_and_battCtrl_task",
-                (uint16_t       )sw_wdt_STK_SIZE,
-                (void*          )NULL,
-                (UBaseType_t    )(sw_wdt_TASK_PRIO|portPRIVILEGE_BIT),
-                (TaskHandle_t*  )&sw_wdtTask_Handle);
-    sciSend(scilinREG,34,(unsigned char *)"software watchdog timer task created\r\n");
+    check_task_creation = xTaskCreate((TaskFunction_t )sw_wdt_task,
+                                      (const char*    )"powerConversion_and_battCtrl_task",
+                                      (uint16_t       )sw_wdt_STK_SIZE,
+                                      (void*          )NULL,
+                                      (UBaseType_t    )(sw_wdt_TASK_PRIO|portPRIVILEGE_BIT),
+                                      (TaskHandle_t*  )&sw_wdtTask_Handle);
+//    sciSend(scilinREG,34,(unsigned char *)"software watchdog timer task created\r\n");
+    if(check_task_creation == -1)      //if the task is not created successfully
+    {
+        /*log the error*/
+        error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_CREATED, TASK_WDT);
+        error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, 0, 0);
+
+        /*Update the error log to FLASH*/
+        fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+        fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+        TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+        TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+
+        /*Software reset the system*/
+        systemREG1->SYSECR = 0x8000;
+    }
+
 
 
     taskEXIT_CRITICAL();
@@ -536,7 +721,7 @@ void getHK_task(void *pvParameters)
             INA226_ReadPower_Raw(i2cREG1, pglobal_ina226D+global_ina226_counter);
 
             /* Save time stamp */
-            global_ina226D[global_ina226_counter].timestamp_sec = getcurrTime(global_prealtimeClock);
+            global_ina226D[global_ina226_counter].timestamp_sec = getcurrTime_sec(global_prealtimeClock);
         }
 
         /* Read raw data from ina3221 multi-channel current sensor registers and update the data structure */
@@ -550,7 +735,7 @@ void getHK_task(void *pvParameters)
             INA3221_ReadBusVoltage_Raw(i2cREG1, pglobal_ina3221D+global_ina3221_counter, 2);
 
             /* Save time stamp */
-            global_ina3221D[global_ina3221_counter].timestamp_sec = getcurrTime(global_prealtimeClock);
+            global_ina3221D[global_ina3221_counter].timestamp_sec = getcurrTime_sec(global_prealtimeClock);
         }
 
         /* Read raw data from max6698 multi-channel temperature sensor registers and update the data structure */
@@ -560,7 +745,7 @@ void getHK_task(void *pvParameters)
             MAX6698_ReadTemp_Raw(i2cREG1, pglobal_max6698D+global_max6698_counter, 2);
 
             /* Save time stamp */
-            global_ina3221D[global_max6698_counter].timestamp_sec = getcurrTime(global_prealtimeClock);
+            global_max6698D[global_max6698_counter].timestamp_sec = getcurrTime_sec(global_prealtimeClock);
         }
 
 
@@ -585,6 +770,11 @@ void check_other_tasks_activity_task(void *pvParameters)
     static uint32_t preTick[5] = {0};
     char str_temp[1] = {0};
 
+    gioSetBit(hetPORT2,11,1);
+    for(global_delay_counter=0;global_delay_counter<100;global_delay_counter++);
+    gioSetBit(hetPORT2,11,0);
+
+
     while(1)
     {
 
@@ -597,20 +787,59 @@ void check_other_tasks_activity_task(void *pvParameters)
             preTick[0] = global_hk_last_ticktime;
             global_selfCheck_counter++;
         }
-        if(global_chanctrl_last_ticktime != preTick[1])
+        else
         {
-            preTick[1] = global_chanctrl_last_ticktime;
+            /*If this task is not active, log the error to buffer*/
+            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_GET_HK);
+            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+        }
+
+        if(global_wdt_last_ticktime != preTick[1])
+        {
+            preTick[1] = global_wdt_last_ticktime;
             global_selfCheck_counter++;
         }
+        else
+        {
+            /*If this task is not active, log the error to buffer*/
+            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_WDT);
+            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+        }
+
+        if(global_chanctrl_last_ticktime != preTick[2])
+        {
+            preTick[2] = global_chanctrl_last_ticktime;
+            global_selfCheck_counter++;
+        }
+        else
+        {
+            /*If this task is not active, log the error to buffer*/
+            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_CHAN_CTRL);
+            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+        }
+
         if(global_heater_last_ticktime != preTick[3])
         {
             preTick[3] = global_heater_last_ticktime;
             global_selfCheck_counter++;
         }
+        else
+        {
+            /*If this task is not active, log the error to buffer*/
+            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_HEATER_CTRL);
+            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+        }
+
         if(global_batt_last_ticktime != preTick[4])
         {
             preTick[4] = global_batt_last_ticktime;
             global_selfCheck_counter++;
+        }
+        else
+        {
+            /*If this task is not active, log the error to buffer*/
+            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_POWER_CONV);
+            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
         }
 
 
@@ -627,6 +856,14 @@ void check_other_tasks_activity_task(void *pvParameters)
         }
         else
         {
+
+            /*Update the error log to FLASH*/
+            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+
 #ifdef DEBUGGING_MODE
             sprintf(str_temp,"%d",(int)global_selfCheck_counter);
             while (sciIsTxReady == 0);
@@ -636,7 +873,6 @@ void check_other_tasks_activity_task(void *pvParameters)
 #endif
 
         }
-
 
         vTaskDelay(xDelay);
 
@@ -682,6 +918,7 @@ void sw_wdt_task(void *pvParameters)
             systemREG1->SYSECR = 0x8000;        //soft reset the system
         }
 
+        global_wdt_last_ticktime = (uint32_t)xTaskGetTickCount();
         vTaskDelay(xDelay);
     }
 
@@ -739,7 +976,7 @@ void heaterCtrl_task(void *pvParameters)
     {
         for(global_heater_counter=0; global_heater_counter<NUM_OF_HEATER; global_heater_counter++)
         {
-            heater_update_profile(pglobal_heaterD+global_heater_counter, pglobal_RAM_copyD, pglobal_ina3221D, getcurrTime(global_prealtimeClock));
+            heater_update_profile(pglobal_heaterD+global_heater_counter, pglobal_RAM_copyD, pglobal_ina3221D, getcurrTime_sec(global_prealtimeClock));
             heater_read_rawdata_and_convert(pglobal_heaterD+global_heater_counter, pglobal_max6698D);
             heater_temp_SW(pglobal_heaterD+global_heater_counter, pglobal_RAM_copyD);
         }

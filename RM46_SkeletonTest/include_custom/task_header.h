@@ -74,6 +74,15 @@ void outputchanCtrl_task(void *pvParameters);
 
 
 
+#define TASK_INIT           1
+#define TASK_GET_HK         2
+#define TASK_RECEIVE_CMD    3
+#define TASK_CHECK_ACTIVE   4
+#define TASK_WDT            5
+#define TASK_CHAN_CTRL      6
+#define TASK_HEATER_CTRL    7
+#define TASK_POWER_CONV     8
+
 
 
 //...

@@ -83,6 +83,7 @@ typedef struct
     uint16_t bus_voltage;         //bus voltage (raw data, can be converted to voltage in mV)
     uint16_t current;             //current (raw data, can be converted to current in mA)
     uint16_t power;               //power (raw data, can be converted to power in mW)
+    uint16_t timestamp_ms;        //ms.
     uint32_t timestamp_sec;       //sec.
 }ina226_housekeeping_t;
 

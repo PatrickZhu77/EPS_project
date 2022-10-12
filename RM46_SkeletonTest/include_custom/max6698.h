@@ -45,6 +45,8 @@ typedef struct
 {
     uint8_t address;              //i2c address
     uint8_t temp[2];              //Raw data of the thermistor.
+    uint16_t timestamp_ms;        //ms
+    uint32_t timestamp_sec;       //sec.
 }max6698_housekeeping_t;
 
 
@@ -55,6 +57,6 @@ void MAX6698_Init(i2cBASE_t *i2c, sensor_config_t data, max6698_housekeeping_t *
 
 void MAX6698_ReadTemp_Raw(i2cBASE_t *i2c, max6698_housekeeping_t *data, uint8_t channel);
 
-int MAX6698_ConvertTemp_C(max6698_housekeeping_t *data, uint8_t channel);
+int32_t MAX6698_ConvertTemp_C(max6698_housekeeping_t *data, uint8_t channel);
 
 #endif /* INCLUDE_CUSTOM_MAX6698_H_ */

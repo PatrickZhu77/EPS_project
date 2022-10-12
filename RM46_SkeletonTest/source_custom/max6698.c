@@ -242,7 +242,7 @@ void MAX6698_ReadTemp_Raw(i2cBASE_t *i2c, max6698_housekeeping_t *data, uint8_t 
  * @return
  *   Return converted temperature value (in C)
  ******************************************************************************/
-int MAX6698_ConvertTemp_C(max6698_housekeeping_t *data, uint8_t channel)
+int32_t MAX6698_ConvertTemp_C(max6698_housekeeping_t *data, uint8_t channel)
 {
     uint32_t data_temp = 0;
 

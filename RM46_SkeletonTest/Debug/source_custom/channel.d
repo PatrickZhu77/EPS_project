@@ -27,6 +27,8 @@ source_custom/channel.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM
 source_custom/channel.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/data_structure_const.h
 source_custom/channel.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/flash_data.h
 source_custom/channel.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/battery.h
+source_custom/channel.obj: F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdio.h
+source_custom/channel.obj: F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdarg.h
 source_custom/channel.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/mppt.h
 source_custom/channel.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/ina3221.h
 source_custom/channel.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include/i2c.h
@@ -41,8 +43,6 @@ source_custom/channel.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM
 source_custom/channel.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include/os_mpu_wrappers.h
 source_custom/channel.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include/os_task.h
 source_custom/channel.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include/os_list.h
-source_custom/channel.obj: F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdio.h
-source_custom/channel.obj: F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdarg.h
 
 ../source_custom/channel.c: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/channel.h: 
@@ -71,6 +71,8 @@ E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_cus
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/data_structure_const.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/flash_data.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/battery.h: 
+F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdio.h: 
+F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdarg.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/mppt.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/ina3221.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include/i2c.h: 
@@ -85,5 +87,3 @@ E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include/os_
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include/os_mpu_wrappers.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include/os_task.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include/os_list.h: 
-F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdio.h: 
-F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdarg.h: 

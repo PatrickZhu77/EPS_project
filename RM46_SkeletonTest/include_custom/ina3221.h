@@ -47,6 +47,7 @@ typedef struct
     uint8_t address;                 //i2c address
     uint16_t shunt_voltage[2];       //shunt voltage (raw data, can be converted to current in mA)
     uint16_t bus_voltage[2];         //bus voltage (raw data, can be converted to voltage in mV)
+    uint16_t timestamp_ms;           //ms
     uint32_t timestamp_sec;          //sec.
 }ina3221_housekeeping_t;
 

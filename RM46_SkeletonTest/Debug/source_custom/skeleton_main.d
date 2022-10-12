@@ -92,6 +92,7 @@ source_custom/skeleton_main.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/softw
 source_custom/skeleton_main.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/heater.h
 source_custom/skeleton_main.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/fee_function.h
 source_custom/skeleton_main.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/custom_crc.h
+source_custom/skeleton_main.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/error_message.h
 source_custom/skeleton_main.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/ad5324.h
 source_custom/skeleton_main.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/uart_cmd.h
 source_custom/skeleton_main.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/cmd_interface.h
@@ -101,6 +102,7 @@ source_custom/skeleton_main.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/softw
 source_custom/skeleton_main.obj: F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdlib.h
 source_custom/skeleton_main.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/realtimeClock.h
 source_custom/skeleton_main.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/low_power_mode.h
+source_custom/skeleton_main.obj: E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/status.h
 
 ../source_custom/skeleton_main.c: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include/sys_common.h: 
@@ -194,6 +196,7 @@ E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_cus
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/heater.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/fee_function.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/custom_crc.h: 
+E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/error_message.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/ad5324.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/uart_cmd.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/cmd_interface.h: 
@@ -203,3 +206,4 @@ E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_cus
 F:/Program//\ Files/ti/ccs8/ccsv8/tools/compiler/ti-cgt-arm_20.2.5.LTS/include/stdlib.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/realtimeClock.h: 
 E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/low_power_mode.h: 
+E:/TortoiseSVN/EPS2/EPS//\ System//\ Test/software/RM46_SkeletonTest/include_custom/status.h: 
