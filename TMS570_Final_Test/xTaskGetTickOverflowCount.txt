@@ -1,0 +1,87 @@
+os_mpu_wrappers.h
+
+#define xTaskGetTickOverflowCount               MPU_xTaskGetTickOverflowCount
+#define xTaskGetExpectedIdleTime                MPU_xTaskGetExpectedIdleTime
+
+
+os_mpu_wrappers.c
+
+BaseType_t MPU_xTaskGetTickOverflowCount( void )
+{
+    BaseType_t xReturn;
+    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    xReturn = xTaskGetTickOverflowCount();
+    portRESET_PRIVILEGE( xRunningPrivileged );
+    return xReturn;
+}
+
+TickType_t MPU_xTaskGetExpectedIdleTime( void )
+{
+    TickType_t xReturn;
+    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    xReturn = xTaskGetExpectedIdleTime();
+    portRESET_PRIVILEGE( xRunningPrivileged );
+    return xReturn;
+}
+
+
+
+os_tasks.h
+
+/**
+ * task. h
+ * <PRE>BaseType_t xTaskGetTickOverflowCount( void );</PRE>
+ *
+ * @return The count of tick overflows since vTaskStartScheduler was called.
+ *
+ * \defgroup xTaskGetTickOverflowCount xTaskGetTickOverflowCount
+ * \ingroup TaskUtils
+ */
+BaseType_t xTaskGetTickOverflowCount( void ) PRIVILEGED_FUNCTION;
+
+/**
+ * task. h
+ * <PRE>TickType_t xTaskGetExpectedIdleTime( void );</PRE>
+ *
+ * @return The count of ticks for expected idle task.
+ *
+ * \defgroup xTaskGetExpectedIdleTime xTaskGetExpectedIdleTime
+ * \ingroup TaskUtils
+ */
+TickType_t xTaskGetExpectedIdleTime( void ) PRIVILEGED_FUNCTION;
+
+
+
+os_tasks.c
+
+BaseType_t xTaskGetTickOverflowCount( void )
+{
+ BaseType_t xTicks;
+
+    /* Critical section required if running on a 16 bit processor. */
+    portTICK_TYPE_ENTER_CRITICAL();
+    {
+        xTicks = xNumOfOverflows;
+    }
+    portTICK_TYPE_EXIT_CRITICAL();
+
+    return xTicks;
+}
+
+/*-----------------------------------------------------------*/
+
+TickType_t xTaskGetExpectedIdleTime( void )
+{
+TickType_t xTicks;
+
+    /* Critical section required if running on a 16 bit processor. */
+    portTICK_TYPE_ENTER_CRITICAL();
+    {
+        xTicks = prvGetExpectedIdleTime();
+    }
+    portTICK_TYPE_EXIT_CRITICAL();
+
+    return xTicks;
+}
+
+
