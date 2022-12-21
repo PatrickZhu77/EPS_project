@@ -89,23 +89,27 @@ void heater_temp_SW(heater_data_t *heater, system_config_t *data)
  *   Current time in sec
  *
  ******************************************************************************/
-void heater_update_profile(heater_data_t *heater, system_config_t *data, ina3221_housekeeping_t *data2, uint32_t curr_time)
+void heater_update_profile(heater_data_t *heater, system_config_t *data, ina226_housekeeping_t *data2, uint32_t curr_time)
 {
-    if(INA3221_ConvToPower_mW(data2, 1, data->power_conversion_Rshunt[0]) > HEATER_SOLAR_PANEL_MINIMUM_POWER)      //If satellite is in sunshine
+    if(INA226_ConvToPower_mW(data2) > data->heater_solar_panel_threshold_power_mW)      //If satellite is in sunshine
     {
-        if(curr_time - heater->time_light_last_seen > data->heater_tumble_threshold_time_s)
+        if((curr_time - heater->time_light_last_seen) > data->heater_tumble_threshold_time_s)
         {
             heater->time_of_first_light_per_orbit = curr_time;
+
+            heater->profile = 1;        //set heater profile to sunshine
         }
 
-        heater->time_light_last_seen = curr_time;
+        if(heater->profile == 1)
+        {
+            heater->time_light_last_seen = curr_time;
+        }
 
-        heater->profile = 1;        //set heater profile to sunshine
     }
 
     if(curr_time - heater->time_light_last_seen > data->heater_tumble_threshold_time_s)         //If satellite is in eclipse
     {
-        if(curr_time - heater->time_of_first_light_per_orbit > data->heater_orbit_period_s - data->heater_battery_heat_up_time_s)       //orbit period - heat up time = delay time
+        if((curr_time - heater->time_of_first_light_per_orbit) > (data->heater_orbit_period_s - data->heater_battery_heat_up_time_s))       //orbit period - heat up time = delay time
         {
             heater->profile = 1;        //set heater profile to sunshine
         }

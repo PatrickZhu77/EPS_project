@@ -282,6 +282,25 @@ TickType_t MPU_xTaskGetTickCount( void )
 	return xReturn;
 }
 
+BaseType_t MPU_xTaskGetTickOverflowCount( void )
+{
+    BaseType_t xReturn;
+    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    xReturn = xTaskGetTickOverflowCount();
+    portRESET_PRIVILEGE( xRunningPrivileged );
+    return xReturn;
+}
+
+TickType_t MPU_xTaskGetExpectedIdleTime( void )
+{
+    TickType_t xReturn;
+    BaseType_t xRunningPrivileged = prvRaisePrivilege();
+    xReturn = xTaskGetExpectedIdleTime();
+    portRESET_PRIVILEGE( xRunningPrivileged );
+    return xReturn;
+}
+
+
 /*----------------------------------------------------------------------------*/
 
 UBaseType_t MPU_uxTaskGetNumberOfTasks( void )

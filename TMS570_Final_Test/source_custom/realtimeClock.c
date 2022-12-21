@@ -15,11 +15,11 @@
 void resetRTC_debug(RTC_t *clock)
 {
 
-    //    clock->initTime_s = time(0);      //delete
+        clock->initTime_s = time(0);      //delete
 
 
-//    clock->initTick = (uint32_t)xTaskGetTickCount();
-//    clock->initOverflow = (uint32_t)xTaskGetTickOverflowCount();
+    clock->initTick = (uint32_t)xTaskGetTickCount();
+    clock->initOverflow = (uint32_t)xTaskGetTickOverflowCount();
 }
 
 /***************************************************************************
@@ -53,17 +53,17 @@ uint32_t getcurrTime_sec(RTC_t *clock)
 {
     uint32_t currTick, currOverflow, t = 0;
 
-//    currOverflow = (uint32_t)xTaskGetTickOverflowCount() - clock->initOverflow;
-//    if(currOverflow == 0)
-//    {
-//        currTick = (uint32_t)xTaskGetTickCount() - clock->initTick;
-//    }
-//    else
-//    {
-//        currTick = 0xFFFFFFFF - clock->initTick + (uint32_t)xTaskGetTickCount();
-//    }
-//
-//    t = clock->initTime_s + currTick/1000 + currOverflow * 0xFFFFFFFF;     //tick counter is 32bit, so each overflow indicates a 0xFFFFFFFF                  //0x418937
+    currOverflow = (uint32_t)xTaskGetTickOverflowCount() - clock->initOverflow;
+    if(currOverflow == 0)
+    {
+        currTick = (uint32_t)xTaskGetTickCount() - clock->initTick;
+    }
+    else
+    {
+        currTick = 0xFFFFFFFF - clock->initTick + (uint32_t)xTaskGetTickCount();
+    }
+
+    t = clock->initTime_s + currTick/1000 + currOverflow * 0xFFFFFFFF/1000;     //tick counter is 32bit, so each overflow indicates a 0xFFFFFFFF                  //0x418937
 
     return t;
 }
@@ -83,17 +83,17 @@ uint16_t getcurrTime_ms(RTC_t *clock)
 {
     uint32_t currTick, currOverflow, t = 0;
 
-//    currOverflow = (uint32_t)xTaskGetTickOverflowCount() - clock->initOverflow;
-//    if(currOverflow == 0)
-//    {
-//        currTick = (uint32_t)xTaskGetTickCount() - clock->initTick;
-//    }
-//    else
-//    {
-//        currTick = 0xFFFFFFFF - clock->initTick + (uint32_t)xTaskGetTickCount();
-//    }
-//
-//    t = (uint16_t)(currTick%1000);
+    currOverflow = (uint32_t)xTaskGetTickOverflowCount() - clock->initOverflow;
+    if(currOverflow == 0)
+    {
+        currTick = (uint32_t)xTaskGetTickCount() - clock->initTick;
+    }
+    else
+    {
+        currTick = 0xFFFFFFFF - clock->initTick + (uint32_t)xTaskGetTickCount();
+    }
+
+    t = (uint16_t)(currTick%1000);
 
     return t;
 }
@@ -103,17 +103,17 @@ uint32_t getrunTime_sec(RTC_t *clock)
 {
     uint32_t currTick, currOverflow, t = 0;
 
-//    currOverflow = (uint32_t)xTaskGetTickOverflowCount() - clock->initOverflow;
-//    if(currOverflow == 0)
-//    {
-//        currTick = (uint32_t)xTaskGetTickCount() - clock->initTick;
-//    }
-//    else
-//    {
-//        currTick = 0xFFFFFFFF - clock->initTick + (uint32_t)xTaskGetTickCount();
-//    }
-//
-//    t = currTick/1000 + currOverflow * 0xFFFFFFFF;
+    currOverflow = (uint32_t)xTaskGetTickOverflowCount() - clock->initOverflow;
+    if(currOverflow == 0)
+    {
+        currTick = (uint32_t)xTaskGetTickCount() - clock->initTick;
+    }
+    else
+    {
+        currTick = 0xFFFFFFFF - clock->initTick + (uint32_t)xTaskGetTickCount();
+    }
+
+    t = currTick/1000 + currOverflow * 0xFFFFFFFF;
 
     return t;
 }

@@ -31,6 +31,10 @@
 #define     CHANNEL_MAXIMUM_CURRENT             620
 #define     CHANNEL_MAXIMUM_CURRENT_INCREMENT   30
 
+#define     SYSTEM_MODE_CRITICAL    0
+#define     SYSTEM_MODE_SAFE        1
+#define     SYSTEM_MODE_FULL        2
+
 typedef struct
 {
     uint8_t num;                   //# of channel

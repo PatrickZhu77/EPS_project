@@ -54,7 +54,7 @@
 
 #define     INA226_BATTERY1_ADDR        0X48
 #define     INA226_CHANNEL1_ADDR        0x40
-//#define     INA226_CHANNEL2_ADDR
+#define     INA226_CHANNEL2_ADDR        0x41
 //#define     INA226_CHANNEL3_ADDR
 #define     INA226_CHANNEL17_ADDR       0x4C
 #define     INA226_CHANNEL18_ADDR       0x4E
@@ -78,7 +78,7 @@
 #define     INA226_BC_MASK              0x0000       //Mask for boost converter sensor. Disable alert.
 
 
-#define     INA226_SHUNT_RESISTANCE         100      //mOhm. 0.1 Ohm is the value of shunt resistor used
+#define     INA226_SHUNT_RESISTANCE         100        //mOhm. 0.1 Ohm is the value of shunt resistor used
 #define     INA226_BC_SHUNT_RESISTANCE      5        //mOhm.
 #define     INA226_BATT_SHUNT_RESISTANCE    5        //mOhm.
 
@@ -93,7 +93,7 @@
 
 //#define     INA226_err      0xC                 //0001_100. Alert Response slave address
 
-static uint8_t INA226_ADDR[1] = {INA226_CHANNEL1_ADDR};
+static uint8_t INA226_ADDR[2] = {INA226_BOOSTCONVERTER1, INA226_CHANNEL2_ADDR};
 
 
 /* Data structure for housekeeping data of ina226 */
@@ -113,12 +113,14 @@ typedef struct
 
 
 void INA226_SendData(i2cBASE_t *i2c,uint8_t addr,uint8_t reg,uint8_t *data);
+uint8_t INA226_SendData_withReturn(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data);
 void INA226_ReceiveData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data);
 
 uint16_t INA226_CurrentToAlert_ShuntVoltage_Raw(uint16_t current_mA, uint16_t cal_reg);
 uint16_t INA226_VoltageToAlert_BusVoltage_Raw(uint16_t voltage_mV);
 
 void INA226_Init(i2cBASE_t *i2c, uint16_t Rshunt, sensor_config_t data2, uint16_t mask, ina226_housekeeping_t *data3);
+uint8_t INA226_Init_withReturn(i2cBASE_t *i2c, uint16_t Rshunt, sensor_config_t data2, uint16_t mask, ina226_housekeeping_t *data3);
 void INA226_SetMaskReg(i2cBASE_t *i2c, ina226_housekeeping_t *data, uint16_t mask);
 void INA226_SetAlertReg(i2cBASE_t *i2c, ina226_housekeeping_t *data, uint16_t alert, uint16_t cal_reg);
 uint16_t INA226_ReadMaskReg(i2cBASE_t *i2c, ina226_housekeeping_t *data);

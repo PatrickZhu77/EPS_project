@@ -215,10 +215,10 @@ void INA3221_Init(i2cBASE_t *i2c, sensor_config_t data, ina3221_housekeeping_t *
     uint8_t mask_temp[2]={0};
 
     /* Separate the 16bit integers into 8bit arrays */
-    config_temp[0] = (uint8_t)(data.ina3221_cfg_setting >> 8);
-    config_temp[1] = (uint8_t)data.ina3221_cfg_setting;
-    mask_temp[0] = (uint8_t)(data.ina3221_mask_setting >> 8);
-    mask_temp[1] = (uint8_t)data.ina3221_mask_setting;
+//    config_temp[0] = (uint8_t)(data.ina3221_cfg_setting >> 8);
+//    config_temp[1] = (uint8_t)data.ina3221_cfg_setting;
+//    mask_temp[0] = (uint8_t)(data.ina3221_mask_setting >> 8);
+//    mask_temp[1] = (uint8_t)data.ina3221_mask_setting;
 
     /* Write values to proper registers */
     INA3221_SendData(i2c,data2->address, INA3221_CFG_REG, config_temp);

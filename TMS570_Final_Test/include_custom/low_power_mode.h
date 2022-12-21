@@ -13,7 +13,7 @@
 #include "os_timer.h"
 #include "os_queue.h"
 
-
+void enter_doze(void);
 void enter_snooze(void);
 void post_wakeup(void);
 

@@ -6,9 +6,10 @@
 #include "stdint.h"
 #include "gio.h"
 #include "het.h"
+#include "sci.h"
 
 #include "max6698.h"
-#include "ina3221.h"
+#include "ina226.h"
 
 #define HEATER_TUMBLE_THRESHOLD_TIME_S              0x12C   //Cubesate tumble threshold time. 0x12C: 300 sec
                                                             //If solar cell get power for this period of time, we can regard it in sunshine.
@@ -39,8 +40,8 @@ typedef struct
 }heater_data_t;
 
 static gioPORT_t * HEAT[2] = {
-                                 hetPORT2,
-                                 hetPORT2
+                                 hetPORT1,
+                                 hetPORT1
                              };
 
 static uint8_t HEAT_num[2] = {
@@ -55,7 +56,7 @@ void heater_off(heater_data_t *heater);
 void heater_read_rawdata_and_convert(heater_data_t *heater, max6698_housekeeping_t *data);
 void heater_temp_SW(heater_data_t *heater, system_config_t *data);
 
-void heater_update_profile(heater_data_t *heater, system_config_t *data, ina3221_housekeeping_t *data2, uint32_t curr_time);
+void heater_update_profile(heater_data_t *heater, system_config_t *data, ina226_housekeeping_t *data2, uint32_t curr_time);
 
 
 #endif /* INCLUDE_CUSTOM_HEATER_H_ */

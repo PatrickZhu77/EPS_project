@@ -71,7 +71,7 @@ void battery_dischargingSW_off(battery_data_t *battery)
  ****************************************************************************/
 void battery_check_charging_status(battery_data_t *battery, ina226_housekeeping_t *data)
 {
-    if(data->current & 0x8000)        //if current is negative
+    if(data->shunt_voltage & 0x8000)        //if shunt voltage is negative, which means current is negative
     {
         battery->status = 0;                //battery is discharging only
     }
@@ -159,20 +159,26 @@ void battery_check_overcurrent_then_change_MPP(battery_data_t *battery, system_c
 {
     uint8_t i = 0;
 
-    if((battery->status == 0) && (battery->current > data->batt_discharging_current_limit_mA))      //if battery discharging overcurrent
-    {
-        for(i=0;i<NUM_OF_MPPTS;i++)                                                                 //Increase the minimum value of DACs output to decrease the MPP
-        {
-            (data2+i)->dacOUT_min = (data2+i)->dacOUT + EN_STEPSIZE_MIN;
-        }
-    }
 
     if((battery->status == 1) && (battery->current > data->batt_charging_current_limit_mA))         //if battery charging overcurrent
     {
         for(i=0;i<NUM_OF_MPPTS;i++)                                                                 //Increase the minimum value of DACs output to decrease the MPP
         {
             (data2+i)->dacOUT_min = (data2+i)->dacOUT + EN_STEPSIZE_MIN;
+            if((data2+i)->dacOUT_min >= (data2+i)->dacOUT_max)
+            {
+                (data2+i)->dacOUT_min = (data2+i)->dacOUT_max;
+            }
         }
     }
+    else
+    {
+        for(i=0;i<NUM_OF_MPPTS;i++)                                                                 //Increase the minimum value of DACs output to decrease the MPP
+        {
+            (data2+i)->dacOUT_min = DAC_MIN;
+        }
+
+    }
+
 
 }

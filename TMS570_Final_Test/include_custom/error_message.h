@@ -9,9 +9,10 @@
 
 
 #define ERROR_BAD_CRC                 1
-#define ERROR_TASK_NOT_ACTIVE         2
-#define ERROR_TASK_NOT_CREATED        3
+#define ERROR_TASK_NOT_CREATED        2
+#define ERROR_TASK_NOT_ACTIVE         3
 #define ERROR_NO_CMD_PETTING          4
+#define ERROR_SENSOR_OVERCURRENT      5
 
 #define OBC_TIMEOUT         1
 #define GS_TIMEOUT          2

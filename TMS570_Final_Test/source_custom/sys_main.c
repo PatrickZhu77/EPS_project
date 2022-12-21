@@ -111,17 +111,17 @@
 #define CURRENT_SENSOR_TEST                     1
 //#define INA226_OVERCURRENT_PROTECTION_TEST      1
 //#define INA226_CURRENT_MONITOR_TEST             1
-#define INA226_BATTERY_PROTECTION_TEST          1
-#define INA226_CHANNEL_PROTECTION_TEST          1
-//#define INA226_BOOST_CONVERTER_TEST             1
+//#define INA226_BATTERY_PROTECTION_TEST          1
+//#define INA226_CHANNEL_PROTECTION_TEST          1
+#define INA226_BOOST_CONVERTER_TEST             1
 //#define INA3221_TEST                            1
 #define TEMP_SENSOR_TEST                        1
 //#define WDT_TASK_TEST                           1
 #define CMD_TEST                                1
 //#define LPM_TEST                                1
-//#define BOOST_CONVERTER_TEST                    1
+#define BOOST_CONVERTER_TEST                    1
 #define CHANNEL_TEST                            1
-#define BATTERY_TEST                            1
+//#define BATTERY_TEST                            1
 //#define FREERTOS_PRAGMA                         1
 /*******************************************************/
 
@@ -152,7 +152,7 @@ static uint8_t *pglobal_err_msg_timestamp_ms_array = &global_err_msg_timestamp_m
 static system_config_t global_RAM_copyD = {NUM_OF_CONFIG_VERSION,
                             {INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT, INA226_OVERCURRENT_ALERT},{INA226_MONITOR_ALERT},
                             {INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE}, {INA226_SHUNT_RESISTANCE},
-                            {INA226_SHUNT_RESISTANCE,INA226_SHUNT_RESISTANCE},{0},{INA226_BC_SHUNT_RESISTANCE,INA226_BC_SHUNT_RESISTANCE,INA226_BC_SHUNT_RESISTANCE,INA226_BC_SHUNT_RESISTANCE},
+                            {INA226_BATT_SHUNT_RESISTANCE,INA226_BATT_SHUNT_RESISTANCE},{0},{INA226_BC_SHUNT_RESISTANCE,INA226_BC_SHUNT_RESISTANCE,INA226_BC_SHUNT_RESISTANCE,INA226_BC_SHUNT_RESISTANCE},
                             BATT_CHARGING_CURRENT_LIMIT_mA, BATT_DISCHARGING_CURRENT_LIMIT_mA,
                             HEATER_TUMBLE_THRESHOLD_TIME_S, HEATER_SOLAR_PANEL_THRESHOLD_POWER_mW, HEATER_ORBIT_PERIOD_S, HEATER_HEAT_UP_TIME_S,
                             DAC_INIT, EN_STEPSIZE_INIT, WDT_COUNTER_OBC, WDT_COUNTER_GROUND,
@@ -246,10 +246,10 @@ static uint8_t  global_wdt_timeout_flag[NUM_OF_WDT_TIMEOUT] = {0};
 /***************Error message buffer**********************/
 /*Writing Access: wdt_task, getHK_task, receiveCMD_task*/
 /*Reading Access: init_task, wdt_task, getHK_task, receiveCMD_task*/
-static uint8_t global_err_msg_buffer[2+2*ERROR_BUFFER_SIZE] = {0};      //bit 0 is the write pointer of the circular buffer, bit 1 is the number of error message logged
-                                                                        //write pointer indicates the next bit to write
-                                                                        //starting from bit 2, even bit stores the type of the error and odd bit stores data of the error
-                                                                        //for example: bit 2 stores a 1 (ERROR_BAD_CRC), bit 3 stores 3 (REBOOT_COPY has this error)
+static uint8_t global_err_msg_buffer[2+2*ERROR_BUFFER_SIZE] = {0};      //element 0 is the write pointer of the circular buffer, element 1 is the number of error message logged
+                                                                        //write pointer indicates the next element to write
+                                                                        //starting from element 2, even element stores the type of the error and odd element stores data of the error
+                                                                        //for example: element 2 stores a 1 (ERROR_BAD_CRC), element 3 stores 3 (REBOOT_COPY has this error)
 static uint8_t *pglobal_err_msg_buffer = &global_err_msg_buffer[0];
 
 static uint32_t global_err_msg_timestamp_s_buffer[ERROR_BUFFER_SIZE] = {0};
@@ -264,9 +264,12 @@ static uint16_t *pglobal_err_msg_timestamp_ms_buffer = &global_err_msg_timestamp
 /*Reading Access: receiveCMD_task*/
 
 /***************Others**********************/
-static uint8_t global_sys_mode = 2;        //variable that stores system mode. 0:critical mode, 1:safe mode, 2:full mode.
-static uint8_t global_loop_counter = 0;    //global variable used for internal counter of loops
+static uint8_t global_sys_mode = SYSTEM_MODE_SAFE;        //variable that stores system mode.
+static uint8_t global_loop_counter = 0;                   //global variable used for internal counter of loops
 
+static uint8_t global_lpm_flag = 0;
+
+static uint32_t RTOS_RunTimeCounter; /* runtime counter, used for configGENERATE_RUNTIME_STATS */
 
 
 /* USER CODE END */
@@ -296,7 +299,7 @@ int main(void)
     vimREG->WAKEMASKSET0 = 1<<2 | 1<<3;
 
     /* Enable Real-time Interrupts that were disabled when snooze mode is entered */
-    systemREG1->RCLKSRC = 0x4;
+//    systemREG1->RCLKSRC = 0x4;
 
 #ifdef FEE_TEST
     /* Read error message and corresponding timestamp from copies in FLASH*/
@@ -337,10 +340,11 @@ int main(void)
         systemREG1->SYSECR = 0x8000;
     }
 
+
+#ifdef DEBUGGING_MODE
     /* Reset real-time clock in debugging mode */
     resetRTC_debug(global_prealtimeClock);
 
-#ifdef DEBUGGING_MODE
     sciSend(scilinREG,19,(unsigned char *)"init_task created\r\n");
 #endif
 
@@ -369,7 +373,22 @@ void init_task(void *pvParameters)
 
     pglobal_RAM_copyD->channel_monitor_Rshunt[0] = INA226_SHUNT_RESISTANCE;
     pglobal_RAM_copyD->sensor_config_data.ina226_channel_mask = INA226_CHANNEL_MASK;
-    pglobal_RAM_copyD->chan_config_data[0].maxI_mA = CHANNEL_MAXIMUM_CURRENT;
+//    pglobal_RAM_copyD->chan_config_data[0].maxI_mA = CHANNEL_MAXIMUM_CURRENT;
+    pglobal_RAM_copyD->heater_sunshine_temp_on_c = 30;
+    pglobal_RAM_copyD->heater_sunshine_temp_off_c = 35;
+    pglobal_RAM_copyD->heater_eclipse_temp_on_c = 30;
+    pglobal_RAM_copyD->heater_eclipse_temp_off_c = 35;
+    pglobal_RAM_copyD->heater_orbit_period_s = 120;
+    pglobal_RAM_copyD->heater_tumble_threshold_time_s = 3;
+    pglobal_RAM_copyD->heater_solar_panel_threshold_power_mW = 100;
+    pglobal_RAM_copyD->heater_battery_heat_up_time_s = 10;
+    pglobal_RAM_copyD->batt_charging_current_limit_mA = 200;
+    pglobal_RAM_copyD->batt_discharging_current_limit_mA = 200;
+    pglobal_RAM_copyD->chan_config_data[0].maxI_mA = 400;
+    pglobal_RAM_copyD->chan_config_data[0].maxI_increment_mA = 100;
+
+    global_lpm_flag = 0;
+
 
 #ifdef FEE_TEST
     /* Read packaged data from reboot copy in FLASH */
@@ -434,9 +453,6 @@ void init_task(void *pvParameters)
         global_ina226D[global_ina226_counter].address = 0x4C;
         global_ina226D[global_ina226_counter].alert_reg = global_RAM_copyD.overcurrent_protection_alert_mA[global_ina226_counter];
 
-#ifdef INA226_OVERCURRENT_PROTECTION_TEST
-        INA226_Init(i2cREG1, pglobal_RAM_copyD->overcurrent_protection_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_overcurrent_mask, pglobal_ina226D+global_ina226_counter);
-#endif
         global_loop_counter++;
     }
 
@@ -447,54 +463,39 @@ void init_task(void *pvParameters)
         global_ina226D[global_ina226_counter].address = 0x4C;
         global_ina226D[global_ina226_counter].alert_reg = global_RAM_copyD.current_monitor_alert_mA[global_ina226_counter-NUM_OF_INA226_OVERCURRENT_PROTECTION];
 
-#ifdef INA226_CURRENT_MONITOR_TEST
-        INA226_Init(i2cREG1, pglobal_RAM_copyD->current_monitor_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_monitor_mask, pglobal_ina226D+global_ina226_counter);
-#endif
         global_loop_counter++;
     }
 
     /*sensors of battery protection*/
     global_loop_counter = 0;
-    for(global_ina226_counter=0;global_ina226_counter<NUM_OF_INA226_BATTERY_TEST;global_ina226_counter++)
+    for(global_ina226_counter=1;global_ina226_counter<31;global_ina226_counter++)
 //    for(global_ina226_counter=NUM_OF_INA226_OVERCURRENT_PROTECTION+NUM_OF_INA226_MONITOR;global_ina226_counter<NUM_OF_INA226_OVERCURRENT_PROTECTION+NUM_OF_INA226_MONITOR+NUM_OF_INA226_BATTERY;global_ina226_counter++)
     {
-        global_ina226D[global_ina226_counter].address = INA226_BATTERY1_ADDR;
+        global_ina226D[global_ina226_counter].address = INA226_BOOSTCONVERTER1;
         global_ina226D[global_ina226_counter].alert_reg = 0x0;
 
-#ifdef INA226_BATTERY_PROTECTION_TEST
-        INA226_Init(i2cREG1, INA226_BATT_SHUNT_RESISTANCE, pglobal_RAM_copyD->sensor_config_data, INA226_BATTERY_MASK, pglobal_ina226D+global_ina226_counter);
-//        INA226_Init(i2cREG1, pglobal_RAM_copyD->battery_protection_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_battery_mask, pglobal_ina226D+global_ina226_counter);
-#endif
         global_loop_counter++;
     }
 
     /*sensors of channel monitor*/
     global_loop_counter = 0;
-    for(global_ina226_counter=NUM_OF_INA226_TEST-NUM_OF_INA226_CHANNEL_TEST;global_ina226_counter<NUM_OF_INA226_TEST;global_ina226_counter++)
+    for(global_ina226_counter=1;global_ina226_counter<2;global_ina226_counter++)
     {
-        global_ina226D[global_ina226_counter].address = (INA226_ADDR[global_ina226_counter-NUM_OF_INA226_BATTERY_TEST]) ^ I2C_ADDR_TRANS_BIT;
-//        global_ina226D[global_ina226_counter].alert_reg = global_RAM_copyD.chan_config_data[global_ina226_counter-(NUM_OF_INA226_TEST-NUM_OF_INA226_CHANNEL_TEST)].maxI_mA;
-        global_ina226D[global_ina226_counter].alert_reg = global_RAM_copyD.chan_config_data[0].maxI_mA;
+//        global_ina226D[global_ina226_counter].address = (INA226_ADDR[1]) ^ I2C_ADDR_TRANS_BIT;
+////        global_ina226D[global_ina226_counter].alert_reg = global_RAM_copyD.chan_config_data[global_ina226_counter-(NUM_OF_INA226_TEST-NUM_OF_INA226_CHANNEL_TEST)].maxI_mA;
+//        global_ina226D[global_ina226_counter].alert_reg = global_RAM_copyD.chan_config_data[0].maxI_mA;
 
-#ifdef INA226_CHANNEL_PROTECTION_TEST
-        INA226_Init(i2cREG1, pglobal_RAM_copyD->channel_monitor_Rshunt[global_ina226_counter-1], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_channel_mask, pglobal_ina226D+global_ina226_counter);
-//        INA226_Init(i2cREG1, pglobal_RAM_copyD->channel_monitor_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_channel_mask, pglobal_ina226D+global_ina226_counter);
-#endif
         global_loop_counter++;
     }
 
 
     /*sensors of boost converter monitor*/
     global_loop_counter = 0;
-    for(global_ina226_counter=NUM_OF_INA226_TEST-NUM_OF_INA226_BC_TEST;global_ina226_counter<NUM_OF_INA226_TEST;global_ina226_counter++)
+    for(global_ina226_counter=0;global_ina226_counter<1;global_ina226_counter++)
     {
         global_ina226D[global_ina226_counter].address = INA226_ADDR[global_ina226_counter];
 //        global_ina226D[global_ina226_counter].alert_reg = global_RAM_copyD.chan_config_data[global_ina226_counter-(NUM_OF_INA226_TEST-NUM_OF_INA226_CHANNEL_TEST)].maxI_mA;
 
-#ifdef INA226_BOOST_CONVERTER_TEST
-        INA226_Init(i2cREG1, pglobal_RAM_copyD->power_conversion_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, INA226_BC_MASK, pglobal_ina226D+global_ina226_counter);
-//        INA226_Init(i2cREG1, pglobal_RAM_copyD->channel_monitor_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_channel_mask, pglobal_ina226D+global_ina226_counter);
-#endif
         global_loop_counter++;
     }
 
@@ -504,9 +505,6 @@ void init_task(void *pvParameters)
     {
         global_ina3221D[global_ina3221_counter].address = INA3221_ADDR1;
 
-#ifdef INA3221_TEST
-        INA3221_Init(i2cREG1, pglobal_RAM_copyD->sensor_config_data, pglobal_ina3221D+global_ina3221_counter);
-#endif
     }
 
     /*Initialize MAX6698 temperature sensor data structure  and the hardware*/
@@ -514,9 +512,6 @@ void init_task(void *pvParameters)
     {
         global_max6698D[global_max6698_counter].address = MAX6698_ADDR1;
 
-#ifdef TEMP_SENSOR_TEST
-        MAX6698_Init(i2cREG1, pglobal_RAM_copyD->sensor_config_data, pglobal_max6698D+global_max6698_counter);
-#endif
     }
 
     /*Initialize battery heater data structure, and the hardware is updated in power conversion and battery controlling task*/
@@ -524,7 +519,9 @@ void init_task(void *pvParameters)
     {
         global_heaterD[global_heater_counter].num = global_heater_counter+1;
         global_heaterD[global_heater_counter].sw = 0;
-        global_heaterD[global_heater_counter].profile = 1;
+        global_heaterD[global_heater_counter].profile = 0;
+        global_heaterD[global_heater_counter].time_light_last_seen = 0;
+        global_heaterD[global_heater_counter].time_of_first_light_per_orbit = 0;
     }
 
     /*Initialize battery data structure, and the hardware is updated in battery controlling task*/
@@ -585,6 +582,7 @@ void init_task(void *pvParameters)
     }
 
     sciSend(scilinREG,18,(unsigned char *)"Part 1 completed\r\n");
+//    vTaskSuspend(initTask_Handle);
     taskEXIT_CRITICAL();
 
     taskENTER_CRITICAL();
@@ -754,27 +752,132 @@ void getHK_task(void *pvParameters)
 {
 
     const portTickType xDelay = pdMS_TO_TICKS(GET_HK_TASK_PERIOD);
+    TickType_t xLastWakeTime;
 
-#ifdef CURRENT_SENSOR_TEST
-    char temp1[10] = {0}, temp2[10] = {0};
+    char temp1[20] = {0}, temp2[10] = {0};
     char temp3[5] = {0};
+    char temp6[30] = {0};
 
     char temp4[10] = {0}, temp5[10] = {0};
 
 //    channel_on(pglobal_channelD, pglobal_channelD+16);      // Turn on Channel 17 for testing
-    gioSetBit(CH[0],CH_num[0],1);
+    gioSetBit(CH[1],CH_num[1],1);
 //    gioSetBit(CH[16],CH_num[16],1);
 //    gioSetBit(CH[17],CH_num[17],1);
 
+    xLastWakeTime = xTaskGetTickCount();
+
     uint8_t i;
+
+    /*Initialize all the sensors*/
+    /*sensors of overcurrent protection module*/
+    global_loop_counter = 0;
+    for(global_ina226_counter=0;global_ina226_counter<NUM_OF_INA226_OVERCURRENT_PROTECTION_TEST;global_ina226_counter++)
+    {
+#ifdef INA226_OVERCURRENT_PROTECTION_TEST
+        INA226_Init(i2cREG1, pglobal_RAM_copyD->overcurrent_protection_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_overcurrent_mask, pglobal_ina226D+global_ina226_counter);
 #endif
+        global_loop_counter++;
+    }
+
+    /*sensors of current monitor*/
+    global_loop_counter = 0;
+    for(global_ina226_counter=NUM_OF_INA226_OVERCURRENT_PROTECTION;global_ina226_counter<NUM_OF_INA226_OVERCURRENT_PROTECTION+NUM_OF_INA226_MONITOR;global_ina226_counter++)
+    {
+#ifdef INA226_CURRENT_MONITOR_TEST
+        INA226_Init(i2cREG1, pglobal_RAM_copyD->current_monitor_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_monitor_mask, pglobal_ina226D+global_ina226_counter);
+#endif
+        global_loop_counter++;
+    }
+
+    /*sensors of battery protection*/
+    global_loop_counter = 0;
+    for(global_ina226_counter=1;global_ina226_counter<2;global_ina226_counter++)
+//    for(global_ina226_counter=NUM_OF_INA226_OVERCURRENT_PROTECTION+NUM_OF_INA226_MONITOR;global_ina226_counter<NUM_OF_INA226_OVERCURRENT_PROTECTION+NUM_OF_INA226_MONITOR+NUM_OF_INA226_BATTERY;global_ina226_counter++)
+    {
+        global_ina226D[global_ina226_counter].alert_reg = global_RAM_copyD.chan_config_data[0].maxI_mA;
+
+        if(INA226_Init_withReturn(i2cREG1, INA226_BATT_SHUNT_RESISTANCE, pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_channel_mask, pglobal_ina226D+global_ina226_counter))
+        {
+            sprintf(temp1,"%d",(int)(pglobal_ina226D+global_ina226_counter)->address);
+
+            sciSend(scilinREG,13,(unsigned char *)"I2C address: ");
+            sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
+            sciSend(scilinREG,8,(unsigned char *)" non ACK");
+            sciSend(scilinREG,2,(unsigned char *)"\r\n");
+
+        }
+
+//        INA226_Init(i2cREG1, INA226_BATT_SHUNT_RESISTANCE, pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_channel_mask, pglobal_ina226D+global_ina226_counter);
+//        INA226_Init(i2cREG1, INA226_BATT_SHUNT_RESISTANCE, pglobal_RAM_copyD->sensor_config_data, INA226_BATTERY_MASK, pglobal_ina226D+global_ina226_counter);
+#ifdef INA226_BATTERY_PROTECTION_TEST
+        INA226_Init(i2cREG1, INA226_BATT_SHUNT_RESISTANCE, pglobal_RAM_copyD->sensor_config_data, INA226_BATTERY_MASK, pglobal_ina226D+global_ina226_counter);
+//        INA226_Init(i2cREG1, pglobal_RAM_copyD->battery_protection_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_battery_mask, pglobal_ina226D+global_ina226_counter);
+#endif
+        global_loop_counter++;
+    }
+
+    /*sensors of channel monitor*/
+    global_loop_counter = 0;
+    for(global_ina226_counter=1;global_ina226_counter<2;global_ina226_counter++)
+    {
+//        INA226_Init(i2cREG1, pglobal_RAM_copyD->channel_monitor_Rshunt[0], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_channel_mask, pglobal_ina226D+1);
+#ifdef INA226_CHANNEL_PROTECTION_TEST
+        INA226_Init(i2cREG1, pglobal_RAM_copyD->channel_monitor_Rshunt[global_ina226_counter-1], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_channel_mask, pglobal_ina226D+global_ina226_counter);
+//        INA226_Init(i2cREG1, pglobal_RAM_copyD->channel_monitor_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_channel_mask, pglobal_ina226D+global_ina226_counter);
+#endif
+        global_loop_counter++;
+    }
+
+
+    /*sensors of boost converter monitor*/
+    global_loop_counter = 0;
+    for(global_ina226_counter=0;global_ina226_counter<1;global_ina226_counter++)
+    {
+#ifdef INA226_BOOST_CONVERTER_TEST
+
+        if(INA226_Init_withReturn(i2cREG1, pglobal_RAM_copyD->power_conversion_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, INA226_BC_MASK, pglobal_ina226D+global_ina226_counter))
+        {
+            sprintf(temp1,"%d",(int)(pglobal_ina226D+global_ina226_counter)->address);
+
+            sciSend(scilinREG,13,(unsigned char *)"I2C address: ");
+            sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
+            sciSend(scilinREG,8,(unsigned char *)" non ACK");
+            sciSend(scilinREG,2,(unsigned char *)"\r\n");
+
+        }
+
+//        INA226_Init(i2cREG1, pglobal_RAM_copyD->power_conversion_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, INA226_BC_MASK, pglobal_ina226D+global_ina226_counter);
+//        INA226_Init(i2cREG1, pglobal_RAM_copyD->channel_monitor_Rshunt[global_loop_counter], pglobal_RAM_copyD->sensor_config_data, pglobal_RAM_copyD->sensor_config_data.ina226_channel_mask, pglobal_ina226D+global_ina226_counter);
+#endif
+        global_loop_counter++;
+    }
+
+
+    /*Initialize INA3221 triple-channel current sensor data structure and the hardware*/
+    for(global_ina3221_counter=0;global_ina3221_counter<NUM_OF_INA3221;global_ina3221_counter++)
+    {
+#ifdef INA3221_TEST
+        INA3221_Init(i2cREG1, pglobal_RAM_copyD->sensor_config_data, pglobal_ina3221D+global_ina3221_counter);
+#endif
+    }
+
+    /*Initialize MAX6698 temperature sensor data structure  and the hardware*/
+    for(global_max6698_counter=0;global_max6698_counter<NUM_OF_MAX6698;global_max6698_counter++)
+    {
+#ifdef TEMP_SENSOR_TEST
+//        MAX6698_Init(i2cREG1, pglobal_RAM_copyD->sensor_config_data, pglobal_max6698D+global_max6698_counter);
+#endif
+    }
+
+
     while(1)
     {
-        channel_check_overcurrent_then_config_and_resume(pglobal_channelD, pglobal_ina226D+NUM_OF_INA226_BATTERY_TEST,
-                                                                 pglobal_RAM_copyD, pglobal_RAM_copyD->sensor_config_data, i2cREG1);  //should be deleted after test
+//        channel_check_overcurrent_then_config_and_resume(pglobal_channelD, pglobal_ina226D+NUM_OF_INA226_BATTERY_TEST,
+//                                                                 pglobal_RAM_copyD, pglobal_RAM_copyD->sensor_config_data, i2cREG1);  //should be deleted after test
 
         /* Read raw data from ina226 single-channel current sensor registers and update the data structure */
-        for(global_ina226_counter=0;global_ina226_counter<NUM_OF_INA226_TEST;global_ina226_counter++)
+        for(global_ina226_counter=0;global_ina226_counter<31;global_ina226_counter++)
         {
 #ifdef CURRENT_SENSOR_TEST
             INA226_ReadShuntVoltage_Raw(i2cREG1, pglobal_ina226D+global_ina226_counter);
@@ -786,6 +889,7 @@ void getHK_task(void *pvParameters)
             global_ina226D[global_ina226_counter].timestamp_sec = getcurrTime_sec(global_prealtimeClock);
 
         }
+
 
         /* Read raw data from ina3221 multi-channel current sensor registers and update the data structure */
         for(global_ina3221_counter=0;global_ina3221_counter<NUM_OF_INA3221;global_ina3221_counter++)
@@ -805,13 +909,50 @@ void getHK_task(void *pvParameters)
         for(global_max6698_counter=0;global_max6698_counter<NUM_OF_MAX6698;global_max6698_counter++)
         {
 #ifdef TEMP_SENSOR_TEST
-            MAX6698_ReadTemp_Raw(i2cREG1, pglobal_max6698D+global_max6698_counter, 1);
-            MAX6698_ReadTemp_Raw(i2cREG1, pglobal_max6698D+global_max6698_counter, 2);
+//            MAX6698_ReadTemp_Raw(i2cREG1, pglobal_max6698D+global_max6698_counter, 1); //!!!it is reading channel 3! dont forget to change it back!!!!
+//            MAX6698_ReadTemp_Raw(i2cREG1, pglobal_max6698D+global_max6698_counter, 2); //!!!it is reading channel 3! dont forget to change it back!!!!
+
 #endif
             /* Save time stamp */
             global_max6698D[global_max6698_counter].timestamp_sec = getcurrTime_sec(global_prealtimeClock);
         }
 #ifdef CURRENT_SENSOR_TEST
+
+//        for(i=0;i<NUM_OF_INA226_BC_TEST;i++)
+//        {
+//            sprintf(temp1,"%d",(int)INA226_ConvToPower_mW(pglobal_ina226D+i));
+//            sprintf(temp2,"%d",(int)INA226_ConvToCurrent_mA(pglobal_ina226D+i));
+//            sprintf(temp3,"%d",i+1);
+//
+//            sciSend(scilinREG,13,(unsigned char *)"Input power: ");
+//            sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
+//            sciSend(scilinREG,3,(unsigned char *)" mW");
+//            sciSend(scilinREG,1,(unsigned char *)"\t");
+//
+//            sciSend(scilinREG,15,(unsigned char *)"Input current: ");
+//            sciSend(scilinREG,strlen((const char *)temp2),(unsigned char *)temp2);
+//            sciSend(scilinREG,3,(unsigned char *)" mA");
+//
+//            sciSend(scilinREG,2,(unsigned char *)"\r\n");
+//
+//        }
+
+//        sprintf(temp2,"%d",(int)INA226_ConvToCurrent_mA(pglobal_ina226D+1));
+//
+//        sciSend(scilinREG,16,(unsigned char *)"Sensor current: ");
+//        sciSend(scilinREG,strlen((const char *)temp2),(unsigned char *)temp2);
+//        sciSend(scilinREG,3,(unsigned char *)" mA");
+//        sciSend(scilinREG,2,(unsigned char *)"\r\n");
+//
+//                    sprintf(temp1,"%d",(int)pglobal_RAM_copyD->chan_config_data[0].maxI_mA);
+//
+//
+//                    sciSend(scilinREG,15,(unsigned char *)"Current limit: ");
+//                    sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
+//                    sciSend(scilinREG,3,(unsigned char *)" mA");
+//                    sciSend(scilinREG,1,(unsigned char *)"\t");
+//                    sciSend(scilinREG,2,(unsigned char *)"\r\n");
+
 
 
 //        for(i=0;i<NUM_OF_INA226_BATTERY_TEST;i++)
@@ -866,19 +1007,60 @@ void getHK_task(void *pvParameters)
 #endif
 
 #ifdef TEMP_SENSOR_TEST
-        for(i=1;i<NUM_OF_INA226_BATTERY;i++)
-        {
-            sprintf(temp1,"%d",(int)MAX6698_ConvertTemp_C(pglobal_max6698D, i+1));
-            sprintf(temp3,"%d",i+1);
+//        for(i=1;i<NUM_OF_INA226_BATTERY;i++)
+//        {
+//            sprintf(temp1,"%d",(int)MAX6698_ConvertTemp_C(pglobal_max6698D, i+1));
+//            sprintf(temp3,"%d",i+1);
+//
+//            sciSend(scilinREG,13,(unsigned char *)"Battery pair ");
+//            sciSend(scilinREG,strlen((const char *)temp3),(unsigned char *)temp3);
+//            sciSend(scilinREG,14,(unsigned char *)" temperature: ");
+//            sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
+//            sciSend(scilinREG,2,(unsigned char *)" C");
+//
+//            sciSend(scilinREG,2,(unsigned char *)"\r\n");
+//        }
 
-            sciSend(scilinREG,13,(unsigned char *)"Battery pair ");
-            sciSend(scilinREG,strlen((const char *)temp3),(unsigned char *)temp3);
-            sciSend(scilinREG,14,(unsigned char *)" temperature: ");
-            sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
-            sciSend(scilinREG,2,(unsigned char *)" C");
 
-            sciSend(scilinREG,2,(unsigned char *)"\r\n");
-        }
+            sprintf(temp1,"%d",(int)MAX6698_ConvertTemp_C(pglobal_max6698D, 2));
+            sprintf(temp3,"%d",(int)pglobal_heaterD->profile);
+            sprintf(temp6,"%zu",pglobal_max6698D->timestamp_sec);
+
+//            sciSend(scilinREG,14,(unsigned char *)"Current time: ");
+//            sciSend(scilinREG,strlen((const char *)temp6),(unsigned char *)temp6);
+//            sciSend(scilinREG,2,(unsigned char *)"\r\n");
+
+
+//            sciSend(scilinREG,17,(unsigned char *)"Current profile: ");
+//            sciSend(scilinREG,strlen((const char *)temp3),(unsigned char *)temp3);
+//            sciSend(scilinREG,2,(unsigned char *)"\r\n");
+//
+//            sprintf(temp6,"%d",(int)INA226_ConvToPower_mW(pglobal_ina226D));
+//            sciSend(scilinREG,13,(unsigned char *)"Input power: ");
+//            sciSend(scilinREG,strlen((const char *)temp6),(unsigned char *)temp6);
+//            sciSend(scilinREG,2,(unsigned char *)"\r\n");
+//
+//
+//            sprintf(temp6,"%zu",pglobal_heaterD->time_light_last_seen);
+//            sciSend(scilinREG,17,(unsigned char *)"Last light time: ");
+//            sciSend(scilinREG,strlen((const char *)temp6),(unsigned char *)temp6);
+//            sciSend(scilinREG,2,(unsigned char *)"\r\n");
+//
+//            sprintf(temp6,"%zu",pglobal_heaterD->time_of_first_light_per_orbit);
+//            sciSend(scilinREG,18,(unsigned char *)"First light time: ");
+//            sciSend(scilinREG,strlen((const char *)temp6),(unsigned char *)temp6);
+//            sciSend(scilinREG,2,(unsigned char *)"\r\n");
+//
+//
+//            sciSend(scilinREG,21,(unsigned char *)"Battery temperature: ");
+//            sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
+//            sciSend(scilinREG,2,(unsigned char *)" C");
+//
+//            sciSend(scilinREG,2,(unsigned char *)"\r\n");
+//            sciSend(scilinREG,2,(unsigned char *)"\r\n");
+//            sciSend(scilinREG,3,(unsigned char *)"0\r\n");
+
+
 
 #endif
 
@@ -889,6 +1071,7 @@ void getHK_task(void *pvParameters)
         global_hk_last_ticktime = (uint32_t)xTaskGetTickCount();
 #endif
         vTaskDelay(xDelay);
+//        vTaskDelayUntil( &xLastWakeTime, xDelay );
     }
 }
 
@@ -904,6 +1087,8 @@ void check_other_tasks_activity_task(void *pvParameters)
 {
 
     const portTickType xDelay = pdMS_TO_TICKS(CHECK_ACTIVE_TASK_PERIOD);
+    TickType_t xLastWakeTime;
+
     static uint32_t preTick[NUM_OF_WDT_TIMEOUT] = {0};
     char str_temp[1] = {0};
     static uint8_t taskperiod_to_sec_counter = 0;
@@ -921,6 +1106,8 @@ void check_other_tasks_activity_task(void *pvParameters)
     for(global_delay_counter=0;global_delay_counter<1000;global_delay_counter++);
     gioSetBit(hetPORT2,11,0);
 
+
+    xLastWakeTime = xTaskGetTickCount();
 
     while(1)
     {
@@ -998,101 +1185,109 @@ void check_other_tasks_activity_task(void *pvParameters)
         {
             global_wdt_timeout_flag[5] = 1;
         }
+//
+//
+//        /*Check all the timeout flags. Pet the hardware wdt if there is no timeout, otherwise log the error and update to FLASH*/
+//        if(global_wdt_timeout_flag[0] == 1)
+//        {
+//            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_GET_HK);
+//            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+//#ifdef FEE_TEST
+//            /*Update the error log to FLASH*/
+//            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+//            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+//            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+//            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+//            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+//#endif
+//            vTaskSuspend(checkActiveTask_Handle);
+//        }
+//        else if(global_wdt_timeout_flag[1] == 1)
+//        {
+//            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_HEATER_CTRL);
+//            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+//#ifdef FEE_TEST
+//            /*Update the error log to FLASH*/
+//            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+//            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+//            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+//            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+//            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+//#endif
+//            vTaskSuspend(checkActiveTask_Handle);
+//        }
+//        else if(global_wdt_timeout_flag[2] == 1)
+//        {
+//            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_POWER_CONV);
+//            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+//#ifdef FEE_TEST
+//            /*Update the error log to FLASH*/
+//            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+//            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+//            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+//            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+//            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+//#endif
+//            vTaskSuspend(checkActiveTask_Handle);
+//        }
+//        else if(global_wdt_timeout_flag[3] == 1)
+//        {
+//            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_CHAN_CTRL);
+//            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+//#ifdef FEE_TEST
+//            /*Update the error log to FLASH*/
+//            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+//            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+//            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+//            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+//            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+//#endif
+//            vTaskSuspend(checkActiveTask_Handle);
+//        }
+//        else if(global_wdt_timeout_flag[4] == 1)
+//        {
+//            error_log_the_data(pglobal_err_msg_buffer, ERROR_NO_CMD_PETTING, OBC_TIMEOUT);
+//            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+//#ifdef FEE_TEST
+//            /*Update the error log to FLASH*/
+//            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+//            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+//            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+//            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+//            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+//#endif
+//            vTaskSuspend(checkActiveTask_Handle);
+//        }
+//        else if(global_wdt_timeout_flag[5] == 1)
+//        {
+//            error_log_the_data(pglobal_err_msg_buffer, ERROR_NO_CMD_PETTING, GS_TIMEOUT);
+//            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
+//#ifdef FEE_TEST
+//            /*Update the error log to FLASH*/
+//            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
+//            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
+//            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
+//            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
+//            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
+//#endif
+//            vTaskSuspend(checkActiveTask_Handle);
+//        }
+//        else
+//        {
+////            gioSetBit(hetPORT1,20,0);
+////            for(global_delay_counter=0;global_delay_counter<20;global_delay_counter++);       //100 -> 10ms
+////            gioSetBit(hetPORT1,20,1);
+////
+////            while (sciIsTxReady == 0);
+////            sciSend(scilinREG,18,(unsigned char *)"Pet the watchdog\r\n");
+//        }
 
+        gioSetBit(hetPORT1,20,0);
+        for(global_delay_counter=0;global_delay_counter<100;global_delay_counter++);       //100 -> 10ms
+        gioSetBit(hetPORT1,20,1);
 
-        /*Check all the timeout flags. Pet the hardware wdt if there is no timeout, otherwise log the error and update to FLASH*/
-        if(global_wdt_timeout_flag[0] == 1)
-        {
-            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_GET_HK);
-            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
-#ifdef FEE_TEST
-            /*Update the error log to FLASH*/
-            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
-            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
-            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
-            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
-            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
-#endif
-
-        }
-        else if(global_wdt_timeout_flag[1] == 1)
-        {
-            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_HEATER_CTRL);
-            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
-#ifdef FEE_TEST
-            /*Update the error log to FLASH*/
-            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
-            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
-            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
-            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
-            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
-#endif
-
-        }
-        else if(global_wdt_timeout_flag[2] == 1)
-        {
-            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_POWER_CONV);
-            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
-#ifdef FEE_TEST
-            /*Update the error log to FLASH*/
-            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
-            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
-            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
-            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
-            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
-#endif
-
-        }
-        else if(global_wdt_timeout_flag[3] == 1)
-        {
-            error_log_the_data(pglobal_err_msg_buffer, ERROR_TASK_NOT_ACTIVE, TASK_CHAN_CTRL);
-            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
-#ifdef FEE_TEST
-            /*Update the error log to FLASH*/
-            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
-            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
-            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
-            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
-            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
-#endif
-
-        }
-        else if(global_wdt_timeout_flag[4] == 1)
-        {
-            error_log_the_data(pglobal_err_msg_buffer, ERROR_NO_CMD_PETTING, OBC_TIMEOUT);
-            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
-#ifdef FEE_TEST
-            /*Update the error log to FLASH*/
-            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
-            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
-            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
-            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
-            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
-#endif
-
-        }
-        else if(global_wdt_timeout_flag[5] == 1)
-        {
-            error_log_the_data(pglobal_err_msg_buffer, ERROR_NO_CMD_PETTING, GS_TIMEOUT);
-            error_log_the_timestamp(pglobal_err_msg_buffer, pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_ms_buffer, getcurrTime_sec(global_prealtimeClock), getcurrTime_ms(global_prealtimeClock));
-#ifdef FEE_TEST
-            /*Update the error log to FLASH*/
-            fee_package_err_msg_timestamp_s(pglobal_err_msg_timestamp_s_buffer, pglobal_err_msg_timestamp_s_array);
-            fee_package_err_msg_timestamp_ms(pglobal_err_msg_timestamp_ms_buffer, pglobal_err_msg_timestamp_ms_array);
-            TI_Fee_WriteSync(ERR_MSG_COPY, pglobal_err_msg_buffer);
-            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_S_COPY, pglobal_err_msg_timestamp_s_array);
-            TI_Fee_WriteSync(ERR_MSG_TIMESTAMP_MS_COPY, pglobal_err_msg_timestamp_ms_array);
-#endif
-        }
-        else
-        {
-            gioSetBit(hetPORT1,20,0);
-            for(global_delay_counter=0;global_delay_counter<100;global_delay_counter++);       //100 -> 10ms
-            gioSetBit(hetPORT1,20,1);
-
-            while (sciIsTxReady == 0);
-            sciSend(scilinREG,18,(unsigned char *)"Pet the watchdog\r\n");
-        }
+//        while (sciIsTxReady == 0);
+//        sciSend(scilinREG,18,(unsigned char *)"Pet the watchdog\r\n");
 
 
 #ifdef DEBUGGING_MODE
@@ -1103,7 +1298,10 @@ void check_other_tasks_activity_task(void *pvParameters)
 //            sciSend(scilinREG,4,(unsigned char *)"\r\n\r\n");
 #endif
 
-        vTaskDelay(xDelay);
+//        sciSend(scilinREG,3,(unsigned char *)"1\r\n");
+//        vTaskDelay(xDelay);
+        vTaskDelayUntil( &xLastWakeTime, xDelay );
+
 
     }
 }
@@ -1122,7 +1320,11 @@ void outputchanCtrl_task(void *pvParameters)
 {
 
     const portTickType xDelay = pdMS_TO_TICKS(CHAN_CTRL_TASK_PERIOD);
+    TickType_t xLastWakeTime;
+
     global_channel_critical_mode_counter = 0;
+
+    char temp1[30] = {0};
 
     vTaskDelay(xDelay);
 
@@ -1131,8 +1333,10 @@ void outputchanCtrl_task(void *pvParameters)
     pglobal_RAM_copyD->chan_config_data[16].maxV_mV = CHANNEL_MAXIMUM_VOLTAGE;
     pglobal_RAM_copyD->chan_config_data[17].maxV_mV = CHANNEL_MAXIMUM_VOLTAGE;
 
-    pglobal_RAM_copyD->chan_config_data[0].maxI_mA = CHANNEL_MAXIMUM_CURRENT;
-    pglobal_RAM_copyD->chan_config_data[0].maxI_increment_mA = CHANNEL_MAXIMUM_CURRENT_INCREMENT;
+//    pglobal_RAM_copyD->chan_config_data[0].maxI_mA = CHANNEL_MAXIMUM_CURRENT;
+//    pglobal_RAM_copyD->chan_config_data[0].maxI_increment_mA = CHANNEL_MAXIMUM_CURRENT_INCREMENT;
+
+    xLastWakeTime = xTaskGetTickCount();
 
     while(1)
     {
@@ -1145,22 +1349,22 @@ void outputchanCtrl_task(void *pvParameters)
 
 //        INA226_ReadMaskReg(i2cREG1, pglobal_ina226D+1);
 
-//        channel_check_overcurrent_then_config_and_resume(pglobal_channelD, pglobal_ina226D+NUM_OF_INA226_BATTERY_TEST,
+//        channel_check_overcurrent_then_config_and_resume(pglobal_channelD, pglobal_ina226D+1,
 //                                                         pglobal_RAM_copyD, pglobal_RAM_copyD->sensor_config_data, i2cREG1);
 
 //        channel_check_overcurrent_then_config_and_resume(pglobal_channelD, pglobal_ina226D+(NUM_OF_INA226-NUM_OF_INA226_CHANNEL),
 //                                                         pglobal_RAM_copyD, pglobal_RAM_copyD->sensor_config_data, i2cREG1);
-//        channel_check_batteryV_then_update_switch(pglobal_channelD, pglobal_battD, pglobal_RAM_copyD);
-//        channel_check_batteryI_then_update_switch(pglobal_channelD, pglobal_battD, pglobal_RAM_copyD);
+        channel_check_batteryV_then_update_switch(pglobal_channelD, pglobal_battD, pglobal_RAM_copyD);
+        channel_check_batteryI_then_update_switch(pglobal_channelD, pglobal_battD, pglobal_RAM_copyD);
         channel_check_chanV_then_update_switch(pglobal_channelD, pglobal_RAM_copyD);
 
-        if(global_sys_mode == 0)                //if system is set to critical mode
+        if(global_sys_mode == SYSTEM_MODE_CRITICAL)                //if system is set to critical mode
         {
-            if(global_channel_critical_mode_counter < CHANNEL_RECOVER_FROM_CRITICAL_MODE)
+            if(global_channel_critical_mode_counter < pglobal_RAM_copyD->time_switch_from_critical_s)//CHANNEL_RECOVER_FROM_CRITICAL_MODE)
             {
-                global_channel_critical_mode_counter++;
+                global_channel_critical_mode_counter += (((uint16_t)configTICK_RATE_HZ)/CHAN_CTRL_TASK_PERIOD);
             }
-            else                                //recover the system to safe mode after CHANNEL_RECOVER_FROM_CRITICAL_MODE times of periods
+            else                                //recover the system to safe mode after time_switch_from_critical_s times
             {
                 global_sys_mode = 1;
                 global_channel_critical_mode_counter = 0;
@@ -1168,13 +1372,25 @@ void outputchanCtrl_task(void *pvParameters)
         }
 
 
-#endif
+//        sprintf(temp1,"%d",(int)pglobal_RAM_copyD->chan_config_data[0].maxI_mA);
+//
+//
+//        sciSend(scilinREG,15,(unsigned char *)"Current limit: ");
+//        sciSend(scilinREG,strlen((const char *)temp1),(unsigned char *)temp1);
+//        sciSend(scilinREG,3,(unsigned char *)" mA");
+//        sciSend(scilinREG,1,(unsigned char *)"\t");
+//        sciSend(scilinREG,2,(unsigned char *)"\r\n");
 
+
+
+#endif
+//        sciSend(scilinREG,3,(unsigned char *)"2\r\n");
 
 #ifdef FREERTOS_PRAGMA
         global_chanctrl_last_ticktime = (uint32_t)xTaskGetTickCount();      //update last ticktime to indicate task activity
 #endif
-        vTaskDelay(xDelay);
+//        vTaskDelay(xDelay);
+        vTaskDelayUntil( &xLastWakeTime, xDelay );
     }
 }
 
@@ -1190,21 +1406,37 @@ void heaterCtrl_task(void *pvParameters)
 {
 
     const portTickType xDelay = pdMS_TO_TICKS(HEATER_CTRL_TASK_PERIOD);
+    TickType_t xLastWakeTime;
+
     vTaskDelay(xDelay);
 
+
+    xLastWakeTime = xTaskGetTickCount();
     while(1)
     {
+//        for(global_heater_counter=0; global_heater_counter<NUM_OF_HEATER; global_heater_counter++)
+//        {
+//            heater_update_profile(pglobal_heaterD+global_heater_counter, pglobal_RAM_copyD, pglobal_ina3221D, getcurrTime_sec(global_prealtimeClock));
+//            heater_read_rawdata_and_convert(pglobal_heaterD+global_heater_counter, pglobal_max6698D);
+//            heater_temp_SW(pglobal_heaterD+global_heater_counter, pglobal_RAM_copyD);
+//        }
+
         for(global_heater_counter=0; global_heater_counter<NUM_OF_HEATER; global_heater_counter++)
         {
-            heater_update_profile(pglobal_heaterD+global_heater_counter, pglobal_RAM_copyD, pglobal_ina3221D, getcurrTime_sec(global_prealtimeClock));
+            heater_update_profile(pglobal_heaterD+global_heater_counter, pglobal_RAM_copyD, pglobal_ina226D, getcurrTime_sec(global_prealtimeClock));
             heater_read_rawdata_and_convert(pglobal_heaterD+global_heater_counter, pglobal_max6698D);
             heater_temp_SW(pglobal_heaterD+global_heater_counter, pglobal_RAM_copyD);
         }
 
+
+
 #ifdef FREERTOS_PRAGMA
         global_heater_last_ticktime = (uint32_t)xTaskGetTickCount();
 #endif
-        vTaskDelay(xDelay);
+
+//        sciSend(scilinREG,3,(unsigned char *)"3\r\n");
+//        vTaskDelay(xDelay);
+        vTaskDelayUntil( &xLastWakeTime, xDelay );
     }
 }
 
@@ -1220,6 +1452,8 @@ void powerConversion_and_battCtrl_task(void *pvParameters)
 {
 
     const portTickType xDelay = pdMS_TO_TICKS(POWER_CONV_TASK_PERIOD);
+    TickType_t xLastWakeTime;
+
     vTaskDelay(xDelay);
 
 #ifdef BOOST_CONVERTER_TEST
@@ -1239,6 +1473,7 @@ void powerConversion_and_battCtrl_task(void *pvParameters)
     }
 
 
+    xLastWakeTime = xTaskGetTickCount();
     while(1)
     {
 
@@ -1253,22 +1488,27 @@ void powerConversion_and_battCtrl_task(void *pvParameters)
 
 
 
-            mppt_getPower_ina226(pglobal_ina226D+NUM_OF_INA226_CHANNEL_TEST+global_mppt_counter, pglobal_mpptD+global_mppt_counter);
+            mppt_getPower_ina226(pglobal_ina226D, pglobal_mpptD+global_mppt_counter);
 
             mppt_pno_fb(pglobal_mpptD+global_mppt_counter);
 
-            mppt_reset_dac_if_no_power(pglobal_mpptD+global_mppt_counter, pglobal_ina226D+NUM_OF_INA226-1-NUM_OF_INA226_BOOSTCONVERTER+global_mppt_counter)
+//            mppt_reset_dac_if_no_power(pglobal_mpptD+global_mppt_counter, pglobal_ina226D+NUM_OF_INA226-1-NUM_OF_INA226_BOOSTCONVERTER+global_mppt_counter)
+
+            mppt_reset_dac_if_no_power(pglobal_mpptD+global_mppt_counter, pglobal_ina226D);
 
             dac_write_fb(mibspiPORT3,pglobal_mpptD+global_mppt_counter, global_mppt_counter);
 
 
-            sprintf(temp4,"%d",(int)(pglobal_mpptD+i)->dacOUT);
-            sprintf(temp3,"%d",i+1);
+//            sprintf(temp4,"%d",(int)(pglobal_mpptD+i)->dacOUT);
+//            sprintf(temp3,"%d",i+1);
+//
+//            sciSend(scilinREG,11,(unsigned char *)"DAC output:");
+//            sciSend(scilinREG,strlen((const char *)temp4),(unsigned char *)temp4);
+//            sciSend(scilinREG,2,(unsigned char *)"\r\n");
 
-            sciSend(scilinREG,11,(unsigned char *)"DAC output:");
-            sciSend(scilinREG,strlen((const char *)temp4),(unsigned char *)temp4);
-            sciSend(scilinREG,2,(unsigned char *)"\r\n");
 
+            battery_read_rawdata_and_convert(pglobal_battD+global_mppt_counter, pglobal_ina226D+1, pglobal_max6698D);
+            battery_check_overcurrent_then_change_MPP(pglobal_battD+global_mppt_counter, pglobal_RAM_copyD, pglobal_mpptD);
 
          }
 #endif
@@ -1322,7 +1562,10 @@ void powerConversion_and_battCtrl_task(void *pvParameters)
 #ifdef FREERTOS_PRAGMA
         global_batt_last_ticktime = (uint32_t)xTaskGetTickCount();
 #endif
-        vTaskDelay(xDelay);
+
+//        sciSend(scilinREG,3,(unsigned char *)"4\r\n");
+//        vTaskDelay(xDelay);
+        vTaskDelayUntil( &xLastWakeTime, xDelay );
 
     }
 }
@@ -1377,13 +1620,23 @@ void receiveCMD_task(void *pvParameters)
         }
         else if(strcmp((const char *)cmd1, (const char *)"+")==0)
         {
-            gioSetBit(hetPORT1,17,1);
+            gioSetBit(hetPORT1,30,1);
             sciSend(scilinREG,19,(unsigned char *)"Increase current.\r\n");
         }
         else if(strcmp((const char *)cmd1, (const char *)"-")==0)
         {
-            gioSetBit(hetPORT1,17,0);
+            gioSetBit(hetPORT1,30,0);
             sciSend(scilinREG,19,(unsigned char *)"Decrease current.\r\n");
+        }
+        else if(strcmp((const char *)cmd1, (const char *)"doze")==0)
+        {
+            sciSend(scilinREG,18,(unsigned char *)"Enter doze mode.\r\n");
+            enter_doze();
+        }
+        else if(strcmp((const char *)cmd1, (const char *)"snooze")==0)
+        {
+            sciSend(scilinREG,20,(unsigned char *)"Enter snooze mode.\r\n");
+            enter_snooze();
         }
         else
         {
@@ -1403,14 +1656,32 @@ void receiveCMD_task(void *pvParameters)
 void vApplicationIdleHook(void)
 {
 #ifdef LPM_TEST
-    enter_snooze();
-    post_wakeup();
+    if(global_lpm_flag == 1)
+    {
+        enter_snooze();
+        post_wakeup();
+    }
 #endif
 }
 
 void rtiNotification(uint32 notification)
 {
+    if(notification == rtiNOTIFICATION_COMPARE1)
+    {
+        *((volatile uint32_t *) 0xFFFFFC88) = 2U;
+        RTOS_RunTimeCounter++;    /* increment runtime counter */
+    }
 
+}
+
+void RTOS_AppConfigureTimerForRuntimeStats(void)
+{
+        RTOS_RunTimeCounter = 0;
+}
+
+uint32_t RTOS_AppGetRuntimeCounterValueFromISR(void)
+{
+       return RTOS_RunTimeCounter;
 }
 
 

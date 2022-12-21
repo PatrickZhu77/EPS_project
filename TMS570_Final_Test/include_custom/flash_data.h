@@ -39,7 +39,7 @@
 #define     CHANNEL_FLASHED_COPY_16BIT_BLOCK_NUM    11
 #define     CHANNEL_FLASHED_COPY_32BIT_BLOCK_NUM    12
 
-#define     FLASHED_DATA_LENGTH     454     //in bytes. 450 bytes of data + 4 bytes of CRC checksum
+#define     FLASHED_DATA_LENGTH     458     //in bytes. 454 bytes of data + 4 bytes of CRC checksum
 
 
 typedef struct
@@ -67,9 +67,9 @@ typedef struct
     uint16_t ina226_monitor_mask;       //ina226 of current monitor mask register init value
     uint16_t ina226_battery_mask;       //ina226 of battery protection module mask register init value
     uint16_t ina226_channel_mask;       //ina226 of channel protection module mask register init value
-//    uint16_t ina226_bc_mask;            //ina226 of boost converter monitor module mask register init value
-    uint16_t ina3221_cfg_setting;       //ina3221 configuration register init value
-    uint16_t ina3221_mask_setting;      //ina3221 mask register init value
+    uint16_t ina226_bc_mask;            //ina226 of boost converter monitor module mask register init value
+//    uint16_t ina3221_cfg_setting;       //ina3221 configuration register init value
+//    uint16_t ina3221_mask_setting;      //ina3221 mask register init value
 }sensor_config_t;
 
 
@@ -92,6 +92,7 @@ typedef struct
     uint16_t heater_battery_heat_up_time_s;         //sec. the time to heat up battery to proper temperature for charging
     uint16_t dac_init;                              //initial output value of DACs
     uint16_t dac_stepsize_init;                     //initial stepsize of DACs
+    uint16_t time_switch_from_critical_s;           //sec. the time that the system stays in critical mode. It will automatically switch back to safe mode after that.
     uint16_t obc_timeout_s;                         //sec. timeout period of obc command petting the eps
     uint32_t gs_timeout_s;                          //sec. timeout period of ground station command petting the eps
     int32_t batt_charging_temp_min_c;               //C. battery minimum charging temperature (2's complement format)

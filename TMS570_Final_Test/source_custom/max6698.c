@@ -218,7 +218,7 @@ void MAX6698_ReadTemp_Raw(i2cBASE_t *i2c, max6698_housekeeping_t *data, uint8_t 
             MAX6698_ReceiveData(i2c, data->address, TM1_REG, data_temp);
             break;
         case 2:
-            MAX6698_ReceiveData(i2c, data->address, TM2_REG, data_temp);
+            MAX6698_ReceiveData(i2c, data->address, TM1_REG, data_temp);
             break;
         default:
             break;

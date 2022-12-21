@@ -51,6 +51,8 @@ void INA226_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
     /* Transmit DATA_COUNT number of data in Polling mode */
     i2cSend(i2c,2, data);
 
+//    i2cSend_withReturn(i2c,2, data)
+
     /* Wait until Bus Busy is cleared */
     while(i2cIsBusBusy(i2c) == true);
 
@@ -66,6 +68,77 @@ void INA226_SendData(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
     for(delay=0;delay<50;delay++);
 
 }
+
+/***************************************************************************
+ * @brief
+ *   Write data to given register with address.
+ *
+ * @param[in] i2c
+ *   Pointer to I2C peripheral register block.
+ *
+ * @param[in] addr
+ *   I2C address, in 7 bit format
+ *
+ * @param[in] reg
+ *   Register to be written.
+ *
+ * @param[in] data
+ *   Pointer to the data to be transmitted.
+ *
+ ******************************************************************************/
+uint8_t INA226_SendData_withReturn(i2cBASE_t *i2c, uint8_t addr, uint8_t reg, uint8_t *data)
+{
+    uint8_t delay=0;
+
+//    while(i2cIsMasterReady(i2c) != true);
+    /* Configure address of Slave to talk to */
+    i2cSetSlaveAdd(i2c, addr);
+
+    /* Set direction to Transmitter */
+    /* Note: Optional - It is done in Init */
+    i2cSetDirection(i2c, I2C_TRANSMITTER);
+
+    /* Configure Data count */
+    /* Data Count + 1 ( Word Address) */
+    i2cSetCount(i2c, 2+1);
+
+    /* Set mode as Master */
+    i2cSetMode(i2c, I2C_MASTER);
+
+    /* Set Stop after programmed Count */
+    i2cSetStop(i2c);
+
+    /* Transmit Start Condition */
+    i2cSetStart(i2c);
+
+    /* Send the Word Address */
+    i2cSendByte(i2c, reg);
+
+    /* Transmit DATA_COUNT number of data in Polling mode */
+
+    if(i2cSend_withReturn(i2c,2, data))
+    {
+        return 1;
+    }
+
+    /* Wait until Bus Busy is cleared */
+    while(i2cIsBusBusy(i2c) == true);
+
+    /* Wait until Stop is detected */
+    while(i2cIsStopDetected(i2c) == 0);
+
+    /* Clear the Stop condition */
+    i2cClearSCD(i2c);
+
+    while(i2cIsMasterReady(i2c) != true);
+    /* Simple Delay before starting Next Block */
+    /* Depends on how quick the Slave gets ready */
+    for(delay=0;delay<50;delay++);
+
+    return 0;
+
+}
+
 
 /***************************************************************************
  * @brief
@@ -262,6 +335,59 @@ void INA226_Init(i2cBASE_t *i2c, uint16_t Rshunt, sensor_config_t data2, uint16_
     INA226_SendData(i2c,data3->address, INA226_AL_REG, alert_temp);
 }
 
+
+uint8_t INA226_Init_withReturn(i2cBASE_t *i2c, uint16_t Rshunt, sensor_config_t data2, uint16_t mask, ina226_housekeeping_t *data3)
+{
+    uint8_t config_temp[2]={0};
+    uint8_t cal_temp[2]={0};
+    uint8_t mask_temp[2]={0};
+    uint8_t alert_temp[2]={0};
+    uint16_t alert_raw = 0;
+    uint16_t cal_calculated = 0;
+
+    /* Calculate the calibration register value according to shunt resistance */
+    cal_calculated = INA226_RshuntToCalReg(Rshunt);
+
+
+    /* Convert alert value in mA to raw shunt voltage value */
+    alert_raw = INA226_CurrentToAlert_ShuntVoltage_Raw(data3->alert_reg, cal_calculated);
+
+    /* Separate the 16bit integers into 8bit arrays */
+    config_temp[0] = (uint8_t)(data2.ina226_cfg_setting >> 8);
+    config_temp[1] = (uint8_t)data2.ina226_cfg_setting;
+    cal_temp[0] = (uint8_t)(cal_calculated >> 8);
+    cal_temp[1] = (uint8_t)cal_calculated;
+    mask_temp[0] = (uint8_t)(mask >> 8);
+    mask_temp[1] = (uint8_t)mask;
+    alert_temp[0] = (uint8_t)(alert_raw >> 8);
+    alert_temp[1] = (uint8_t)alert_raw;
+
+
+    /* Write values to proper registers */
+    if(INA226_SendData_withReturn(i2c,data3->address, INA226_CFG_REG, config_temp))
+    {
+        return 1;
+    }
+    else if(INA226_SendData_withReturn(i2c,data3->address, INA226_CAL_REG, cal_temp))
+    {
+        return 1;
+    }
+    else if(INA226_SendData_withReturn(i2c,data3->address, INA226_MASK_REG, mask_temp))
+    {
+        return 1;
+    }
+    else if(INA226_SendData_withReturn(i2c,data3->address, INA226_AL_REG, alert_temp))
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+
+}
+
+
 /***************************************************************************
  * @brief
  *   Change the value of mask register
@@ -420,8 +546,8 @@ void INA226_ReadCurrent_Raw(i2cBASE_t *i2c, ina226_housekeeping_t *data)
     data_reg = data_reg | data_temp[1];
 
     /* 2's complement conversion */
-//    if(data_reg&0x8000)
-//        data_reg = ~(data_reg - 1);
+    if(data_reg&0x8000)
+        data_reg = ~(data_reg - 1);
 
 
     /* Save the raw data to data structure */

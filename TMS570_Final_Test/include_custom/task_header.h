@@ -23,16 +23,15 @@ void receiveCMD_task(void *pvParameters);
 TaskHandle_t executeCMDTask_Handle;
 void executeCMD_task(void *pvParameters);
 
-#define checkActive_TASK_PRIO         16
-#define checkActive_STK_SIZE         128
-TaskHandle_t checkActiveTask_Handle;
-void check_other_tasks_activity_task(void *pvParameters);
-
-
-#define getHK_TASK_PRIO         15          //Must be higher than all the other controlling tasks
+#define getHK_TASK_PRIO         16          //Must be higher than all the other controlling tasks
 #define getHK_STK_SIZE         128
 TaskHandle_t getHKTask_Handle;
 void getHK_task(void *pvParameters);
+
+#define checkActive_TASK_PRIO         15
+#define checkActive_STK_SIZE         128
+TaskHandle_t checkActiveTask_Handle;
+void check_other_tasks_activity_task(void *pvParameters);
 
 
 #define heaterCtrl_TASK_PRIO         12
@@ -57,14 +56,13 @@ void outputchanCtrl_task(void *pvParameters);
 
 
 /*Repetition period of each task*/
-#define GET_HK_TASK_PERIOD          1000    //ms. Must be longer than sensors' conversion time: ina226/ina3221-16ms, max6698-31ms
-#define CHECK_ACTIVE_TASK_PERIOD    50      //ms. This delay time should be longer than the period of all the other tasks.          *Actually period is half of this value. (Which means 0.9s for 1800ms)
-                                            //one second gives the chance for other tasks to run at least once
+#define GET_HK_TASK_PERIOD          100    //ms. Must be longer than sensors' conversion time: ina226/ina3221-16ms, max6698-31ms
+#define CHECK_ACTIVE_TASK_PERIOD    10      //ms.
+
 #define CHAN_CTRL_TASK_PERIOD       100     //ms. Determined by the recovery delay of task
 #define HEATER_CTRL_TASK_PERIOD     500     //ms.
-#define POWER_CONV_TASK_PERIOD      2000     //ms.
+#define POWER_CONV_TASK_PERIOD      200     //ms.
 #define RECEIVE_CMD_TASK_PERIOD     100     //ms.
-#define WDT_TASK_PERIOD             1000    //ms.
 
 
 #define NUM_OF_WDT_TIMEOUT     6

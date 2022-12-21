@@ -309,14 +309,14 @@ void fee_package_data_with_crc(system_config_t *source_data, uint8_t *packed_dat
     pointer_counter++;
     *(packed_data + pointer_counter) = pick_low8bit_of_uint16(source_data->sensor_config_data.ina226_channel_mask);
     pointer_counter++;
-    *(packed_data + pointer_counter) = pick_high8bit_of_uint16(source_data->sensor_config_data.ina3221_cfg_setting);
-    pointer_counter++;
-    *(packed_data + pointer_counter) = pick_low8bit_of_uint16(source_data->sensor_config_data.ina3221_cfg_setting);
-    pointer_counter++;
-    *(packed_data + pointer_counter) = pick_high8bit_of_uint16(source_data->sensor_config_data.ina3221_mask_setting);
-    pointer_counter++;
-    *(packed_data + pointer_counter) = pick_low8bit_of_uint16(source_data->sensor_config_data.ina3221_mask_setting);
-    pointer_counter++;
+//    *(packed_data + pointer_counter) = pick_high8bit_of_uint16(source_data->sensor_config_data.ina3221_cfg_setting);
+//    pointer_counter++;
+//    *(packed_data + pointer_counter) = pick_low8bit_of_uint16(source_data->sensor_config_data.ina3221_cfg_setting);
+//    pointer_counter++;
+//    *(packed_data + pointer_counter) = pick_high8bit_of_uint16(source_data->sensor_config_data.ina3221_mask_setting);
+//    pointer_counter++;
+//    *(packed_data + pointer_counter) = pick_low8bit_of_uint16(source_data->sensor_config_data.ina3221_mask_setting);
+//    pointer_counter++;
 
     /*Channel config struct*/
     for(i=0; i<NUM_OF_CHANNELS; i++)
@@ -499,10 +499,10 @@ uint8_t fee_check_crc_then_unpackage_data(uint8_t *packed_data, system_config_t 
     pointer_counter = pointer_counter+2;
     dest_data->sensor_config_data.ina226_channel_mask = combine_8bit_to_uint16(packed_data + pointer_counter);
     pointer_counter = pointer_counter+2;
-    dest_data->sensor_config_data.ina3221_cfg_setting = combine_8bit_to_uint16(packed_data + pointer_counter);
-    pointer_counter = pointer_counter+2;
-    dest_data->sensor_config_data.ina3221_mask_setting = combine_8bit_to_uint16(packed_data + pointer_counter);
-    pointer_counter = pointer_counter+2;
+//    dest_data->sensor_config_data.ina3221_cfg_setting = combine_8bit_to_uint16(packed_data + pointer_counter);
+//    pointer_counter = pointer_counter+2;
+//    dest_data->sensor_config_data.ina3221_mask_setting = combine_8bit_to_uint16(packed_data + pointer_counter);
+//    pointer_counter = pointer_counter+2;
 
 
     for(i=0; i<NUM_OF_CHANNELS; i++)
@@ -644,10 +644,10 @@ void fee_unpackage_data_ignore_crc(uint8_t *packed_data, system_config_t *dest_d
     pointer_counter = pointer_counter+2;
     dest_data->sensor_config_data.ina226_channel_mask = combine_8bit_to_uint16(packed_data + pointer_counter);
     pointer_counter = pointer_counter+2;
-    dest_data->sensor_config_data.ina3221_cfg_setting = combine_8bit_to_uint16(packed_data + pointer_counter);
-    pointer_counter = pointer_counter+2;
-    dest_data->sensor_config_data.ina3221_mask_setting = combine_8bit_to_uint16(packed_data + pointer_counter);
-    pointer_counter = pointer_counter+2;
+//    dest_data->sensor_config_data.ina3221_cfg_setting = combine_8bit_to_uint16(packed_data + pointer_counter);
+//    pointer_counter = pointer_counter+2;
+//    dest_data->sensor_config_data.ina3221_mask_setting = combine_8bit_to_uint16(packed_data + pointer_counter);
+//    pointer_counter = pointer_counter+2;
 
 
     for(i=0; i<NUM_OF_CHANNELS; i++)

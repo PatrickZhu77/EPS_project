@@ -99,6 +99,10 @@
 #define portRTI_INTFLAG_REG  	( * ( ( volatile uint32_t * ) 0xFFFFFC88 ) )
 
 
+#define portRTI_CNT0_COMP1_REG  ( * ( ( volatile uint32_t * ) 0xFFFFFC58 ) )
+#define portRTI_CNT0_UDCP1_REG  ( * ( ( volatile uint32_t * ) 0xFFFFFC5C ) )
+
+
 /* Constants required to set up the initial stack of each task. */
 #define portINITIAL_SPSR	   	( ( StackType_t ) 0x1F )
 #define portINITIAL_SPSR_IF_PRIVILEGED   ( ( StackType_t ) 0x1F )
@@ -390,12 +394,20 @@ static void prvSetupTimerInterrupt(void)
 	portRTI_CNT0_COMP0_REG = ( configCPU_CLOCK_HZ / 2 ) / configTICK_RATE_HZ;
 	portRTI_CNT0_UDCP0_REG = ( configCPU_CLOCK_HZ / 2 ) / configTICK_RATE_HZ;
 
+
+    portRTI_CNT0_COMP1_REG = ( configCPU_CLOCK_HZ / 2 );
+    portRTI_CNT0_UDCP1_REG = ( configCPU_CLOCK_HZ / 2 );
+
+
 	/* Clear interrupts. */
 	portRTI_INTFLAG_REG     =  0x0007000FU;
 	portRTI_CLEARINTENA_REG	= 0x00070F0FU;
 
 	/* Enable the compare 0 interrupt. */
 	portRTI_SETINTENA_REG = 0x00000001U;
+
+	portRTI_SETINTENA_REG |= 0x00000002U;
+
 	portRTI_GCTRL_REG    |= 0x00000001U;
 }
 /*-----------------------------------------------------------*/

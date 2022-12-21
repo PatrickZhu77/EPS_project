@@ -225,6 +225,7 @@ void    i2cSetBaudrate(i2cBASE_t *i2c, uint32 baud);
 uint32  i2cIsTxReady(i2cBASE_t *i2c);
 void    i2cSendByte(i2cBASE_t *i2c, uint8 byte);
 void    i2cSend(i2cBASE_t *i2c, uint32 length, uint8 * data);
+uint8_t i2cSend_withReturn(i2cBASE_t *i2c, uint32 length, uint8 * data);
 uint32  i2cIsRxReady(i2cBASE_t *i2c);
 uint32  i2cIsStopDetected(i2cBASE_t *i2c);
 void    i2cClearSCD(i2cBASE_t *i2c);

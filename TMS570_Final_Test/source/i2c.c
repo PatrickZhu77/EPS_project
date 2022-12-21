@@ -410,6 +410,59 @@ void i2cSend(i2cBASE_t *i2c, uint32 length, uint8 * data)
 /* USER CODE END */
 }
 
+uint8_t i2cSend_withReturn(i2cBASE_t *i2c, uint32 length, uint8 * data)
+{
+
+/* USER CODE BEGIN (17) */
+/* USER CODE END */
+
+    if ((g_i2cTransfer_t.mode & (uint32)I2C_TX_INT) != 0U)
+    {
+        /* Interrupt mode */
+        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+        g_i2cTransfer_t.data   = data;
+        /* start transmit by sending first byte */
+        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+        i2c->DXR = (uint32)(*g_i2cTransfer_t.data);
+        /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+        /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
+        g_i2cTransfer_t.data++;
+
+        /* Length -1 since one data is written already */
+        g_i2cTransfer_t.length = (length - 1U);
+
+        /* Enable Transmit Interrupt */
+        i2c->IMR |= (uint32)I2C_TX_INT;
+    }
+    else
+    {
+        /* send the data */
+        while (length > 0U)
+        {
+            /*SAFETYMCUSW 28 D MR:NA <APPROVED> "Potentially infinite loop found - Hardware Status check for execution sequence" */
+            while ((i2c->STR & (uint32)I2C_TX_INT) == 0U)
+            {
+                if((i2c->STR & I2C_NACK_INT) == I2C_NACK_INT)
+                {
+                    return 1;
+                }
+
+            } /* Wait */
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+            i2c->DXR = (uint32)(*data);
+            /*SAFETYMCUSW 45 D MR:21.1 <APPROVED> "Valid non NULL input parameters are only allowed in this driver" */
+            /*SAFETYMCUSW 567 S MR:17.1,17.4 <APPROVED> "Pointer increment needed" */
+            data++;
+            length--;
+        }
+    }
+    return 0;
+/* USER CODE BEGIN (18) */
+
+/* USER CODE END */
+}
+
+
 /** @fn uint32 i2cIsRxReady(i2cBASE_t *i2c)
 *   @brief Check if Rx buffer full
 *   @param[in] i2c - i2c module base address

@@ -16,7 +16,7 @@ void mppt_hunts(mppt_data_t *data)
 {
     if(data->dir == data->predir)                       //when the direction does not change
     {
-        if(data->counter >= 7)               //when change with same direction for 8 times
+        if(data->counter >= 3)               //when change with same direction for 8 times
          {
             if(data->stepsize < EN_STEPSIZE_MAX)         //maximum stepsize is 8 times of standard (INCOMPLETED!!!!!!!!!!!!!!)
             {

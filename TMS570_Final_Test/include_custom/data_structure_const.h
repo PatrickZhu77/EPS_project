@@ -6,8 +6,8 @@
 #define     NUM_OF_INA226_OVERCURRENT_PROTECTION_TEST       0
 #define     NUM_OF_INA3221_TEST                             0
 #define     NUM_OF_INA226_CHANNEL_TEST                      1
-#define     NUM_OF_INA226_BATTERY_TEST                      1
-#define     NUM_OF_INA226_BC_TEST                           0
+#define     NUM_OF_INA226_BATTERY_TEST                      0
+#define     NUM_OF_INA226_BC_TEST                           1
 
 #define     NUM_OF_INA226                           31      // 27 is the default value according to schematic of eps
 #define     NUM_OF_INA226_OVERCURRENT_PROTECTION    6       // 6 is the default value according to schematic of eps

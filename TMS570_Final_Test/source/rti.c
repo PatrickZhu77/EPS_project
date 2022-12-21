@@ -900,6 +900,26 @@ void rtiCompare1Interrupt(void)
 
 
 
+#pragma CODE_STATE(vPortRTOSRunTimeISR, 32)
+#pragma INTERRUPT(vPortRTOSRunTimeISR, IRQ)
+
+/* SourceId : RTI_SourceId_023 */
+/* DesignId : RTI_DesignId_022 */
+/* Requirements : HL_SR95 */
+void vPortRTOSRunTimeISR(void)
+{
+/* USER CODE BEGIN (77) */
+/* USER CODE END */
+
+    /* Clear interrupt flag.*/
+    //rtiREG1->INTFLAG = 2U;
+    *((volatile uint32_t *) 0xFFFFFC88) = 2U;
+    rtiNotification(rtiNOTIFICATION_COMPARE1);
+//    RTOS_RunTimeCounter++;    /* increment runtime counter */
+
+/* USER CODE BEGIN (78) */
+/* USER CODE END */
+}
 
 
 
